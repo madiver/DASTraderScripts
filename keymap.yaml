@@ -1,0 +1,205 @@
+﻿# Global controls & config
+- id: cancel_all
+  key: Ctrl+Shift+Q
+  label: Cancel All
+  scriptPath: hotkeys/cancel_all.das
+- id: gtfo
+  key: Alt+Ctrl+Q
+  label: GTFO
+  scriptPath: hotkeys/gtfo.das
+- id: set_global_variables
+  key: Ctrl+,
+  label: Set Global Variables
+  scriptPath: hotkeys/set_global_variables.das
+- id: switch_to_sim
+  key: Alt+Ctrl+S
+  label: Switch to Sim
+  scriptPath: hotkeys/switch_to_sim.das
+- id: switch_to_live
+  key: Alt+Ctrl+L
+  label: Switch to Live
+  scriptPath: hotkeys/switch_to_live.das
+- id: show_config
+  key: Alt+Ctrl+.
+  label: Show Config
+  scriptPath: hotkeys/show_config.das
+- id: cancel_all_no_stops
+  key: 
+  label: Cancel All No Stops
+  scriptPath: hotkeys/cancel_all_no_stops.das
+
+# Buy orders: Bid+ SL
+- id: buy_10_bid_plus_sl
+  key: Ctrl+Shift+1
+  label: Buy 10 Bid+ SL
+  scriptPath: hotkeys/buy_10_bid_plus_sl.das
+- id: buy_50_bid_plus_sl
+  key: Ctrl+Shift+2
+  label: Buy 50 Bid+ SL
+  scriptPath: hotkeys/buy_50_bid_plus_sl.das
+- id: buy_100_bid_plus_sl
+  key: Ctrl+Shift+3
+  label: Buy 100 Bid+ SL
+  scriptPath: hotkeys/buy_100_bid_plus_sl.das
+- id: buy_150_bid_plus_sl
+  key: Ctrl+Shift+4
+  label: Buy 150 Bid+ SL
+  scriptPath: hotkeys/buy_150_bid_plus_sl.das
+
+# Buy orders: Bid SL
+- id: buy_10_bid_sl
+  key: Alt+Ctrl+1
+  label: Buy 10 Bid SL
+  scriptPath: hotkeys/buy_10_bid_sl.das
+- id: buy_50_bid_sl
+  key: Alt+Ctrl+2
+  label: Buy 50 Bid SL
+  scriptPath: hotkeys/buy_50_bid_sl.das
+- id: buy_100_bid_sl
+  key: Alt+Ctrl+3
+  label: Buy 100 Bid SL
+  scriptPath: hotkeys/buy_100_bid_sl.das
+- id: buy_150_bid_sl
+  key: Alt+Ctrl+4
+  label: Buy 150 Bid SL
+  scriptPath: hotkeys/buy_150_bid_sl.das
+
+# Buy orders: Ask SL
+- id: buy_10_ask_sl
+  key: Alt+Shift+1
+  label: Buy 10 Ask SL
+  scriptPath: hotkeys/buy_10_ask_sl.das
+- id: buy_50_ask_sl
+  key: Alt+Shift+2
+  label: Buy 50 Ask SL
+  scriptPath: hotkeys/buy_50_ask_sl.das
+- id: buy_100_ask_sl
+  key: Alt+Shift+3
+  label: Buy 100 Ask SL
+  scriptPath: hotkeys/buy_100_ask_sl.das
+- id: buy_150_ask_sl
+  key: Alt+Shift+4
+  label: Buy 150 Ask SL
+  scriptPath: hotkeys/buy_150_ask_sl.das
+
+# Buy orders: Ask+ SL
+- id: buy_10_ask_plus_sl
+  key: Alt+Ctrl+Shift+1
+  label: Buy 10 Ask+ SL
+  scriptPath: hotkeys/buy_10_ask_plus_sl.das
+- id: buy_50_ask_plus_sl
+  key: Alt+Ctrl+Shift+2
+  label: Buy 50 Ask+ SL
+  scriptPath: hotkeys/buy_50_ask_plus_sl.das
+- id: buy_100_ask_plus_sl
+  key: Alt+Ctrl+Shift+3
+  label: Buy 100 Ask+ SL
+  scriptPath: hotkeys/buy_100_ask_plus_sl.das
+- id: buy_150_ask_plus_sl
+  key: Alt+Ctrl+Shift+4
+  label: Buy 150 Ask+ SL
+  scriptPath: hotkeys/buy_150_ask_plus_sl.das
+
+# Sell orders: Ask
+- id: sell_1_1_ask
+  key: Ctrl+A
+  label: Sell 1/1 Ask
+  scriptPath: hotkeys/sell_1_1_ask.das
+- id: sell_1_2_ask
+  key: Ctrl+S
+  label: Sell 1/2 Ask
+  scriptPath: hotkeys/sell_1_2_ask.das
+- id: sell_1_4_ask
+  key: Ctrl+D
+  label: Sell 1/4 Ask
+  scriptPath: hotkeys/sell_1_4_ask.das
+
+# Sell orders: Bid-
+- id: sell_1_1_bid
+  key: Ctrl+Z
+  label: Sell 1/1 Bid-
+  scriptPath: hotkeys/sell_1_1_bid.das
+- id: sell_1_2_bid
+  key: Ctrl+X
+  label: Sell 1/2 Bid-
+  scriptPath: hotkeys/sell_1_2_bid.das
+- id: sell_1_4_bid
+  key: Ctrl+C
+  label: Sell 1/4 Bid-
+  scriptPath: hotkeys/sell_1_4_bid.das
+
+# Stops
+- id: set_auto_stop
+  key: Ctrl+Shift+S
+  label: Set Auto Stop
+  scriptPath: hotkeys/set_auto_stop.das
+- id: set_auto_stop_be_1_1
+  key: Ctrl+Shift+B
+  label: Set Auto Stop BE 1/1
+  scriptPath: hotkeys/set_auto_stop_be_1_1.das
+- id: set_0_10_stop
+  key: Alt+Ctrl+Win+-
+  label: Set 0.10 Stop
+  scriptPath: hotkeys/set_0_10_stop.das
+- id: set_0_20_stop
+  key: Alt+Ctrl+Win+=
+  label: Set 0.20 Stop
+  scriptPath: hotkeys/set_0_20_stop.das
+- id: set_0_30_stop
+  key: Alt+Ctrl+Win+[
+  label: Set 0.30 Stop
+  scriptPath: hotkeys/set_0_30_stop.das
+- id: set_0_05_stop
+  key: 
+  label: Set 0.05 Stop
+  scriptPath: hotkeys/set_0_05_stop.das
+- id: set_auto_stop_be_1_2
+  key: Alt+Ctrl+B
+  label: Set Auto Stop BE 1/2
+  scriptPath: hotkeys/set_auto_stop_be_1_2.das
+
+# Take profit
+- id: set_take_profit
+  key: Ctrl+Shift+T
+  label: Set Take Profit
+  scriptPath: hotkeys/set_take_profit.das
+- id: take_profit_executor
+  key: 
+  label: Take Profit Executor
+  scriptPath: hotkeys/take_profit_executor.das
+
+# Utilities & toggles
+- id: select_primary_order_entry
+  key: Alt+Ctrl+Win+1
+  label: Select Primary Order Entry
+  scriptPath: hotkeys/select_primary_order_entry.das
+- id: toggle_position_window
+  key: Alt+Ctrl+Win+T
+  label: Toggle Position Window
+  scriptPath: hotkeys/toggle_position_window.das
+- id: toggle_stp_tp_feature
+  key: Alt+Ctrl+Win+]
+  label: Toggle STP/TP Feature
+  scriptPath: hotkeys/toggle_stp_tp_feature.das
+- id: toggle_spread_check_feature
+  key: Alt+Ctrl+Win+'
+  label: Toggle Spread Check Feature
+  scriptPath: hotkeys/toggle_spread_check_feature.das
+
+# Session equity & PnL
+- id: initialize_session_equity
+  key: 
+  label: Initialize Session Equity
+  scriptPath: hotkeys/initialize_session_equity.das
+- id: session_max_loss_check
+  key: Alt+Ctrl+E
+  label: Session Max Loss Check
+  scriptPath: hotkeys/session_max_loss_check.das
+- id: check_pnl
+  key: Alt+Ctrl+P
+  label: Check PnL
+  scriptPath: hotkeys/check_pnl.das
+- id: reset_starting_equity
+  key: Alt+Ctrl+U
+  label: Reset Starting Equity
+  scriptPath: hotkeys/reset_starting_equity.das
