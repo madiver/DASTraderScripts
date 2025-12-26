@@ -29,84 +29,86 @@ rols & config~0D~0A// =====================~0D~0ACX
 L ALL; FocusWindow Primary_OE; ROUTE="ARCAL"; TIF=D
 AY+; Price=Bid-0.50; Share=Pos; SELL=Send;~0D~0A~0D
 ~0A
-Ctrl+,:Set Global Variables:~ 3568:// =====================~0D~0A//  GLOBAL VARIABLES~0D
+Ctrl+,:Set Global Variables:~ 3681:// =====================~0D~0A// GLOBAL VARIABLES~0D
 ~0A// Group: Global controls & config~0D~0A// =====
 ================~0D~0A//~0D~0A// IMPORTANT:~0D~0A//
  - Do NOT change this script's name.~0D~0A// - If y
-ou update any global variables, either re-run this 
-script~0D~0A//   or restart DAS Trader to ensure al
-l globals are refreshed.~0D~0A//~0D~0A~0D~0A// Keep
- track of how many times our one-second script as e
-xecuted~0D~0A$oneSecondScriptCnt = 0;~0D~0A~0D~0A//
- Use rehab mode?  Limits trades to ice-breaker size
- (1/4 normal size)~0D~0A$rehab = 1;~0D~0A~0D~0A// -
---- Feature Toggles ----~0D~0A$useSlippageMargin = 
-1;      // 1=guard stop vs bid with margin~0D~0A$sl
-ipTicksMin          = 2;      // minimum ticks to a
-dd as slippage margin~0D~0A$slipSpreadFrac      = 0
-.25;  // additional margin = spread * this fraction
-~0D~0A$acceptPartial                      = 1;   //
- 1 = accept partial within window; 0 = require full
- fill~0D~0A$minFillShares                     = 1; 
-  // minimum filled shares to accept when $acceptPa
-rtial=1~0D~0A$cancelRemainderOnPartial  = 1;   // 1
-=cancel remainder before arming stop when partial a
-ccepted~0D~0A$usePerTradeRiskCap = 1;      // 1=abo
-rt if projected risk exceeds cap~0D~0A$useSpreadChe
-ck = 1;~0D~0A~0D~0A// =============================
-=========================~0D~0A//  1) Risk & Execut
-ion Variables~0D~0A// =============================
-=========================~0D~0A~0D~0A// Entry offse
-t above/below bid/ask (depending on strategy)~0D~0A
-// Example: 0.01 = enter 1 cent(s) above BID (or be
-low ASK)~0D~0A$entryOffset = 0.03;~0D~0A~0D~0A// Ex
-it offset above/below bid/ask (depending on strateg
-y)~0D~0A// Example: 0.01 = enter 1 cent(s) above BI
-D (or below ASK)~0D~0A$exitOffset = 0.10;~0D~0A~0D~0A
-// How far your STOP is from entry, per share, in d
-ollars (your "1R")~0D~0A// Example: 0.10 = 10 cents
- risk per share~0D~0A$stopLossTrigger = 0.10;~0D~0A
-~0D~0A// How many R~E2~80~99s ahead to place the ta
-ke-profit alert~0D~0A// Example: 1.0 = take profit 
-at +1R~0D~0A$takeProfitFactor = 1.0;~0D~0A~0D~0A// 
-What portion of your position to sell/cover when th
-e TP alert hits~0D~0A// Example: 0.50 = sell half a
-t TP~0D~0A$takeProfitSize = 0.50;~0D~0A~0D~0A// ===
-===================================================
-~0D~0A//  2) Feature Toggles (Enable/Disable Compon
-ents)~0D~0A// =====================================
-=================~0D~0A~0D~0A$useAutoStop = "Yes";~0D
-~0A$useTakeProfit = "Yes";~0D~0A$resetStopOnCancel 
-= "Yes";~0D~0A~0D~0A// ============================
-==========================~0D~0A//  3) Account Stat
-e (Simulation / Live Modes)~0D~0A// ===============
-=======================================~0D~0A//~0D~0A
-// You can toggle between sim/live elsewhere using 
-ACCOUNT_STATE.~0D~0A// These vars store your SIM an
-d LIVE account identifiers.~0D~0A~0D~0Aif ($ACCOUNT
-_STATE == "") {~0D~0A    $ACCOUNT_STATE = "live";  
-    // default state is SIM mode~0D~0A    $TRSIM  =
- "TR19644";         // your SIM trading account~0D~0A
-    $TRLIVE = "19644";           // your LIVE tradi
-ng account~0D~0A}~0D~0A~0D~0A// ===================
-===================================~0D~0A//  4) Siz
-ing & Risk Limits~0D~0A// =========================
-=============================~0D~0A~0D~0A// Multipl
-ier for position sizing~0D~0A// Example: if base cl
-ip is 50 shares, QTY_MULT=5 ~E2~86~92 200 shares pe
-r entry~0D~0A$qtyMult = 4;~0D~0A~0D~0A// Maximum al
-lowed position size (shares)~0D~0A$maxPositionSize 
-= $qtyMult * 150;~0D~0A~0D~0A// Maximum allowed $ r
-isk *per trade*~0D~0A// Useful for guarding against
- oversized positions or bad spreads~0D~0A$riskCapDo
-llars = 100.00;~0D~0A~0D~0A// Maximum allowed daily
- loss tracked by comparing~0D~0A// start of session
- equit vs. current equtiy~0D~0A$maxDailyLoss = 100.
-00;~0D~0A~0D~0A// Order Entry Fill Wait Parameters~0D
-~0A$pollMs           = 100;             // polling 
-cadence (ms)~0D~0A$maxPolls       = 20;            
-  // 20*100ms ~E2~89~88 2s~0D~0A~0D~0AExecHotKey("I
-nitialize Session Equity");
+ou update any global variables, re-run this script~0D
+~0A//   or restart DAS Trader so all globals refres
+h.~0D~0A// - Most hotkeys assume these globals exis
+t.~0D~0A//~0D~0A~0D~0A// Counter for the 1-second t
+imer script (see other scripts/timer.das)~0D~0A$one
+SecondScriptCnt = 0;~0D~0A~0D~0A// Rehab mode: limi
+t entries to ice-breaker size (1/4 normal size)~0D~0A
+$rehab = 0;~0D~0A~0D~0A// ---- Feature Toggles ----
+~0D~0A$useSlippageMargin         = 1;     // 1=guar
+d stop vs bid with margin~0D~0A$slipTicksMin       
+       = 2;     // minimum ticks to add as slippage
+ margin~0D~0A$slipSpreadFrac            = 0.25;  //
+ additional margin = spread * this fraction~0D~0A$a
+cceptPartial             = 1;     // 1=accept parti
+al fill within window; 0=require full fill~0D~0A$mi
+nFillShares             = 1;     // minimum shares 
+to accept when $acceptPartial=1~0D~0A$cancelRemaind
+erOnPartial  = 1;     // 1=cancel remainder before 
+arming stop on partial~0D~0A$usePerTradeRiskCap    
+    = 1;     // 1=abort if projected risk exceeds c
+ap~0D~0A$useSpreadCheck            = 1;~0D~0A~0D~0A
+// ================================================
+======~0D~0A//  1) Risk & Execution Variables~0D~0A
+// ================================================
+======~0D~0A~0D~0A// Entry offset above/below bid/a
+sk (depending on strategy)~0D~0A// Example: 0.01 = 
+enter 1 cent(s) above BID (or below ASK)~0D~0A$entr
+yOffset = 0.03;~0D~0A~0D~0A// Exit offset above/bel
+ow bid/ask (depending on strategy)~0D~0A// Example:
+ 0.01 = exit 1 cent(s) below BID (or above ASK)~0D~0A
+$exitOffset = 0.10;~0D~0A~0D~0A// Stop distance fro
+m entry, per share, in dollars (your "1R")~0D~0A// 
+Example: 0.10 = 10 cents risk per share~0D~0A$stopL
+ossTrigger = 0.10;~0D~0A~0D~0A// How many Rs ahead 
+to place the take-profit alert~0D~0A// Example: 1.0
+ = take profit at +1R~0D~0A$takeProfitFactor = 1.0;
+~0D~0A~0D~0A// Portion of your position to sell/cov
+er when the TP alert hits~0D~0A// Example: 0.50 = s
+ell half at TP~0D~0A$takeProfitSize = 0.50;~0D~0A~0D
+~0A// =============================================
+=========~0D~0A//  2) Feature Toggles (Enable/Disab
+le Components)~0D~0A// ============================
+==========================~0D~0A~0D~0A$useAutoStop 
+= "Yes";~0D~0A$useTakeProfit = "Yes";~0D~0A$resetSt
+opOnCancel = "Yes";~0D~0A~0D~0A// =================
+=====================================~0D~0A//  3) A
+ccount State (Simulation / Live Modes)~0D~0A// ====
+==================================================~0D
+~0A//~0D~0A// You can toggle between sim/live elsew
+here using ACCOUNT_STATE.~0D~0A// These vars store 
+your SIM and LIVE account identifiers.~0D~0A// If A
+CCOUNT_STATE is blank, we default to live here.~0D~0A
+~0D~0Aif ($ACCOUNT_STATE == "") {~0D~0A    $ACCOUNT
+_STATE = "live";   // default to live if unset~0D~0A
+    $TRSIM  = "TR19644"; // your SIM trading accoun
+t~0D~0A    $TRLIVE = "19644";      // your LIVE tra
+ding account~0D~0A}~0D~0A~0D~0A// =================
+=====================================~0D~0A//  4) S
+izing & Risk Limits~0D~0A// =======================
+===============================~0D~0A~0D~0A// Multi
+plier for position sizing~0D~0A// Example: if base 
+clip is 50 shares, qtyMult=4 -> 200 shares per entr
+y~0D~0A$qtyMult = 4;~0D~0A~0D~0A// Maximum allowed 
+position size (shares)~0D~0A$maxPositionSize = $qty
+Mult * 150;~0D~0A~0D~0A// Maximum allowed $ risk *p
+er trade*~0D~0A// Useful for guarding against overs
+ized positions or bad spreads~0D~0A$riskCapDollars 
+= 100.00;~0D~0A~0D~0A// Maximum allowed daily loss 
+tracked by comparing~0D~0A// start-of-session equit
+y vs current equity~0D~0A$maxDailyLoss = 100.00;~0D
+~0A~0D~0A// Order entry fill wait parameters~0D~0A$
+pollMs           = 100;             // polling cade
+nce (ms)~0D~0A$maxPolls       = 20;              //
+ 20*100ms ~7E= 2s~0D~0A~0D~0A// Initialize session 
+equity baseline for daily-loss guard~0D~0AExecHotKe
+y("Initialize Session Equity");~0D~0A
 Alt+Ctrl+S:Switch to Sim:~ 891:// =====================~0D~0A// Switch to Sim Mode
 ~0D~0A// Group: Global controls & config~0D~0A// ==
 ===================~0D~0A~0D~0A// ---- Use global S
