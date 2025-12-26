@@ -10,24 +10,33 @@
 // - Most hotkeys assume these globals exist.
 //
 
+// ======================================================
+//  0) Runtime Counters & Modes
+// ======================================================
 // Counter for the 1-second timer script (see other scripts/timer.das)
 $oneSecondScriptCnt = 0;
 
 // Rehab mode: limit entries to ice-breaker size (1/4 normal size)
 $rehab = 0;
 
-// ---- Feature Toggles ----
-$useSlippageMargin         = 1;     // 1=guard stop vs bid with margin
-$slipTicksMin              = 2;     // minimum ticks to add as slippage margin
-$slipSpreadFrac            = 0.25;  // additional margin = spread * this fraction
-$acceptPartial             = 1;     // 1=accept partial fill within window; 0=require full fill
-$minFillShares             = 1;     // minimum shares to accept when $acceptPartial=1
-$cancelRemainderOnPartial  = 1;     // 1=cancel remainder before arming stop on partial
-$usePerTradeRiskCap        = 1;     // 1=abort if projected risk exceeds cap
-$useSpreadCheck            = 1;
+// ======================================================
+//  1) Feature Toggles
+// ======================================================
+$useSlippageMargin        = 1;     // 1=guard stop vs bid with margin
+$slipTicksMin             = 2;     // minimum ticks to add as slippage margin
+$slipSpreadFrac           = 0.25;  // additional margin = spread * this fraction
+$acceptPartial            = 1;     // 1=accept partial fill within window; 0=require full fill
+$minFillShares            = 1;     // minimum shares to accept when $acceptPartial=1
+$cancelRemainderOnPartial = 1;     // 1=cancel remainder before arming stop on partial
+$usePerTradeRiskCap       = 1;     // 1=abort if projected risk exceeds cap
+$useSpreadCheck           = 1;     // 1=check spreads before allowing buy order
+
+$useAutoStop = "Yes";
+$useTakeProfit = "Yes";
+$resetStopOnCancel = "Yes";
 
 // ======================================================
-//  1) Risk & Execution Variables
+//  2) Risk & Execution Variables
 // ======================================================
 
 // Entry offset above/below bid/ask (depending on strategy)
@@ -49,14 +58,6 @@ $takeProfitFactor = 1.0;
 // Portion of your position to sell/cover when the TP alert hits
 // Example: 0.50 = sell half at TP
 $takeProfitSize = 0.50;
-
-// ======================================================
-//  2) Feature Toggles (Enable/Disable Components)
-// ======================================================
-
-$useAutoStop = "Yes";
-$useTakeProfit = "Yes";
-$resetStopOnCancel = "Yes";
 
 // ======================================================
 //  3) Account State (Simulation / Live Modes)
