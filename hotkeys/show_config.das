@@ -2,6 +2,7 @@
 // DISPLAY CONFIGURATION
 // Group: Global controls & config
 // =====================
+// Shows the current global configuration in a popup.
 
 // ---- Feature Toggles ----
 $msg =

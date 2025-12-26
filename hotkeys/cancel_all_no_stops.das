@@ -1,9 +1,10 @@
 // ======================
-//  CANCEL ALL NON-STOP ORDERS + DELETE TP ALERTS (CURRENT SYMBOL)
+// CANCEL ALL ORDERS + DELETE TP ALERTS (NO STOP RE-ARM)
 // Group: Global controls & config
 // ======================
+// Cancels all orders for the current symbol and clears TP alerts without re-arming stops.
 
-// 0) Make sure we're on Primary_OE and can read it
+// ---- Step 1: Focus Primary_OE and read montage context ----
 FocusWindow Primary_OE;
 $M = GetWindowObj("Primary_OE");
 if (!IsObj($M)) {
@@ -11,19 +12,19 @@ if (!IsObj($M)) {
     return;
 }
 
-// Snapshot symbol and position BEFORE we cancel orders
+// ---- Step 2: Snapshot symbol and position ----
 $mySym   = $M.Symb;
 $posNow  = $M.Pos;
 
-// 1) Cancel all orders for current montage symbol (this will include stops)
+// ---- Step 3: Cancel all orders for current symbol ----
 CXL ALLSYMB;
 
-// 2) Delete all TP alerts for this symbol over a reasonable R range
+// ---- Step 4: Delete TP alerts for this symbol ----
 //    This matches how the TP Alert Builder names them:
 //    "TP " + <factor> + "R Partial " + <symbol>
 
 $i = 1;
-// i=1..20  → factors: 0.5, 1.0, 1.5, ..., 10.0
+// i=1..20  -> factors: 0.5, 1.0, 1.5, ..., 10.0
 while ($i <= 20) {
     $f = ($i * 0.5);   // 0.5, 1, 1.5, 2, ...
 

@@ -1,27 +1,20 @@
 // =====================
-//  PARTIAL TAKE-PROFIT EXECUTION (SIZE-AWARE, LONG ONLY)
+// PARTIAL TAKE-PROFIT EXECUTION (SIZE-AWARE, LONG ONLY)
 // Group: Take profit
-//   Uses TAKE_PROFIT_SIZE global variable
-//   Flow:
-//     1) Use TP_SYMBOL (if set) to ensure Primary_OE is on correct symbol
-//     2) Cancel existing SELL-side orders (stops/targets)
-//     3) Send partial TP SELL order
-//     4) Classify fill as FULL / PARTIAL / NONE
-//     5) If FULL fill -> re-arm BE stop for remaining shares (no new TP trigger)
-//        If NOT full  -> re-arm 1R stop AND re-arm TP trigger (if enabled)
 // =====================
+// Uses $takeProfitSize to send a partial TP and re-arm stops/TP based on fill.
 
-// 0) Ensure we're working off Primary_OE context for UI
+// ---- Step 1: Focus Primary_OE ----
 FocusWindow Primary_OE;
 
-// 2) Get the Primary_OE montage window
+// ---- Step 2: Load Primary_OE montage ----
 $M = GetWindowObj("Primary_OE");
 if (!IsObj($M)) {
     MsgBox("Take_Profit_Executor: montage 'Primary_OE' not found.");
     return;
 }
 
-// 2a) Optional: symbol override via TP_SYMBOL from alert
+// Optional: symbol override via TP_SYMBOL from alert
 $mySym = $M.Symb;
 $myAcc = $M.Account;
 
@@ -40,7 +33,7 @@ if ($takeProfitSymbol != "" && $takeProfitSym != $mySym) {
     }
 }
 
-// 2b) Now load position from the (possibly updated) montage
+// Load position from the (possibly updated) montage
 $posNow = $M.Pos;
 
 // Safety: make sure account is valid
@@ -54,7 +47,7 @@ if ($posNow <= 0) {
     return;
 }
 
-// 3) Cancel existing SELL-side working orders (stops/targets)
+// ---- Step 3: Cancel existing SELL orders ----
 $accObj = GetAccountObj($myAcc);
 $accObj.CancelOrder("SELL", $mySym, 0);
 
@@ -64,11 +57,11 @@ Wait(300);
 // Re-read live position after cancels (in case something changed)
 $posNow = $M.Pos;
 if ($posNow <= 0) {
-    // Flat now (maybe stop filled while we were messing around) → nothing to do
+    // Flat now (maybe stop filled while we were messing around) -> nothing to do
     return;
 }
 
-// 4) Compute shares to take (DAS-safe, long-only)
+// ---- Step 4: Compute shares to take ----
 $tpRaw   = ($posNow * $takeProfitSize);
 $takeQty = Round($tpRaw, 102, 1);      // nearest whole share
 
@@ -78,7 +71,7 @@ if ($takeQty > $posNow) { $takeQty = $posNow; }
 // Must take at least 1 share if position exists
 if ($takeQty < 1) { $takeQty = $posNow; }
 
-// 5) Compute exit price (long-only: always SELL at/near bid)
+// ---- Step 5: Compute exit price ----
 $px = $M.Bid;
 
 // Tick-size handling
@@ -87,7 +80,7 @@ if ($px < 1)    { $inc = 0.001; }
 if ($px < 0.25) { $inc = 0.0005; }
 $px = Round($px, 102, $inc);
 
-// 6) Send order using NewOrderObj()
+// ---- Step 6: Send TP order ----
 $order = NewOrderObj();
 $order.Account = $myAcc;  
 $order.Symbol  = $mySym;
@@ -99,7 +92,7 @@ $order.Route = "ARCAL";
 $order.Tif   = "DAY+";
 $order.Send();
 
-// 7) Poll for fill / partial fill
+// ---- Step 7: Poll for fill ----
 $pollMs          = 100;
 $maxPolls      = 30;      // up to ~3s total
 $filledState     = 0;       // 0 = none, 1 = full, 2 = partial
@@ -139,26 +132,23 @@ if ($elapsed < 200) {
     Wait(200 - $elapsed);
 }
 
-// 8) Decide which stop to re-arm & whether to re-arm TP trigger
+// ---- Step 8: Re-arm stop and TP trigger ----
 
 // Behavior:
-// - FULL fill (filledState == 1):
-//       → re-arm BE stop only
-// - NOT full (0 = no fill, 2 = partial fill):
-//       → re-arm 1R stop
-//       → and re-arm TP trigger (if enabled)
+// - Full fill (filledState == 1): re-arm BE stop only.
+// - No fill or partial fill: re-arm 1R stop and TP trigger (if enabled).
 if ($useAutoStop == "Yes") {
 
     if ($filledState == 1) {
-        // FULL TP fill → lock remaining at BE
+        // FULL TP fill -> lock remaining at BE
         ExecHotkey("Set Auto Stop BE 1/1");
     } else {
-        // No fill OR partial fill → re-arm original 1R stop
+        // No fill OR partial fill -> re-arm original 1R stop
         ExecHotkey("Set Auto Stop");
     }
 }
 
-// 9) Re-establish take profit alert/trigger if enabled
+// ---- Step 9: Re-establish take profit alert (if needed) ----
 // Only when we did NOT get a FULL TP fill
 Wait(2000);
 if ($useTakeProfit == "Yes") {
@@ -167,4 +157,4 @@ if ($useTakeProfit == "Yes") {
     }
 }
 
-// --- End Take Profit Executor ---
+// ---- End Take Profit Executor ----

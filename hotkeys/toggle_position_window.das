@@ -1,7 +1,8 @@
-// ==============================
-// Toggle Visability of Position Windows
+// =====================
+// TOGGLE POSITION WINDOW VISIBILITY
 // Group: Utilities & toggles
-// ==============================
+// =====================
+// Toggles AlwaysOnTop for the Positions windows.
 
 SetFocus Primary_OE;
 

@@ -1,7 +1,8 @@
-//=======================
-// Toggle stop loss / take profit
+// =====================
+// TOGGLE STOP LOSS / TAKE PROFIT
 // Group: Stops
-//=======================
+// =====================
+// Toggles $useAutoStop and $useTakeProfit.
 
 if ($useAutoStop == "Yes") {
    $useAutoStop = "No";

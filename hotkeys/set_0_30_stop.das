@@ -1,5 +1,8 @@
-// How far your STOP is from entry, per share, in dollars (your "1R")
+// =====================
+// SET STOP LOSS TRIGGER TO $0.30
 // Group: Stops
-// Example: 0.20 = 20 cents risk per share
+// =====================
+// Sets $stopLossTrigger (1R) in dollars per share.
+
 $stopLossTrigger = 0.30;
 MsgBox("WARNING: stop loss trigger set to $0.30.");

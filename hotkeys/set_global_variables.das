@@ -3,25 +3,21 @@
 // Group: Global controls & config
 // =====================
 //
-// IMPORTANT:
+// Notes:
 // - Do NOT change this script's name.
 // - If you update any global variables, re-run this script
 //   or restart DAS Trader so all globals refresh.
 // - Most hotkeys assume these globals exist.
 //
 
-// ======================================================
-//  0) Runtime Counters & Modes
-// ======================================================
+// ---- 0) Runtime Counters & Modes ----
 // Counter for the 1-second timer script (see other scripts/timer.das)
 $oneSecondScriptCnt = 0;
 
 // Rehab mode: limit entries to ice-breaker size (1/4 normal size)
 $rehab = 0;
 
-// ======================================================
-//  1) Feature Toggles
-// ======================================================
+// ---- 1) Feature Toggles ----
 $useSlippageMargin        = 1;     // 1=guard stop vs bid with margin
 $slipTicksMin             = 2;     // minimum ticks to add as slippage margin
 $slipSpreadFrac           = 0.25;  // additional margin = spread * this fraction
@@ -35,9 +31,7 @@ $useAutoStop = "Yes";
 $useTakeProfit = "Yes";
 $resetStopOnCancel = "Yes";
 
-// ======================================================
-//  2) Risk & Execution Variables
-// ======================================================
+// ---- 2) Risk & Execution Variables ----
 
 // Entry offset above/below bid/ask (depending on strategy)
 // Example: 0.01 = enter 1 cent(s) above BID (or below ASK)
@@ -59,9 +53,7 @@ $takeProfitFactor = 1.0;
 // Example: 0.50 = sell half at TP
 $takeProfitSize = 0.50;
 
-// ======================================================
-//  3) Account State (Simulation / Live Modes)
-// ======================================================
+// ---- 3) Account State (Simulation / Live Modes) ----
 //
 // You can toggle between sim/live elsewhere using ACCOUNT_STATE.
 // These vars store your SIM and LIVE account identifiers.
@@ -73,9 +65,7 @@ if ($ACCOUNT_STATE == "") {
     $TRLIVE = "%%LIVE%%";      // your LIVE trading account
 }
 
-// ======================================================
-//  4) Sizing & Risk Limits
-// ======================================================
+// ---- 4) Sizing & Risk Limits ----
 
 // Multiplier for position sizing
 // Example: if base clip is 50 shares, qtyMult=4 -> 200 shares per entry
