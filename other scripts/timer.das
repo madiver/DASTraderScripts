@@ -1,9 +1,10 @@
-// ==============================
-// EQUITY-BASED DAILY LOSS GUARD
+// =====================
+// TIMER: DAILY LOSS GUARD + TP CLEANUP
 // Ignore: True
-// ==============================
+// =====================
+// Timer handler: enforces daily loss lock and clears TP alerts when flat.
 
-// Load current account and its starting equity
+// ---- Step 1: Load account and equity baseline ----
 $accName = GetVar("DAY_ACC");
 if ($accName == "" ) { return; }
 
@@ -23,6 +24,7 @@ if ($accName == $TRLIVE) {
     // Compute drawdown
     $dd = $eqStart - $eqNow;
 
+    // ---- Step 2: Enforce daily loss lock ----
     // Configurable daily loss limit
     $limitStr = GetVar("DAILY_MAX_LOSS");
     $limit    = $limitStr * 1;
@@ -59,9 +61,7 @@ if ($accName == $TRLIVE) {
 
 }
 
-// =======================================
-// FLAT POSITION → DELETE TP ALERTS
-// =======================================
+// ---- Step 3: Clear TP alerts when flat ----
 
 $oneSecondScriptCnt = $oneSecondScriptCnt + 1;
 
@@ -80,9 +80,9 @@ if ($oneSecondScriptCnt % 5 ==0) {
     // Only act if FLAT
     if ($mySym != "" && $posNow == 0) {
 
-        // ---- EXACT TP LOOP (UNCHANGED) ----
+        // ---- TP alert cleanup loop ----
         $i = 1;
-        // i=1..20  → factors: 0.5, 1.0, 1.5, ..., 10.0
+        // i=1..20  -> factors: 0.5, 1.0, 1.5, ..., 10.0
         while ($i <= 20) {
             $f = ($i * 0.5);   // 0.5, 1, 1.5, 2, ...
 

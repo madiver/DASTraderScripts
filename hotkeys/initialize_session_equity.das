@@ -1,29 +1,30 @@
-// ==============================
+// =====================
 // RISK INIT / ACCOUNT BINDING
 // Group: Session equity & PnL
-// ==============================
+// =====================
+// Initializes per-account equity baseline and lock state for daily loss guard.
 
-// Ensure ACCOUNT_STATE is set (sim/live)
+// ---- Step 1: Ensure ACCOUNT_STATE is set ----
 if ($ACCOUNT_STATE == "") {
     // Default to sim if somehow unset
     $ACCOUNT_STATE = "sim";
 }
 
-// Resolve current account based on ACCOUNT_STATE
+// ---- Step 2: Resolve current account ----
 if ($ACCOUNT_STATE == "sim") {
     $AccName = "%%SIMULATED%%";   // SIM
 } else {
     $AccName = "%%LIVE%%";     // LIVE
 }
 
-// Get current account object
+// ---- Step 3: Get account object and keys ----
 $acc = GetAccountObj($AccName);
 
 // Key names for this account-specific snapshot / lock
 $eqKey   = "DAY_EQUITY_START_" + $AccName;
 $lockKey = "TRADING_LOCKED_"   + $AccName;
 
-// Try to load existing starting equity for this account
+// ---- Step 4: Load or snapshot starting equity ----
 $eqStartStr = GetVar($eqKey);
 $eqStart    = $eqStartStr * 1;
 
@@ -33,11 +34,11 @@ if ($eqStartStr == "" || $eqStart <= 0) {
     SetVar($eqKey, $eqStart);
 }
 
-// Set "current" globals used by Timer Event and entry guards
+// ---- Step 5: Set current-session globals ----
 SetVar("DAY_ACC",          $AccName);
 SetVar("DAY_EQUITY_START", $eqStart);
 
-// Load this account's lock state (default 0 if unset)
+// ---- Step 6: Load lock state ----
 $lockStr = GetVar($lockKey);
 if ($lockStr == "") {
     $lockStr = 0;

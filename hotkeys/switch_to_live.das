@@ -1,9 +1,10 @@
 // =====================
-// Switch to Live Mode
+// SWITCH TO LIVE MODE
 // Group: Global controls & config
 // =====================
+// Switches UI filters and montage accounts to LIVE, then re-initializes session equity.
 
-// ---- Use global STOPLOSS_TRIGGER if set (required) ----
+// ---- Ensure ACCOUNT_STATE is set ----
 if ($ACCOUNT_STATE== "") {
     ExecHotkey("Set Global Variables");
     if ($ACCOUNT_STATE== "") {

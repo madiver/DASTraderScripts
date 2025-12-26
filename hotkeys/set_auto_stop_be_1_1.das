@@ -1,46 +1,35 @@
 // =====================
-//  SET AUTO STOP BE (SLP ABOVE BE)
+// SET AUTO STOP BE (SLP ABOVE BE) - 1/1
 // Group: Stops
 // =====================
-//
-// Called from Take_Profit_Executor
+// Called from Take Profit Executor.
 // Behavior:
-//   - Protects PARTIAL position (1/denominator)
-//   - If not yet +0.03 in profit → place BE LIMIT sell
-//   - If >= +0.03 in profit → place SLP stop-limit above BE
-//
+// - Protects partial position (1/denominator)
+// - If not yet +$0.03 in profit -> place BE limit sell
+// - If >= +$0.03 in profit -> place SLP stop-limit above BE
 // Requirements:
-//   - Primary_OE montage exists
-//   - Uses montage object properties (.Symb, .Account, .Pos, .AvgCost)
-//   - Honors USE_AUTO_STOP
-//
+// - Primary_OE montage exists
+// - Uses montage object properties (.Symb, .Account, .Pos, .AvgCost)
+// - Honors $useAutoStop
 
-// =====================
-// Tunables
-// =====================
+// ---- Tunables ----
 $portionDenominator = 1;    // 1 = full, 2 = half, 4 = quarter
 $beOffset           = 0.03; // BE trigger offset
 $cancelWaitMs       = 1000; // cancel throttle wait
 
-// =====================
-// 0) Feature toggle
-// =====================
+// ---- Step 1: Feature toggle ----
 if ($useAutoStop != "Yes") {
     return;
 }
 
-// =====================
-// 1) Get Primary_OE montage
-// =====================
+// ---- Step 2: Load Primary_OE montage ----
 $M = GetWindowObj("Primary_OE");
 if (!IsObj($M)) {
     MsgBox("Set Auto Stop BE: Primary_OE montage not found.");
     return;
 }
 
-// =====================
-// 2) Symbol / account resolution
-// =====================
+// ---- Step 3: Resolve symbol and account ----
 $mySym = $M.Symb;
 $myAcc = $M.Account;
 
@@ -64,9 +53,7 @@ if ($entrySymbol != "" && $entrySymbol != $mySym) {
     return;
 }
 
-// =====================
-// 3) Read position state
-// =====================
+// ---- Step 4: Read position state ----
 $posNow = $M.Pos;
 $avgNow = $M.AvgCost;
 
@@ -78,18 +65,14 @@ if ($avgNow <= 0) {
     return;
 }
 
-// =====================
-// 4) Tick size logic (single source of truth)
-// =====================
+// ---- Step 5: Tick size logic (single source of truth) ----
 $inc = 0.01;
 if ($avgNow < 1)    { $inc = 0.001; }
 if ($avgNow < 0.25) { $inc = 0.0005; }
 
 $avgSnap = Round($avgNow, 102, $inc);
 
-// =====================
-// 5) Market state
-// =====================
+// ---- Step 6: Market state ----
 $bid = $M.Bid;
 if ($bid <= 0) {
     MsgBox("Set Auto Stop BE: No valid BID for " + $mySym);
@@ -98,24 +81,18 @@ if ($bid <= 0) {
 
 $beStopTrigger = Round($avgSnap + $beOffset, 102, $inc);
 
-// =====================
-// 6) Quantity to protect (PARTIAL)
-// =====================
+// ---- Step 7: Quantity to protect (partial) ----
 $qtyProtect = $posNow / $portionDenominator;
 if ($qtyProtect <= 0) {
     return;
 }
 
-// =====================
-// 7) ACCOUNT-SCOPED cancel helper
-// =====================
+// ---- Step 8: Cancel existing SELL orders (account scoped) ----
 $accObj = GetAccountObj($myAcc);
 $accObj.CancelOrder("SELL", $mySym, 0);
 Wait($cancelWaitMs);
 
-// =====================
-// 8) NOT YET IN PROFIT → BE LIMIT SELL
-// =====================
+// ---- Step 9: If not yet in profit, place BE limit sell ----
 if ($bid < $beStopTrigger) {
 
     // ARCAL uses penny ticks
@@ -141,9 +118,7 @@ if ($bid < $beStopTrigger) {
     return;
 }
 
-// =====================
-// 9) IN PROFIT → SLP STOP ABOVE BE
-// =====================
+// ---- Step 10: If in profit, place SLP stop above BE ----
 $stop = Round($avgSnap + $beOffset, 102, $inc);
 $px   = Round($avgSnap, 102, $inc);
 
@@ -166,4 +141,4 @@ $s.Send();
 
 return;
 
-// --- End Set Auto Stop BE ---
+// ---- End Set Auto Stop BE ----

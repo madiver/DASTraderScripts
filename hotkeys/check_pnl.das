@@ -1,15 +1,8 @@
-// ==============================
-// SHOW CURRENT TRACKED PnL + LOCK STATE
+// =====================
+// SHOW CURRENT TRACKED PNL + LOCK STATE
 // Group: Session equity & PnL
-// ==============================
-
-
-// ==============================
-// DISPLAY PnL + LOCK STATE
-// ==============================
-
-// We already have $accName, $eqStart, $eqNow, $limit from above,
-// so no need to re-read DAY_ACC/DAY_EQUITY_START a second time.
+// =====================
+// Assumes $accName, $eqStart, $eqNow, and $lockKey are already set.
 
 // Compute PnL
 $netPnL = $eqNow - $eqStart;
@@ -18,7 +11,7 @@ $netPnL = $eqNow - $eqStart;
 $sign = "";
 if ($netPnL > 0) { $sign = "+"; }
 
-// Reload lock state (in case it just changed above)
+// Reload lock state
 $lockedStr = GetVar($lockKey);
 $locked    = ($lockedStr * 1);
 

@@ -1,12 +1,13 @@
-// ================================
+// =====================
 // MANUAL STARTING EQUITY INPUT
 // Group: Session equity & PnL
-// ================================
+// =====================
+// Prompts for a manual starting equity baseline.
 
-// Ask user for starting equity
+// ---- Step 1: Prompt for starting equity ----
 $val = Input("Enter Starting Equity", "Type your starting equity amount (e.g., 24500.31)");
 
-// If user cancelled or left blank, stop
+// ---- Step 2: Validate input ----
 if ($val == "" ) {
     MsgBox("Starting equity not set.");
     return;
@@ -15,14 +16,14 @@ if ($val == "" ) {
 // Convert to number
 $eq = $val * 1;
 
-// Validate
+// Validate numeric range
 if ($eq <= 0) {
     MsgBox("Invalid equity value: " + $val + ". Must be a positive number.");
     return;
 }
 
-// Store into global variable
+// ---- Step 3: Store into global variable ----
 SetVar("DAY_EQUITY_START", $eq);
 
-// Inform user
+// ---- Step 4: Inform user ----
 MsgBox("Manual starting equity set to: " + $eq);

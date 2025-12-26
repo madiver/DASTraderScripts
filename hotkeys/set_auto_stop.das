@@ -1,26 +1,23 @@
 // =====================
-//  SET AUTO STOP (1R, LONG ONLY)
+// SET AUTO STOP (1R, LONG ONLY)
 // Group: Stops
 // =====================
-//
-// Reusable stop-loss engine
-// - Uses STOPLOSS_TRIGGER global (1R in dollars)
-// - Uses ENTRY_REF_PX (optional) as fallback if AvgCost is lagging
-// - Honors USE_AUTO_STOP global
-// - Uses Primary_OE montage object (no global Symbol/Account dependency)
-// - Places a unified SLP stop for current symbol/account
-//
-
+// Reusable stop-loss engine using montage context and $stopLossTrigger.
+// Uses:
+// - $stopLossTrigger (1R in dollars)
+// - $entryRefPx as fallback if AvgCost lags
+// - Caller should ensure $useAutoStop is enabled
+// - Primary_OE montage (no global Symbol/Account)
+// ---- Step 1: Load Primary_OE montage ----
 FocusWindow Primary_OE;
 
-// 1) Get Primary_OE montage object
 $M = GetWindowObj("Primary_OE");
 if (!IsObj($M)) {
     MsgBox("Set Auto Stop: montage 'Primary_OE' not found. Aborting.");
     return;
 }
 
-// Pull context from montage object
+// ---- Step 2: Read position state ----
 $myAcc  = $M.Account;
 $mySym  = $M.Symb;
 $posNow = $M.Pos;
@@ -39,7 +36,7 @@ while ($posNow > 0 && $avgNow <= 0 && $j < 10) {
     $j = $j + 1;
 }
 
-// Seatbelt: if still no AvgCost but we do have size, anchor to entry ref if available
+// Fallback: if AvgCost is still missing, anchor to entryRefPx or Last
 if ($posNow > 0 && $avgNow <= 0) {
     if ($entryRefPx > 0) {
         $avgNow = $entryRefPx;
@@ -53,32 +50,31 @@ if ($posNow <= 0 || $avgNow <= 0) {
     return;
 }
 
-// 2) Tunables specific to STOP behavior
-// TODO
+// ---- Tunables ----
 $useAdaptiveLimitOff  = 1;     // 1=offset based on spread; 0=use fixed $limitOff
 $adapt_k              = 2.0;   // limit offset = max(minTicks*inc, min(maxLimitOff, k*spread))
 $adapt_minTicks       = 2;     // min ticks for stop-limit offset
 $adapt_maxLimitOff    = 0.25;  // hard cap in dollars on limit offset
 $verifyStopPosted     = 1;     // 1=read back stop and verify; retry once; then fallback to SL
 
-// 3) Cancel existing SELL-side working orders
+// ---- Step 3: Cancel existing SELL orders ----
 $accObj = GetAccountObj($myAcc);
 $accObj.CancelOrder("SELL", $mySym, 0);
 
 // Let cancels register; avoid races
 Wait(350);
 
-// 4) Compute raw 1R stop
+// ---- Step 4: Compute raw 1R stop ----
 $stop = $avgNow - $stopLossTrigger;
 
-// 5) Resolve tick-size bands for stop/limit and snapping
+// ---- Step 5: Resolve tick-size bands ----
 $inc = 0.01;
 if ($avgNow < 1 || $stop < 1)        { $inc = 0.001; }
 if ($avgNow < 0.25 || $stop < 0.25)  { $inc = 0.0005; }
 
 $stop = Round($stop, 102, $inc);
 
-// 6) Adaptive stop-limit offset
+// ---- Step 6: Compute stop-limit offset ----
 $effLimitOff = $exitOffset;
 if ($useAdaptiveLimitOff == 1) {
     // Use montage-level quotes, not globals
@@ -100,7 +96,7 @@ if ($px >= $stop) {
     $px = Round($stop - $inc, 102, $inc);
 }
 
-// 7) Build & send unified SLP stop
+// ---- Step 7: Build and send unified SLP stop ----
 $qtyProtect = Round($posNow, 0);
 if ($qtyProtect <= 0) {
     return;
@@ -118,10 +114,10 @@ $s.Price        = $px;
 $s.Share       = $qtyProtect;  // protect entire current position
 $s.Send();
 
-// small settle to register
+// Allow time for stop to register
 Wait(200);
 
-// 8) Verify stop posted (optional)
+// ---- Step 8: Verify stop posted (optional) ----
 if ($verifyStopPosted == 1) {
     $s.GetInfo();   // refresh object if supported
     $ok = 1;

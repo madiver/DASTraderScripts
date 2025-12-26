@@ -1,14 +1,15 @@
 // =====================
-//  SCALING-AWARE ENTRY
+// SCALING-AWARE ENTRY
 // Group: Buy orders: Ask SL
 // =====================
+// Places a size-scaled limit entry with spread/stop safety, then arms stop/TP.
 
-// Check rehab flag first
+// Rehab gate: block live entries when rehab mode is enabled.
 if ($rehab == 1 && $ACCOUNT_STATE == "live") { MsgBox("ABORTED: Rehabe share size viloation!"); return; }
 
 FocusWindow Primary_OE;
 
-// ---- Global daily-loss guard per account ----
+// ---- Daily loss lock guard ----
 $accName = GetVar("DAY_ACC");
 $lockKey = "TRADING_LOCKED_" + $accName;
 $locked  = GetVar($lockKey) * 1;
@@ -18,7 +19,7 @@ if ($locked == 1) {
     return;
 }
 
-// Set ENTRY_SYM and clear TP_SYMBOL
+// Track entry symbol and reset TP symbol override
 $M = GetWindowObj("Primary_OE");
 if (IsObj($M)) {
     $entrySymbol = $M.Symb;
@@ -27,7 +28,7 @@ if (IsObj($M)) {
 }
 $tpSymbol = "";
 
-// --- Capture pre-entry position & average cost (for TP logic) ---
+// ---- Capture pre-entry position and avg cost (TP logic) ----
 $posBefore = 0;
 $avgBefore = 0;
 
@@ -39,12 +40,12 @@ if (IsObj($M)) {
     $avgBefore = AvgCost;
 }
 
-// ---- Tunables ----
+// ---- Entry sizing and pacing ----
 $addShares     = 50 * $qtyMult;
 $refPx             = ASK;             // BID or ASK
 $minDelayMs  = 1000;           // throttle between order sends (ms)
 
-// ---- Max position size guard rail ----
+// ---- Max position size guard ----
 if ($maxPositionSize > 0) {    
     // Determine current position in Primary_OE (fallback: Pos)
     $curPos = 0;
@@ -71,13 +72,13 @@ if ($maxPositionSize > 0) {
 
 }
 
-// ---- Tick-size Bands (no functions; simple if-else ladder) ----
-// We’ll resolve the increment later using current prices.
-//   < $0.25  -> 0.0005
-//   < $1.00  -> 0.001
-//   ≥ $1.00  -> 0.01
+// ---- Tick-size bands (for price snapping) ----
+// Resolve the increment later using current prices.
+//   < $0.25 -> 0.0005
+//   < $1.00 -> 0.001
+//   >= $1.00 -> 0.01
 
-// === 0) Quote sanity & derived prices for safety check ===
+// ---- Step 0: Quote sanity and derived prices ----
 $bid    = BID;
 $ask    = ASK;
 $spread = $ask - $bid;
@@ -91,12 +92,12 @@ if ($bid <= 0 || $ask <= 0 || $spread < 0) {
 $pxEntry    = $refPx;
 $hypoStop = $pxEntry - $stopLossTrigger;
 
-// ---- Resolve tick increment for safety checks (based on current context) ----
+// ---- Tick increment for safety checks ----
 $inc = 0.01;
 if ($pxEntry < 1 || $hypoStop < 1 || $bid < 1 || $ask < 1)        { $inc = 0.001; }
 if ($pxEntry < 0.25 || $hypoStop < 0.25 || $bid < 0.25 || $ask < 0.25) { $inc = 0.0005; }
 
-// === 1) Slippage-aware spread/stop safety (longs) ===
+// ---- Step 1: Slippage-aware spread/stop safety (longs) ----
 $stopVsBidFail = 0;
 
 // margin for safety = max(slipTicksMin * inc, slipSpreadFrac * spread)
@@ -111,10 +112,10 @@ if ($useSlippageMargin == 1) {
     if ($hypoStop >= $bid) { $stopVsBidFail = 1; }
 }
 
-// spread relative to stop distance guard (tune threshold as desired)
+// Spread relative to stop distance guard (tune threshold as desired)
 $spreadTooWide = ($spread > ($stopLossTrigger * 0.75)) && $useSpreadCheck == 1;
 
-// If either fails, alert and abort unless we are adding to an existing position
+// Abort if safety checks fail and we are not adding to an existing position
 if (($stopVsBidFail == 1 || $spreadTooWide == 1) && $posBefore <=0) {
     $msg = "Spread/Stop safety failed for " + Symbol + "\n" +
            "Bid: " + $bid + "  Ask: " + $ask + "  Spread: " + $spread + "\n" +
@@ -134,11 +135,11 @@ if ($usePerTradeRiskCap == 1) {
     }
 }
 
-// === 2) Cancel only BUY working orders (keep existing protection until we actually fill) ===
+// ---- Step 2: Cancel BUY working orders (keep protection until fill) ----
 $acc = GetAccountObj(Account);
 $acc.CancelOrder("BUY", Symbol, 0);
 
-// === 3) Build entry; snap entry to increment to reduce rejects ===
+// ---- Step 3: Build entry; snap to tick increment ----
 // Re-evaluate inc using pxEntry (some symbols jump bands)
 $inc = 0.01;
 if ($pxEntry < 1 || $bid < 1 || $ask < 1) { $inc = 0.001; }
@@ -157,7 +158,7 @@ $order.Share   = $addShares;
 $order.Send();
 
 
-// === 4) Poll for fill (break when criteria met) ===
+// ---- Step 4: Poll for fill ----
 $i            = 0;
 $filled      = 0;
 $filledQty = 0;
@@ -176,31 +177,31 @@ while ($i < $maxPolls && $filled == 0) {
     $i = $i + 1;
 }
 
-// throttle between orders
+// Throttle between orders
 $elapsed = $i * $pollMs;
 if ($elapsed < $minDelayMs) {
     Wait($minDelayMs - $elapsed);
 }
 
-// === 5) If no acceptable fill, cancel and exit (do not touch existing stops) ===
+// ---- Step 5: If no acceptable fill, cancel and exit ----
 if ($filled == 0) {
     $order.Cancel();
     return;
 }
 
-// Optional: if we accepted a partial and want to freeze size before arming stop
+// Optional: freeze size before arming stop when partial accepted
 if ($filled == 2 && $cancelRemainderOnPartial == 1) {
     $order.Cancel();
     // brief wait to let the residual cancel
     Wait(200);
 }
 
-// === 6) Arm unified 1R stop via reusable “Set Auto Stop” script ===
+// ---- Step 6: Arm unified 1R stop via "Set Auto Stop" ----
 if ($useAutoStop == "Yes") {
     ExecHotKey("Set Auto Stop");   
 }
 
-// == 7) Build and set take profit trigger (optional) ==
+// ---- Step 7: Build and set take profit trigger (optional) ----
 // Only (re)build TP if we are NOT already profitable on the existing position.
 // For longs, "profitable" means: BID > avgBefore on the position that existed
 // before this entry. If we're already green, do NOT reset TP.
@@ -221,9 +222,9 @@ if ($useTakeProfit == "Yes") {
             if ($bidNow <= $avgBefore) {
                 ExecHotKey("Set Take Profit");
             }
-            // else: already profitable → do nothing, keep existing TP
+            // else: already profitable -> do nothing, keep existing TP
         }
     }
 }
 
-// --- End ---
+// ---- End ----
