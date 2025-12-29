@@ -28,8 +28,28 @@ This repository contains human-readable hotkey scripts plus a keymap file that c
 ## Notes
 
 - Scripts are plain text and safe to review in source control.
-- The compiler is deterministic: the same inputs produce the same output.
+- The compiler is deterministic: the same inputs produce the same output.       
 - Use `// Ignore: True` in a script to exclude it from builds.
+- Use `// Group: <name>` to tag a script's category (kept in sync with the      
+  section headers in `keymap.yaml` for easier organization).
+
+## Script metadata
+
+The DAS Hotkey Tools extension reads simple header tags from each script file.
+These live in the first few comment lines of a `.das` file.
+
+Example:
+
+```das
+// BUY 10 BID+ SL
+// Group: Buy orders: Bid+ SL
+// Ignore: True
+```
+
+Current groups used in `hotkeys/`:
+Buy orders: Ask SL, Buy orders: Ask+ SL, Buy orders: Bid SL, Buy orders: Bid+ SL,
+Global controls & config, Sell orders: Ask, Sell orders: Bid-, Session equity &
+PnL, Stops, Take profit, Utilities & toggles.
 
 ## Risk Disclaimer
 
