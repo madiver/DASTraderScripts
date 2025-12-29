@@ -25,12 +25,9 @@ if ($accName == $TRLIVE) {
     $dd = $eqStart - $eqNow;
 
     // ---- Step 2: Enforce daily loss lock ----
-    // Configurable daily loss limit
-    $limitStr = GetVar("DAILY_MAX_LOSS");
-    $limit    = $limitStr * 1;
-    if ($limitStr == "" || $limit <= 0) {
-        $limit = 50.00;   // default to $50 if unset/invalid
-    }
+    // Use the global max daily loss value
+    $limit = $maxDailyLoss;
+    if ($limit <= 0) { return; }
 
     // Per-account lock key
     $lockKey = "TRADING_LOCKED_" + $accName;
@@ -45,17 +42,6 @@ if ($accName == $TRLIVE) {
 
         // Also set current lock mirror
         SetVar("TRADING_LOCKED", 1);
-
-    }
-
-    // If back under limit and currently locked, unlock this account
-    if ($dd < $limit && $locked == 1) {
-
-        // Clear per-account lock
-        SetVar($lockKey, 0);
-
-        // Clear current lock mirror
-        SetVar("TRADING_LOCKED", 0);
 
     }
 

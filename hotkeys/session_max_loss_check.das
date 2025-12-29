@@ -22,8 +22,29 @@ if ($eq <= 0) {
     return;
 }
 
-// ---- Step 3: Store into global variable ----
-SetVar("DAY_EQUITY_START", $eq);
+// ---- Step 3: Resolve current account ----
+if ($ACCOUNT_STATE == "") {
+    // Default to sim if somehow unset
+    $ACCOUNT_STATE = "sim";
+}
 
-// ---- Step 4: Inform user ----
-MsgBox("Manual starting equity set to: " + $eq);
+if ($ACCOUNT_STATE == "sim") {
+    $AccName = "%%SIMULATED%%";   // SIM
+} else {
+    $AccName = "%%LIVE%%";     // LIVE
+}
+
+// ---- Step 4: Store baseline and reset lock ----
+$eqKey   = "DAY_EQUITY_START_" + $AccName;
+$lockKey = "TRADING_LOCKED_"   + $AccName;
+
+SetVar($eqKey, $eq);
+SetVar("DAY_ACC",          $AccName);
+SetVar("DAY_EQUITY_START", $eq);
+SetVar($lockKey,        0);
+SetVar("TRADING_LOCKED", 0);
+
+// ---- Step 5: Inform user ----
+MsgBox("Manual starting equity set for " + $AccName +
+       "\nStart equity: $" + $eq +
+       "\nLock state reset to 0");
