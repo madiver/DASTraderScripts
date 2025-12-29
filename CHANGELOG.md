@@ -11,6 +11,7 @@ All notable changes to this repository will be documented in this file.
 - Bid-offset sell hotkeys now clamp prices to valid tick sizes and non-negative values.
 - Full sell hotkeys now guard against zero/short positions to prevent accidental shorts.
 - GTFO hotkey now ignores flat/short states to avoid opening shorts.
+- Added macOS metadata files to .gitignore.
 
 ## 0.1.0 - 2025-12-26
 
