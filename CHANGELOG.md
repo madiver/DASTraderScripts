@@ -6,6 +6,11 @@ All notable changes to this repository will be documented in this file.
 
 - Enforced max daily loss using the global $maxDailyLoss value and made the lock sticky for the day.
 - Manual starting equity now updates per-account baselines and clears the lock state.
+- Partial sell hotkeys now re-arm stops and take-profit alerts after a full fill.
+- Ignored local DAS Trader Docs folder in git.
+- Bid-offset sell hotkeys now clamp prices to valid tick sizes and non-negative values.
+- Full sell hotkeys now guard against zero/short positions to prevent accidental shorts.
+- GTFO hotkey now ignores flat/short states to avoid opening shorts.
 
 ## 0.1.0 - 2025-12-26
 

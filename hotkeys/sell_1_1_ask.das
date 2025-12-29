@@ -5,6 +5,7 @@
 // Cancels working orders and sends a limit sell for 1/1 of position at Ask.
 
 FocusWindow Primary_OE;
+if (Pos <= 0) { return; }
 CXL ALLSYMB;
 Wait(100);
 ROUTE="ARCAL";
