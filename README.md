@@ -16,7 +16,7 @@ This repository contains human-readable hotkey scripts plus a keymap file that c
 ## Requirements
 
 - VS Code 1.107+
-- DAS Hotkey Tools extension (from the VS Code Marketplace or .vsix)
+- DAS Hotkey Tools VS Code extension (https://github.com/madiver/dasVSide)
 
 ## Build Hotkey.htk
 
