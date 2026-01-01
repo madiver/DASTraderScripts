@@ -4,20 +4,19 @@
 // =====================
 // Resets the starting equity baseline for the active account and clears lock state.
 
-// ---- Step 1: Ensure ACCOUNT_STATE is set ----
-if ($ACCOUNT_STATE == "") {
-    // Default to sim if somehow unset
-    $ACCOUNT_STATE = "sim";
-}
+// ---- Step 1: Resolve active account ----
+$M = GetWindowObj("Primary_OE");
+$acct = "";
+if (IsObj($M)) { $acct = StrTrim("" + $M.Account); }
 
-// ---- Step 2: Resolve active account ----
-if ($ACCOUNT_STATE == "sim") {
+// Default to SIM if account is unknown
+if (StrLen($acct) == 0 || StrFind($acct, "TR") == 0) {
     $AccName = "%%SIMULATED%%";   // SIM
 } else {
-    $AccName = "%%LIVE%%";     // LIVE
+    $AccName = "%%LIVE%%";        // LIVE
 }
 
-// ---- Step 3: Confirm reset ----
+// ---- Step 2: Confirm reset ----
 $answer = Input("Confirm Reset", 
                 "Type YES to reset PnL baseline for account " + $AccName + ":");
 

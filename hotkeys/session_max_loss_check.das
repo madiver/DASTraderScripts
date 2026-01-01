@@ -23,15 +23,15 @@ if ($eq <= 0) {
 }
 
 // ---- Step 3: Resolve current account ----
-if ($ACCOUNT_STATE == "") {
-    // Default to sim if somehow unset
-    $ACCOUNT_STATE = "sim";
-}
+$M = GetWindowObj("Primary_OE");
+$acct = "";
+if (IsObj($M)) { $acct = StrTrim("" + $M.Account); }
 
-if ($ACCOUNT_STATE == "sim") {
+// Default to SIM if account is unknown
+if (StrLen($acct) == 0 || StrFind($acct, "TR") == 0) {
     $AccName = "%%SIMULATED%%";   // SIM
 } else {
-    $AccName = "%%LIVE%%";     // LIVE
+    $AccName = "%%LIVE%%";        // LIVE
 }
 
 // ---- Step 4: Store baseline and reset lock ----

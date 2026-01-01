@@ -177,10 +177,14 @@
   key: Alt+Ctrl+Win+T
   label: Toggle Position Window
   scriptPath: hotkeys/toggle_position_window.das
-- id: toggle_stp_tp_feature
+- id: toggle_stp_feature
   key: Alt+Ctrl+Win+]
   label: Toggle STP/TP Feature
-  scriptPath: hotkeys/toggle_stp_tp_feature.das
+  scriptPath: hotkeys/toggle_stp_feature.das
+- id: toggle_tp_feature
+  key: Alt+Ctrl+Win+/
+  label: Toggle TP Feature
+  scriptPath: hotkeys/toggle_tp_feature.das
 - id: toggle_spread_check_feature
   key: Alt+Ctrl+Win+'
   label: Toggle Spread Check Feature

@@ -4,6 +4,17 @@
 // =====================
 // Shows the current global configuration in a popup.
 
+// ---- Account Mode (derived from Primary_OE) ----
+$acct = "";
+$acctMode = "UNKNOWN";
+$M = GetWindowObj("Primary_OE");
+if (IsObj($M)) {
+    $acct = StrTrim("" + $M.Account);
+    if (StrLen($acct) > 0) {
+        if (StrFind($acct, "TR") == 0) { $acctMode = "SIM"; } else { $acctMode = "LIVE"; }
+    }
+}
+
 // ---- Feature Toggles ----
 $msg =
 "FEATURE TOGGLES\n" +
@@ -33,12 +44,28 @@ $msg =
 "useTakeProfit: " + $useTakeProfit + "\n" +
 "resetStopOnCancel: " + $resetStopOnCancel + "\n\n" +
 
-// ---- Account State ----
-"ACCOUNT STATE\n" +
+// ---- Runtime & Timing ----
+"RUNTIME & TIMING\n" +
 "-----------------\n" +
-"ACCOUNT_STATE: " + $ACCOUNT_STATE + "\n" +
+"rehab: " + $rehab + "\n" +
+"oneSecondScriptCnt: " + $oneSecondScriptCnt + "\n" +
+"pollMs: " + $pollMs + "\n" +
+"maxPolls: " + $maxPolls + "\n\n" +
+
+// ---- Account Mode ----
+"ACCOUNT MODE\n" +
+"-----------------\n" +
+"Account: " + $acct + "\n" +
+"Mode: " + $acctMode + "\n" +
 "SIM Account: " + $TRSIM + "\n" +
 "LIVE Account: " + $TRLIVE + "\n\n" +
+
+// ---- Session State ----
+"SESSION STATE\n" +
+"-----------------\n" +
+"DAY_ACC: " + GetVar("DAY_ACC") + "\n" +
+"DAY_EQUITY_START: $" + GetVar("DAY_EQUITY_START") + "\n" +
+"TRADING_LOCKED: " + GetVar("TRADING_LOCKED") + "\n\n" +
 
 // ---- Sizing & Risk Limits ----
 "SIZING & RISK LIMITS\n" +

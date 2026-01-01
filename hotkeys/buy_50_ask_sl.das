@@ -5,7 +5,12 @@
 // Places a size-scaled limit entry with spread/stop safety, then arms stop/TP.
 
 // Rehab gate: block live entries when rehab mode is enabled.
-if ($rehab == 1 && $ACCOUNT_STATE == "live") { MsgBox("ABORTED: Rehabe share size viloation!"); return; }
+$M = GetWindowObj("Primary_OE");
+$acct = "";
+if (IsObj($M)) { $acct = StrTrim("" + $M.Account); }
+$isLive = 0;
+if (StrLen($acct) > 0 && StrFind($acct, "TR") != 0) { $isLive = 1; }
+if ($rehab == 1 && $isLive == 1) { MsgBox("ABORTED: Rehab share size violation!"); return; }
 
 FocusWindow Primary_OE;
 
@@ -228,3 +233,5 @@ if ($useTakeProfit == "Yes") {
 }
 
 // ---- End ----
+
+

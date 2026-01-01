@@ -38,7 +38,11 @@ if (IsObj($M)) {
 }
 
 // Rehab gate: block scaling in while rehab mode is enabled (live only).
-if ($rehab ==1 && $M.Pos > 0 && $ACCOUNT_STATE == "live") {
+$acct = "";
+if (IsObj($M)) { $acct = StrTrim("" + $M.Account); }
+$isLive = 0;
+if (StrLen($acct) > 0 && StrFind($acct, "TR") != 0) { $isLive = 1; }
+if ($rehab == 1 && $M.Pos > 0 && $isLive == 1) {
     MsgBox("ABORTED: Rehab size violation, scaling in not allowed!");
     return;
 }
@@ -235,3 +239,5 @@ if ($useTakeProfit == "Yes") {
 }
 
 // ---- End ----
+
+

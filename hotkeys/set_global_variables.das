@@ -53,17 +53,11 @@ $takeProfitFactor = 1.0;
 // Example: 0.50 = sell half at TP
 $takeProfitSize = 0.50;
 
-// ---- 3) Account State (Simulation / Live Modes) ----
+// ---- 3) Account Tokens (Simulation / Live) ----
 //
-// You can toggle between sim/live elsewhere using ACCOUNT_STATE.
 // These vars store your SIM and LIVE account identifiers.
-// If ACCOUNT_STATE is blank, we default to live here.
-
-if ($ACCOUNT_STATE == "") {
-    $ACCOUNT_STATE = "live";   // default to live if unset
-    $TRSIM  = "%%SIMULATED%%"; // your SIM trading account
-    $TRLIVE = "%%LIVE%%";      // your LIVE trading account
-}
+$TRSIM  = "%%SIMULATED%%"; // your SIM trading account
+$TRLIVE = "%%LIVE%%";      // your LIVE trading account
 
 // ---- 4) Sizing & Risk Limits ----
 

@@ -4,20 +4,19 @@
 // =====================
 // Initializes per-account equity baseline and lock state for daily loss guard.
 
-// ---- Step 1: Ensure ACCOUNT_STATE is set ----
-if ($ACCOUNT_STATE == "") {
-    // Default to sim if somehow unset
-    $ACCOUNT_STATE = "sim";
-}
+// ---- Step 1: Resolve current account ----
+$M = GetWindowObj("Primary_OE");
+$acct = "";
+if (IsObj($M)) { $acct = StrTrim("" + $M.Account); }
 
-// ---- Step 2: Resolve current account ----
-if ($ACCOUNT_STATE == "sim") {
+// Default to SIM if account is unknown
+if (StrLen($acct) == 0 || StrFind($acct, "TR") == 0) {
     $AccName = "%%SIMULATED%%";   // SIM
 } else {
-    $AccName = "%%LIVE%%";     // LIVE
+    $AccName = "%%LIVE%%";        // LIVE
 }
 
-// ---- Step 3: Get account object and keys ----
+// ---- Step 2: Get account object and keys ----
 $acc = GetAccountObj($AccName);
 
 // Key names for this account-specific snapshot / lock

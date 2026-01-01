@@ -2,6 +2,14 @@
 
 All notable changes to this repository will be documented in this file.
 
+## 0.1.2 - 2026-01-01
+- Switch-to-live/sim hotkeys now derive account mode from Primary_OE and update the AcctState button inline (requires AcctState button on Primary_OE).
+- Session equity/baseline scripts resolve the active account from Primary_OE instead of $ACCOUNT_STATE.
+- Rehab gates in buy hotkeys now detect live mode from Primary_OE and clean up warning text.
+- Split STP/TP toggles into dedicated scripts and key bindings; removed the combined toggle.
+- Global config now shows derived account mode, and globals no longer set $ACCOUNT_STATE.
+- Show config now includes rehab/timing counters and session state (DAY_ACC, DAY_EQUITY_START, TRADING_LOCKED).
+
 ## 0.1.1 - 2025-12-29
 
 - Enforced max daily loss using the global $maxDailyLoss value and made the lock sticky for the day.
