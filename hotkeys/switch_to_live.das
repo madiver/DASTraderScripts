@@ -61,8 +61,8 @@ if (StrFind($account, "TR") == 0)
         else
         {
             $btn.Text = "LIVE";
-            $btn.FgColor = Color("White");
-            $btn.BkColor = Color("Blue");
+            $btn.FgColor = Color("Black");
+            $btn.BkColor = Color("Cyan");
         }
     }
 
