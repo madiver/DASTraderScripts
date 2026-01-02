@@ -2,6 +2,12 @@
 
 All notable changes to this repository will be documented in this file.
 
+## 0.1.3 - 2026-01-02
+- Add MIT license.
+- Expand the README risk disclaimer.
+- Link the DAS Hotkey Tools VS Code extension repo in the README.
+- Add a key binding for set_0_05_stop in keymap.yaml.
+
 ## 0.1.2 - 2026-01-01
 - Switch-to-live/sim hotkeys now derive account mode from Primary_OE and update the AcctState button inline (requires AcctState button on Primary_OE).
 - Session equity/baseline scripts resolve the active account from Primary_OE instead of $ACCOUNT_STATE.

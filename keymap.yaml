@@ -150,7 +150,7 @@
   label: Set 0.30 Stop
   scriptPath: hotkeys/set_0_30_stop.das
 - id: set_0_05_stop
-  key: 
+  key: Alt+Ctrl+Win+0
   label: Set 0.05 Stop
   scriptPath: hotkeys/set_0_05_stop.das
 - id: set_auto_stop_be_1_2

@@ -53,4 +53,9 @@ PnL, Stops, Take profit, Utilities & toggles.
 
 ## Risk Disclaimer
 
-These scripts are provided "as is" and are used at your own risk. Always review and test hotkeys before use in DAS Trader.
+These scripts are provided "as is" and are used at your own risk. Always review
+and test hotkeys before use in DAS Trader.
+- Test changes in SIM and confirm order routes, share sizes, and risk controls.
+- Hotkeys can place, modify, or cancel orders instantly; mistakes can be costly.
+- You are responsible for compliance with broker rules, account settings, and
+  regulatory requirements.
