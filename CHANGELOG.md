@@ -6,7 +6,7 @@ All notable changes to this repository will be documented in this file.
 - Add MIT license.
 - Expand the README risk disclaimer.
 - Link the DAS Hotkey Tools VS Code extension repo in the README.
-- Add a key binding for set_0_05_stop in keymap.yaml.
+- Add missing key binding for set_0_05_stop in keymap.yaml.
 - Add Discord push notification webhook.
 
 ## 0.1.2 - 2026-01-01
