@@ -141,14 +141,14 @@
   key: Alt+Ctrl+Win+-
   label: Set 0.10 Stop
   scriptPath: hotkeys/set_0_10_stop.das
-- id: set_0_20_stop
+- id: set_0_15_stop
   key: Alt+Ctrl+Win+=
+  label: Set 0.15 Stop
+  scriptPath: hotkeys/set_0_15_stop.das
+- id: set_0_20_stop
+  key: Alt+Ctrl+Win+[
   label: Set 0.20 Stop
   scriptPath: hotkeys/set_0_20_stop.das
-- id: set_0_30_stop
-  key: Alt+Ctrl+Win+[
-  label: Set 0.30 Stop
-  scriptPath: hotkeys/set_0_30_stop.das
 - id: set_0_05_stop
   key: Alt+Ctrl+Win+0
   label: Set 0.05 Stop

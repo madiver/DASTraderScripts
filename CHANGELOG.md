@@ -2,6 +2,10 @@
 
 All notable changes to this repository will be documented in this file.
 
+## 0.1.4 - 2026-01-08
+- Change stop-loss presets: set_0_15_stop is now $0.15, set_0_20_stop is now $0.20.
+- Rename stop-loss scripts to match new presets (set_0_20_stop -> set_0_15_stop, set_0_30_stop -> set_0_20_stop).
+
 ## 0.1.3 - 2026-01-02
 - Add MIT license.
 - Expand the README risk disclaimer.
