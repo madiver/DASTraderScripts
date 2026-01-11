@@ -63,7 +63,7 @@ $TRLIVE = "%%LIVE%%";      // your LIVE trading account
 
 // Multiplier for position sizing
 // Example: if base clip is 50 shares, qtyMult=4 -> 200 shares per entry
-$qtyMult = 4;
+$qtyMult = 5;
 
 // Maximum allowed position size (shares)
 $maxPositionSize = $qtyMult * 150;

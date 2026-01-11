@@ -2,6 +2,11 @@
 
 All notable changes to this repository will be documented in this file.
 
+## 0.1.5 - 2026-01-10
+- Increase $qtyMult to 5x (maxPositionSize now 750 shares).
+- Remove 100 and 150 base share size buy hotkeys due to excessive size (e.g., 150 x qtyMult = 750 shares).
+- Add 25 base share size buy hotkeys (e.g., 25 x qtyMult = 100 shares).
+
 ## 0.1.4 - 2026-01-08
 - Change stop-loss presets: set_0_15_stop is now $0.15, set_0_20_stop is now $0.20.
 - Rename stop-loss scripts to match new presets (set_0_20_stop -> set_0_15_stop, set_0_30_stop -> set_0_20_stop).

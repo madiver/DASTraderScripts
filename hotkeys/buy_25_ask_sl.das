@@ -46,7 +46,7 @@ if (IsObj($M)) {
 }
 
 // ---- Entry sizing and pacing ----
-$addShares     = 150 * $qtyMult;
+$addShares     = 25 * $qtyMult;
 $refPx             = ASK;             // BID or ASK
 $minDelayMs  = 1000;           // throttle between order sends (ms)
 

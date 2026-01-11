@@ -4,7 +4,15 @@ Shared DAS Trader `.das` scripts and a canonical `keymap.yaml`, maintained for u
 
 ## Overview
 
-This repository contains human-readable hotkey scripts plus a keymap file that can be compiled into a DAS `Hotkey.htk` file. It exists to make large hotkey libraries easier to review, version, and share than editing Hotkey.htk directly.
+This repository contains human-readable DAS Trader hotkey scripts plus a keymap file that can be compiled into a DAS `Hotkey.htk` file. It exists to make large hotkey libraries easier to review, version, and share than editing Hotkey.htk directly.
+
+These are the scripts I trade with on a daily basis. They are routinely updated as I encounter new scenarios I wish to explore and as I gradually advance my trading experience. If you choose to use these scripts,
+it is important that you carefully review the global settings in `hotkeys/set_global_variables.das` and ensure `keymap.yaml` reflects the keyboard or Stream Deck hotkeys you wish to use (mine are tailored to my setup). It is worth noting that I primarily use
+a Stream Deck when trading, which I find preferable to the keyboard.
+
+These scripts can be manually copied and pasted directly into the DAS Trader script editor or you may want to consider using the DAS Hotkey Tools to automate the process (see the Requirements section below).
+
+Finally, please read the Risk Disclaimer section below and understand that you are using these scripts at your own risk and they are provided here purely for educational purposes.
 
 ## Repository Layout
 
@@ -15,7 +23,7 @@ This repository contains human-readable hotkey scripts plus a keymap file that c
 
 ## Requirements
 
-- VS Code 1.107+
+- Tested with DAS Trader Pro 5.8.1.6
 - DAS Hotkey Tools VS Code extension (https://github.com/madiver/dasVSide)
 
 ## Build Hotkey.htk
@@ -55,6 +63,7 @@ PnL, Stops, Take profit, Utilities & toggles.
 
 These scripts are provided "as is" and are used at your own risk. Always review
 and test hotkeys before use in DAS Trader.
+- I make no warranties or guarantees that these scripts are correct or bug free.
 - Test changes in SIM and confirm order routes, share sizes, and risk controls.
 - Hotkeys can place, modify, or cancel orders instantly; mistakes can be costly.
 - You are responsible for compliance with broker rules, account settings, and

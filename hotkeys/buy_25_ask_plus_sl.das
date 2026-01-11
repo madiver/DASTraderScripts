@@ -1,6 +1,6 @@
 // =====================
 // SCALING-AWARE ENTRY
-// Group: Buy orders: Bid+ SL
+// Group: Buy orders: Ask+ SL
 // =====================
 // Places a size-scaled limit entry with spread/stop safety, then arms stop/TP.
 
@@ -46,8 +46,8 @@ if (IsObj($M)) {
 }
 
 // ---- Entry sizing and pacing ----
-$addShares     = 150 * $qtyMult;
-$refPx             = BID;             // BID or ASK
+$addShares     = 25 * $qtyMult;
+$refPx             = ASK;             // BID or ASK
 $minDelayMs  = 1000;           // throttle between order sends (ms)
 
 // ---- Max position size guard ----
