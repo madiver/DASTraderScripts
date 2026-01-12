@@ -27,6 +27,7 @@ Serious about day trading? You can find me on Discord here:  https://discord.gg/
 
 - Tested with DAS Trader Pro 5.8.1.6
 - DAS Hotkey Tools VS Code extension (https://github.com/madiver/dasVSide)
+- DAS Trader Pro configuration (https://github.com/madiver/DASTraderConfig)
 
 ## Build Hotkey.htk
 
