@@ -121,6 +121,10 @@
   key: Ctrl+Shift+B
   label: Set Auto Stop BE 1/1
   scriptPath: hotkeys/set_auto_stop_be_1_1.das
+- id: set_auto_stop_be_scale_1_1
+  key:
+  label: Set Auto Stop BE Scale 1/1
+  scriptPath: hotkeys/set_auto_stop_be_scale_1_1.das
 - id: set_0_10_stop
   key: Alt+Ctrl+Win+-
   label: Set 0.10 Stop

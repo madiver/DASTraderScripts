@@ -14,6 +14,8 @@ These scripts can be manually copied and pasted directly into the DAS Trader scr
 
 Finally, please read the Risk Disclaimer section below and understand that you are using these scripts at your own risk and they are provided here purely for educational purposes.
 
+Serious about day trading? You can find me on Discord here:  https://discord.gg/UvZYTEGrvh
+
 ## Repository Layout
 
 - `keymap.yaml` - Hotkey metadata and key bindings.

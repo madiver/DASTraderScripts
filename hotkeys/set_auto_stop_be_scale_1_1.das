@@ -1,22 +1,20 @@
 // =====================
-// SET AUTO STOP BE (SLP ABOVE BE) - 1/1
+// SET AUTO STOP BE SCALE (SLP ABOVE BE) - 1/1
 // Group: Stops
 // =====================
-// Called from Take Profit Executor.
+// Called from scale-in entries.
 // Behavior:
 // - Protects partial position (1/denominator)
-// - If not yet +$0.03 in profit -> place BE limit sell
+// - If not yet +$0.03 in profit -> place BE stop-limit with 1-tick cushion
 // - If >= +$0.03 in profit -> place SLP stop-limit above BE
 // Requirements:
 // - Primary_OE montage exists
 // - Uses montage object properties (.Symb, .Account, .Pos, .AvgCost)
 // - Honors $useAutoStop
-
 // ---- Tunables ----
 $portionDenominator = 1;    // 1 = full, 2 = half, 4 = quarter
 $beOffset           = 0.03; // BE trigger offset
 $cancelWaitMs       = 1000; // cancel throttle wait
-
 // ---- Step 1: Feature toggle ----
 if ($useAutoStop != "Yes") {
     return;
@@ -25,7 +23,7 @@ if ($useAutoStop != "Yes") {
 // ---- Step 2: Load Primary_OE montage ----
 $M = GetWindowObj("Primary_OE");
 if (!IsObj($M)) {
-    MsgBox("Set Auto Stop BE: Primary_OE montage not found.");
+    MsgBox("Set Auto Stop BE Scale: Primary_OE montage not found.");
     return;
 }
 
@@ -42,14 +40,14 @@ if ($tpSymbol != "" && $tpSymbol != $mySym) {
     $myAcc = $M.Account;
 
     if ($mySym != $tpSymbol) {
-        MsgBox("Set Auto Stop BE: failed to switch montage to " + $tpSymbol);
+        MsgBox("Set Auto Stop BE Scale: failed to switch montage to " + $tpSymbol);
         return;
     }
 }
 
 // Optional entry-symbol safety
 if ($entrySymbol != "" && $entrySymbol != $mySym) {
-    MsgBox("Set Auto Stop BE: symbol mismatch (" + $mySym + " vs " + $entrySymbol + ")");
+    MsgBox("Set Auto Stop BE Scale: symbol mismatch (" + $mySym + " vs " + $entrySymbol + ")");
     return;
 }
 
@@ -60,8 +58,25 @@ $avgNow = $M.AvgCost;
 if ($posNow <= 0) {
     return; // flat or short
 }
+// Try to let AvgCost populate if it's lagging
+$j = 0;
+while ($posNow > 0 && $avgNow <= 0 && $j < 10) {
+    Wait(50);
+    $avgNow = $M.AvgCost;
+    $j = $j + 1;
+}
+
+// Fallback: if AvgCost is still missing, anchor to entryRefPx or Last
+if ($posNow > 0 && $avgNow <= 0) {
+    if ($entryRefPx > 0) {
+        $avgNow = $entryRefPx;
+    } else {
+        $avgNow = $M.Last;   // last fallback from montage
+    }
+}
+
 if ($avgNow <= 0) {
-    MsgBox("Set Auto Stop BE: AvgCost unavailable for " + $mySym);
+    MsgBox("Set Auto Stop BE Scale: AvgCost unavailable for " + $mySym);
     return;
 }
 
@@ -75,7 +90,7 @@ $avgSnap = Round($avgNow, 102, $inc);
 // ---- Step 6: Market state ----
 $bid = $M.Bid;
 if ($bid <= 0) {
-    MsgBox("Set Auto Stop BE: No valid BID for " + $mySym);
+    MsgBox("Set Auto Stop BE Scale: No valid BID for " + $mySym);
     return;
 }
 
@@ -92,27 +107,27 @@ $accObj = GetAccountObj($myAcc);
 $accObj.CancelOrder("SELL", $mySym, 0);
 Wait($cancelWaitMs);
 
-// ---- Step 9: If not yet in profit, place BE limit sell ----
+// ---- Step 9: If not yet in profit, place BE stop-limit ----
 if ($bid < $beStopTrigger) {
-    // ARCAL uses penny ticks
-    $incBE = 0.01;
+    $stop = $avgSnap;
+    $px   = Round($stop - $inc, 102, $inc);
 
-    $px = Round($avgSnap, 102, $incBE);
-
-    if ($pegToBid == 1 && $bid > $px) {
-        $px = Round($bid, 102, $incBE);
+    // Ensure SLP validity (limit < stop)
+    if ($px >= $stop) {
+        $px = Round($stop - $inc, 102, $inc);
     }
 
-    $o = NewOrderObj();
-    $o.Account = $myAcc;
-    $o.Symbol  = $mySym;
-    $o.Route   = "ARCAL";
-    $o.Tif     = "DAY+";
-    $o.Side    = "S";
-    $o.Type    = "L";
-    $o.Price   = $px;
-    $o.Share   = $qtyProtect;
-    $o.Send();
+    $s = NewOrderObj();
+    $s.Account   = $myAcc;
+    $s.Symbol    = $mySym;
+    $s.Route     = "STOP";
+    $s.Tif       = "DAY+";
+    $s.Side      = "S";
+    $s.Type      = "SLP";
+    $s.StopPrice = $stop;
+    $s.Price     = $px;
+    $s.Share     = $qtyProtect;
+    $s.Send();
 
     return;
 }
@@ -140,4 +155,4 @@ $s.Send();
 
 return;
 
-// ---- End Set Auto Stop BE ----
+// ---- End Set Auto Stop BE Scale ----

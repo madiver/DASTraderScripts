@@ -2,9 +2,15 @@
 
 All notable changes to this repository will be documented in this file.
 
+## 0.2.0 - TBD
+- Add profit-only scale-in gate (pilot) to `buy_10_ask_sl`.
+- Add scale-in-specific BE stop hotkey and wire it into the pilot buy script.
+- Restore manual BE hotkeys for discretionary use; keep scale-in behavior separate.
+- Reduced early take-profit from 50% to 25% at 1R to preserve inventory for profit-funded scaling while maintaining disciplined partial profit capture.
+
 ## 0.1.5 - 2026-01-10
 - Increase $qtyMult to 5x (maxPositionSize now 750 shares).
-- Remove 100 and 150 base share size buy hotkeys due to excessive size (e.g., 150 x qtyMult = 750 shares).
+- Remove 100 base share size buy hotkeys due to excessive size (e.g., 100 x qtyMult = 500 shares).
 - Add 25 base share size buy hotkeys (e.g., 25 x qtyMult = 100 shares).
 
 ## 0.1.4 - 2026-01-08

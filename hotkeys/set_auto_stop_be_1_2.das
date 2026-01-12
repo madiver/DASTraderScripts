@@ -96,7 +96,6 @@ Wait($cancelWaitMs);
 
 // ---- Step 9: If not yet in profit, place BE limit sell ----
 if ($bid < $beStopTrigger) {
-
     // ARCAL uses penny ticks
     $incBE = 0.01;
 

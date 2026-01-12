@@ -51,7 +51,7 @@ $takeProfitFactor = 1.0;
 
 // Portion of your position to sell/cover when the TP alert hits
 // Example: 0.50 = sell half at TP
-$takeProfitSize = 0.50;
+$takeProfitSize = 0.25;
 
 // ---- 3) Account Tokens (Simulation / Live) ----
 //
