@@ -2,11 +2,13 @@
 
 All notable changes to this repository will be documented in this file.
 
-## 0.2.0 - TBD
-- Add profit-only scale-in gate (pilot) to `buy_10_ask_sl`.
-- Add scale-in-specific BE stop hotkey and wire it into the pilot buy script.
-- Restore manual BE hotkeys for discretionary use; keep scale-in behavior separate.
-- Reduced early take-profit from 50% to 25% at 1R to preserve inventory for profit-funded scaling while maintaining disciplined partial profit capture.
+## 0.2.0 - 2026-01-12
+- Apply profit-only scale-in gate across all buy scripts (10/25/50 sizes).
+- Use scale-in-specific BE stop when adding to existing positions.
+- Align cancel-order sequencing to run after scale-in validation.
+- Enforce projected total-size risk cap on all buy scripts.
+- Ensure ice-breaker sizing never rounds to zero (minimum 5 shares) on buy_10 scripts.
+- Fix buy_10 rehab scale-in gate to use the pre-entry position snapshot.
 
 ## 0.1.5 - 2026-01-10
 - Increase $qtyMult to 5x (maxPositionSize now 750 shares).

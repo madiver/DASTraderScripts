@@ -42,7 +42,7 @@ $acct = "";
 if (IsObj($M)) { $acct = StrTrim("" + $M.Account); }
 $isLive = 0;
 if (StrLen($acct) > 0 && StrFind($acct, "TR") != 0) { $isLive = 1; }
-if ($rehab == 1 && $M.Pos > 0 && $isLive == 1) {
+if ($rehab == 1 && $posBefore > 0 && $isLive == 1) {
     MsgBox("ABORTED: Rehab size violation, scaling in not allowed!");
     return;
 }
@@ -51,6 +51,7 @@ if ($rehab == 1 && $M.Pos > 0 && $isLive == 1) {
 $quarter = 50 * $qtyMult * 0.25;
 $scaled = $quarter + 2.5;
 $addShares = $scaled - ($scaled % 5);
+if ($addShares < 5) { $addShares = 5; }
 
 // ---- Entry sizing and pacing ----
 $refPx             = ASK;             // BID or ASK
@@ -137,9 +138,13 @@ if (($stopVsBidFail == 1 || $spreadTooWide == 1) && $posBefore <=0) {
     return;
 }
 
-// Per-trade risk cap (projected risk = stopLossTrigger * addShares)
+// Per-trade risk cap (projected risk = stopLossTrigger * projectedShares)
 if ($usePerTradeRiskCap == 1) {
-    $projRisk = $stopLossTrigger * $addShares;
+    $riskShares = $addShares;
+    if ($posBefore > 0) {
+        $riskShares = $posBefore + $addShares;
+    }
+    $projRisk = $stopLossTrigger * $riskShares;
     if ($projRisk > $riskCapDollars) {
         MsgBox("Risk cap exceeded for " + Symbol + ": projected $" + $projRisk + " > cap $" + $riskCapDollars + ". Aborting.");
         return;

@@ -61,6 +61,13 @@ Buy orders: Ask SL, Buy orders: Ask+ SL, Buy orders: Bid SL, Buy orders: Bid+ SL
 Global controls & config, Sell orders: Ask, Sell orders: Bid-, Session equity &
 PnL, Stops, Take profit, Utilities & toggles.
 
+## Scaling Behavior
+
+- Scale-ins are allowed only when the existing position is at least 1R in profit (based on `stopLossTrigger` and current BID vs AvgCost).
+- When adding to an existing long, the scripts use the scale-in-specific BE stop hotkey (`Set Auto Stop BE Scale 1/1`).
+- Buy_10 scripts use an ice-breaker size that rounds to 5-share lots with a minimum of 5 shares.
+- Projected risk caps are evaluated against total size after the add (current position + new shares).
+
 ## Risk Disclaimer
 
 These scripts are provided "as is" and are used at your own risk. Always review

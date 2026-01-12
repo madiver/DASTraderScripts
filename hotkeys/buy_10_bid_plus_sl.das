@@ -42,7 +42,7 @@ $acct = "";
 if (IsObj($M)) { $acct = StrTrim("" + $M.Account); }
 $isLive = 0;
 if (StrLen($acct) > 0 && StrFind($acct, "TR") != 0) { $isLive = 1; }
-if ($rehab == 1 && $M.Pos > 0 && $isLive == 1) {
+if ($rehab == 1 && $posBefore > 0 && $isLive == 1) {
     MsgBox("ABORTED: Rehab size violation, scaling in not allowed!");
     return;
 }
@@ -51,6 +51,7 @@ if ($rehab == 1 && $M.Pos > 0 && $isLive == 1) {
 $quarter = 50 * $qtyMult * 0.25;
 $scaled = $quarter + 2.5;
 $addShares = $scaled - ($scaled % 5);
+if ($addShares < 5) { $addShares = 5; }
 
 // ---- Entry sizing and pacing ----
 $refPx             = BID;             // BID or ASK
@@ -137,26 +138,40 @@ if (($stopVsBidFail == 1 || $spreadTooWide == 1) && $posBefore <=0) {
     return;
 }
 
-// Per-trade risk cap (projected risk = stopLossTrigger * addShares)
+// Per-trade risk cap (projected risk = stopLossTrigger * projectedShares)
 if ($usePerTradeRiskCap == 1) {
-    $projRisk = $stopLossTrigger * $addShares;
+    $riskShares = $addShares;
+    if ($posBefore > 0) {
+        $riskShares = $posBefore + $addShares;
+    }
+    $projRisk = $stopLossTrigger * $riskShares;
     if ($projRisk > $riskCapDollars) {
         MsgBox("Risk cap exceeded for " + Symbol + ": projected $" + $projRisk + " > cap $" + $riskCapDollars + ". Aborting.");
         return;
     }
 }
 
-// ---- Step 2: Cancel BUY working orders (keep protection until fill) ----
-$acc = GetAccountObj(Account);
-$acc.CancelOrder("BUY", Symbol, 0);
-
-// ---- Step 3: Build entry; snap to tick increment ----
+// ---- Step 2: Build entry; snap to tick increment ----
 // Re-evaluate inc using pxEntry (some symbols jump bands)
 $inc = 0.01;
 if ($pxEntry < 1 || $bid < 1 || $ask < 1) { $inc = 0.001; }
 if ($pxEntry < 0.25 || $bid < 0.25 || $ask < 0.25) { $inc = 0.0005; }
 $pxEntry = Round($pxEntry, 102, $inc);
+// ---- Scale-in gate: only allow profit-preserving adds ----
+if ($posBefore > 0) {
+    if ($avgBefore <= 0) {
+        MsgBox("Scale-in aborted: AvgCost unavailable for " + Symbol + ".");
+        return;
+    }
+    if (($bid - $avgBefore) < $stopLossTrigger) {
+        MsgBox("Scale-in aborted: position not >= 1R in profit for " + Symbol + ".");
+        return;
+    }
+}
 
+// ---- Step 3: Cancel BUY working orders (keep protection until fill) ----
+$acc = GetAccountObj(Account);
+$acc.CancelOrder("BUY", Symbol, 0);
 $order = NewOrderObj();
 $order.Account = Account;
 $order.Symbol  = Symbol;
@@ -209,7 +224,11 @@ if ($filled == 2 && $cancelRemainderOnPartial == 1) {
 
 // ---- Step 6: Arm unified 1R stop via "Set Auto Stop" ----
 if ($useAutoStop == "Yes") {
-    ExecHotKey("Set Auto Stop");   
+    if ($posBefore > 0) {
+        ExecHotKey("Set Auto Stop BE Scale 1/1");
+    } else {
+        ExecHotKey("Set Auto Stop");
+    }
 }
 
 // ---- Step 7: Build and set take profit trigger (optional) ----
@@ -239,5 +258,8 @@ if ($useTakeProfit == "Yes") {
 }
 
 // ---- End ----
+
+
+
 
 
