@@ -41,10 +41,15 @@ Serious about day trading? You can find me on Discord here:  https://discord.gg/
 ## Notes
 
 - Scripts are plain text and safe to review in source control.
-- The compiler is deterministic: the same inputs produce the same output.       
+- The compiler is deterministic: the same inputs produce the same output.
 - Use `// Ignore: True` in a script to exclude it from builds.
-- Use `// Group: <name>` to tag a script's category (kept in sync with the      
+- Use `// Group: <name>` to tag a script's category (kept in sync with the
   section headers in `keymap.yaml` for easier organization).
+- With `$useTimerArming = 1` (default), buy hotkeys return immediately after
+  sending the order and the timer calls `Timer Entry Handler` to arm stop/TP on
+  subsequent ticks. Install `other scripts/timer.das` and keep
+  `hotkeys/timer_entry_handler.das` in your keymap; set `$useTimerArming = 0` to
+  revert to inline polling.
 
 ## Script metadata
 

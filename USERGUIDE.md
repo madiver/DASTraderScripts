@@ -14,7 +14,7 @@ Regardless of the method you choose, the timer script must be installed manually
 
 Important: update `$TRSIM` and `$LIVEACT` in `hotkeys/set_global_variables.das` with your actual account identifiers if they are not already populated. `$LIVEACT` is used by the timer for live-only daily loss guards and `$TRSIM` is shown in the config display. Also verify that any `%%SIMULATED%%` and `%%LIVE%%` placeholders have been replaced in the SIM/LIVE switch and session scripts (the VS Code extension handles this during build; if you copy scripts manually, you must replace them yourself).
 
-A buy hotkey sends a limit order and then polls for a fill up to `$maxPolls * $pollMs`. If nothing fills, the order is canceled and the script exits without arming any protection. If a partial fill meets `$minFillShares`, the remainder is canceled (when enabled) and the scripts proceed as if the trade is active, using the average entry price for subsequent calculations.
+By default (`$useTimerArming = 1`), a buy hotkey sends the limit order, records entry context, and returns immediately. A timer-driven handler then waits for a fill and arms stop loss / take profit on subsequent 1-second ticks. If `$useTimerArming = 0`, the buy hotkey polls for a fill up to `$maxPolls * $pollMs`; if nothing fills, the order is canceled and the script exits without arming any protection. If a partial fill meets `$minFillShares`, the remainder is canceled (when enabled) and the scripts proceed as if the trade is active, using the average entry price for subsequent calculations.
 
 Stops are placed as STOP/SLP orders routed to the broker, which means the stop logic lives on the broker side once submitted. Take-profit is implemented with DAS alerts that fire when price reaches the configured R target and then execute the Take Profit hotkey; those alerts are client-side and require DAS to remain open with live data.
 
@@ -41,6 +41,7 @@ Feature toggles and entry guards:
 - `$useAutoStop`: toggles auto stop placement.
 - `$useTakeProfit`: toggles take-profit alerts/executor behavior.
 - `$resetStopOnCancel`: re-arms the stop after `cancel_all.das` if long.
+- `$useTimerArming`: uses timer-based entry arming (1) or inline polling (0).
 
 Risk and execution:
 - `$entryOffset`: bid/ask offset for the "plus" entry scripts.
@@ -68,6 +69,11 @@ Sizing and risk limits:
 Order fill polling:
 - `$pollMs`: polling interval in milliseconds.
 - `$maxPolls`: maximum number of polls before canceling an unfilled order.
+  These are used when `$useTimerArming = 0`.
+
+Timer-based entry arming (runtime):
+- `$entryPending`, `$entryStage`, `$entryTicks`, `$entryMaxTicks`: timer state and timeout for arming stops/TP after fills.
+- `$entrySymbol`, `$entryPosBefore`, `$entryAvgBefore`, `$entryScaleIn`, `$entryDynR`: captured entry context used by the timer handler.
 
 `Set Global Variables` also runs `Initialize Session Equity` to seed the daily
 loss baseline used by the timer script.
@@ -196,14 +202,18 @@ These controls help prevent low-quality fills and oversized risk.
 
 ## TIMER SCRIPT
 
-`other scripts/timer.das` does two things:
+`other scripts/timer.das` does three things:
 
 1) Enforces the daily loss lock (live account only) using the session equity
    baseline.
-2) Clears take-profit alerts and dynamic stop state when flat.
+2) Runs `Timer Entry Handler` each tick to arm stops/TP after fills when
+   `$useTimerArming = 1`.
+3) Clears take-profit alerts and dynamic stop state when flat.
 
 Installation: add this script to DAS Trader's timer so it runs every second.
-It is not installed automatically by the hotkey build.
+It is not installed automatically by the hotkey build. Ensure
+`hotkeys/timer_entry_handler.das` is included in your keymap because the timer
+calls it via `ExecHotkey`.
 
 ## UTILITIES & TOGGLES
 
@@ -242,23 +252,26 @@ UI and convenience:
 ### Script-induced latency
 
 Fast entry and exit are important to my strategy, so reducing latency matters.
-These scripts still introduce small delays because they wait/poll to confirm
-fills and enforce guard rails. As a newer trader I prefer that tradeoff: the
-extra latency is usually measured in fractions of a second and is rarely the
-deciding factor compared to the inherent delays in data transmission, order
-routing, and queue position. Tune `$pollMs` and `$maxPolls` if you want faster
-or more conservative behavior.
+These scripts still introduce small delays because they wait to confirm fills
+and enforce guard rails. With `$useTimerArming = 1`, entry hotkeys return
+immediately, but stops/TP are armed on the next timer tick, so there can be a
+brief unprotected window (up to ~1 second plus DAS processing). Set
+`$useTimerArming = 0` and tune `$pollMs` and `$maxPolls` if you prefer inline
+polling and more immediate protection.
 
 ### Waiting for fills on buy orders
 
-Buy orders poll for fills and can accept partials based on `$acceptPartial` and
-`$minFillShares`. If the fill criteria are not met in time, the order is
-canceled and the script exits without arming stops.
+When `$useTimerArming = 1`, the timer handler waits for a position to appear
+before arming stops/TP. When `$useTimerArming = 0`, buy orders poll for fills
+and can accept partials based on `$acceptPartial` and `$minFillShares`. If the
+fill criteria are not met in time, the order is canceled and the script exits
+without arming stops.
 
-If you do not wait for fills and immediately arm stops/TP, you risk placing
-protection against a position that does not exist yet, or against a partial
-fill that later changes your average cost. The polling step avoids racing
-conditions between the order, the montage position, and AvgCost updates.
+Both modes intentionally wait for a fill before arming protection to avoid
+mismatched AvgCost. Bypassing the fill check risks placing protection against a
+position that does not exist yet, or against a partial fill that later changes
+your average cost. The fill check avoids racing conditions between the order,
+the montage position, and AvgCost updates.
 
 ### Pre-market / after-hours stops (LIMITP)
 
@@ -274,5 +287,4 @@ These scripts submit STOP/SLP orders; whether those behave as LIMITP in
 pre-market or after-hours depends on your broker and DAS configuration. If you
 trade outside regular hours, verify your broker's behavior and consider a
 LIMITP-based workflow tailored to your setup.
-
 
