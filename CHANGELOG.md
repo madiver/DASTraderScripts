@@ -4,6 +4,11 @@ All notable changes to this repository will be documented in this file.
 
 ## 0.2.2 - TBD
 - Block buy_25/buy_50 initial entries when dynamic stop mode is enabled (warns via MsgBox).
+- Cancel timed-out timer-based buy entries instead of leaving them working.
+- Re-arm stop/TP on timer ticks when position size increases after a fill.
+- Add timer re-arm tracking state (`entryWatch`, `entryLastPos`) to globals and config display.
+- Gate buy_25/buy_50 scale-ins on dynamic R when `dynamicStop = 1` and `dynamicStopActive = 1`.
+- Cancel existing sell orders before timer-based re-arms on size increases.
 
 ## 0.2.1 - 2026-01-15
 - Rename ice-breaker entry scripts from buy_10_* to buy_ib_* and update key bindings.

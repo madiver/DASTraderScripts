@@ -158,11 +158,13 @@ if ($pxEntry < 0.25 || $bid < 0.25 || $ask < 0.25) { $inc = 0.0005; }
 $pxEntry = Round($pxEntry, 102, $inc);
 // ---- Scale-in gate: only allow profit-preserving adds ----
 if ($posBefore > 0) {
+    $gateR = $stopLossTrigger;
+    if ($dynamicStop == 1 && $dynamicStopActive == 1 && $dynamicStopR > 0) { $gateR = $dynamicStopR; }
     if ($avgBefore <= 0) {
         MsgBox("Scale-in aborted: AvgCost unavailable for " + Symbol + ".");    
         return;
     }
-    if (($bid - $avgBefore) < $stopLossTrigger) {
+    if (($bid - $avgBefore) < $gateR) {
         MsgBox("Scale-in aborted: position not >= 1R in profit for " + Symbol + ".");
         return;
     }

@@ -65,6 +65,8 @@ $msg =
 "entryTicks: " + $entryTicks + "\n" +
 "entryMaxTicks: " + $entryMaxTicks + "\n" +
 "entrySymbol: " + $entrySymbol + "\n" +
+"entryWatch: " + $entryWatch + "\n" +
+"entryLastPos: " + $entryLastPos + "\n" +
 "entryPosBefore: " + $entryPosBefore + "\n" +
 "entryAvgBefore: " + $entryAvgBefore + "\n" +
 "entryScaleIn: " + $entryScaleIn + "\n" +

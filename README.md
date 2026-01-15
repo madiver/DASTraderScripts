@@ -47,7 +47,11 @@ Serious about day trading? You can find me on Discord here:  https://discord.gg/
   section headers in `keymap.yaml` for easier organization).
 - With `$useTimerArming = 1` (default), buy hotkeys return immediately after
   sending the order and the timer calls `Timer Entry Handler` to arm stop/TP on
-  subsequent ticks. Install `other scripts/timer.das` and keep
+  subsequent ticks. If position size increases on later ticks, the handler
+  re-arms the stop (cancels existing sells first) and re-arms TP only when the
+  TP reset conditions are met.
+  If no fill appears within `$entryMaxTicks`, the handler cancels the working
+  buy order. Install `other scripts/timer.das` and keep
   `hotkeys/timer_entry_handler.das` in your keymap; set `$useTimerArming = 0` to
   revert to inline polling.
 
@@ -59,7 +63,7 @@ These live in the first few comment lines of a `.das` file.
 Example:
 
 ```das
-// BUY 10 BID+ SL
+// BUY IB BID+ SL
 // Group: Buy orders: Bid+ SL
 // Ignore: True
 ```
@@ -71,7 +75,7 @@ PnL, Stops, Take profit, Utilities & toggles.
 
 ## Scaling Behavior
 
-- Scale-ins are allowed only when the existing position is at least 1R in profit (based on `stopLossTrigger` and current BID vs AvgCost).
+- Scale-ins are allowed only when the existing position is at least 1R in profit (dynamic R when active, otherwise `stopLossTrigger`).
 - When adding to an existing long, the scripts use the scale-in-specific BE stop hotkey (`Set Auto Stop BE Scale 1/1`).
 - Buy_IB scripts use an ice-breaker size that rounds to 5-share lots with a minimum of 5 shares.
 - Projected risk caps are evaluated against total size after the add (current position + new shares).

@@ -29,6 +29,8 @@ $entryAvgBefore = 0;
 $entryScaleIn = 0;
 $entryDynR = 0;
 $entrySymbol = "";
+$entryWatch = 0;
+$entryLastPos = 0;
 
 // ---- 1) Feature Toggles ----
 $useSlippageMargin        = 1;     // 1=guard stop vs bid with margin

@@ -14,7 +14,7 @@ Regardless of the method you choose, the timer script must be installed manually
 
 Important: update `$TRSIM` and `$LIVEACT` in `hotkeys/set_global_variables.das` with your actual account identifiers if they are not already populated. `$LIVEACT` is used by the timer for live-only daily loss guards and `$TRSIM` is shown in the config display. Also verify that any `%%SIMULATED%%` and `%%LIVE%%` placeholders have been replaced in the SIM/LIVE switch and session scripts (the VS Code extension handles this during build; if you copy scripts manually, you must replace them yourself).
 
-By default (`$useTimerArming = 1`), a buy hotkey sends the limit order, records entry context, and returns immediately. A timer-driven handler then waits for a fill and arms stop loss / take profit on subsequent 1-second ticks. If `$useTimerArming = 0`, the buy hotkey polls for a fill up to `$maxPolls * $pollMs`; if nothing fills, the order is canceled and the script exits without arming any protection. If a partial fill meets `$minFillShares`, the remainder is canceled (when enabled) and the scripts proceed as if the trade is active, using the average entry price for subsequent calculations.
+By default (`$useTimerArming = 1`), a buy hotkey sends the limit order, records entry context, and returns immediately. A timer-driven handler then waits for a fill and arms stop loss / take profit on subsequent 1-second ticks. If position size increases on later ticks, the handler cancels existing sell orders, re-arms the stop, and only re-arms TP when the TP reset conditions are met. If no fill appears within `$entryMaxTicks`, the handler cancels the working buy order and clears the pending state. If `$useTimerArming = 0`, the buy hotkey polls for a fill up to `$maxPolls * $pollMs`; if nothing fills, the order is canceled and the script exits without arming any protection. If a partial fill meets `$minFillShares`, the remainder is canceled (when enabled) and the scripts proceed as if the trade is active, using the average entry price for subsequent calculations.
 
 Stops are placed as STOP/SLP orders routed to the broker, which means the stop logic lives on the broker side once submitted. Take-profit is implemented with DAS alerts that fire when price reaches the configured R target and then execute the Take Profit hotkey; those alerts are client-side and require DAS to remain open with live data.
 
@@ -72,8 +72,9 @@ Order fill polling:
   These are used when `$useTimerArming = 0`.
 
 Timer-based entry arming (runtime):
-- `$entryPending`, `$entryStage`, `$entryTicks`, `$entryMaxTicks`: timer state and timeout for arming stops/TP after fills.
+- `$entryPending`, `$entryStage`, `$entryTicks`, `$entryMaxTicks`: timer state and timeout for arming stops/TP after fills. When the timeout is reached, the handler cancels the working buy order.
 - `$entrySymbol`, `$entryPosBefore`, `$entryAvgBefore`, `$entryScaleIn`, `$entryDynR`: captured entry context used by the timer handler.
+- `$entryWatch`, `$entryLastPos`: track position size changes so the handler can re-arm stops/TP when size increases.
 
 `Set Global Variables` also runs `Initialize Session Equity` to seed the daily
 loss baseline used by the timer script.
@@ -104,7 +105,7 @@ and risk is reduced. These scripts only allow scale-ins when the existing
 position has moved at least 1R in your favor.
 
 - The profit gate is measured as `BID - AvgCost >= R` for longs. R is
-  `$stopLossTrigger` for normal trades or the dynamic R when enabled for Buy IB.
+  `$stopLossTrigger` for normal trades. Buy IB uses dynamic R when enabled; buy_25/buy_50 use dynamic R only when `dynamicStop = 1` and `dynamicStopActive = 1`, otherwise `$stopLossTrigger`.
 - When adding to a position, the scripts arm the scale-in BE stop
   (`Set Auto Stop BE Scale 1/1`) so the combined position is protected.
 - Live rehab mode (`$rehab = 1`) blocks scale-ins entirely.
@@ -149,7 +150,8 @@ Break-even (BE) scripts move protection to breakeven once a position is working.
 positions. R is `$stopLossTrigger` when dynamic stops are inactive. The script
 uses the montage average cost when available and falls back to the entry
 reference price or last price if AvgCost is lagging. It cancels existing sell
-orders for the symbol before placing the new stop.
+orders for the symbol before placing the new stop, except when invoked in timer
+mode (`$timerMode`) where cancels are skipped.
 
 When dynamic stops are inactive, the stop-limit offset uses `$exitOffset`. The
 order is snapped to valid tick sizes and sent as a STOP/SLP order.
@@ -264,10 +266,13 @@ polling and more immediate protection.
 ### Waiting for fills on buy orders
 
 When `$useTimerArming = 1`, the timer handler waits for a position to appear
-before arming stops/TP. When `$useTimerArming = 0`, buy orders poll for fills
-and can accept partials based on `$acceptPartial` and `$minFillShares`. If the
-fill criteria are not met in time, the order is canceled and the script exits
-without arming stops.
+before arming stops/TP. If position size increases on later ticks, the handler
+cancels existing sell orders, re-arms the stop, and only re-arms TP when the TP
+reset conditions are met. If no fill appears within `$entryMaxTicks`, the handler
+cancels the working buy order and clears pending state. When `$useTimerArming = 0`,
+buy orders poll for fills and can accept partials based on `$acceptPartial` and
+`$minFillShares`. If the fill criteria are not met in time, the order is canceled
+and the script exits without arming stops.
 
 Both modes intentionally wait for a fill before arming protection to avoid
 mismatched AvgCost. Bypassing the fill check risks placing protection against a
