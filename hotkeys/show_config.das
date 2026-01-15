@@ -83,9 +83,10 @@ $msg =
 // ---- Session State ----
 "SESSION STATE\n" +
 "-----------------\n" +
-"DAY_ACC: " + GetVar("DAY_ACC") + "\n" +
+"DAY_ACC: " + $DAY_ACC + "\n" +
 "DAY_EQUITY_START: $" + GetVar("DAY_EQUITY_START") + "\n" +
-"TRADING_LOCKED: " + GetVar("TRADING_LOCKED") + "\n\n" +
+"TRADING_LOCKED: " + GetVar("TRADING_LOCKED") + "\n" +
+"DAY_GUARD_OK: " + $DAY_GUARD_OK + "\n\n" +
 
 // ---- Sizing & Risk Limits ----
 "SIZING & RISK LIMITS\n" +

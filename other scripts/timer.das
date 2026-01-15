@@ -5,7 +5,8 @@
 // Timer handler: enforces daily loss lock and clears TP alerts when flat.
 
 // ---- Step 1: Load account and equity baseline ----
-$accName = GetVar("DAY_ACC");
+$accName = $DAY_ACC;
+$DAY_GUARD_OK = 0;
 if ($accName == "" ) {
     return;
 }
@@ -38,6 +39,8 @@ if ($accName == $LIVEACT) {
     if ($limit <= 0) {
         return;
     }
+
+    $DAY_GUARD_OK = 1;
 
     // Per-account lock key
     $lockKey = "TRADING_LOCKED_" + $accName;

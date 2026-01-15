@@ -104,5 +104,8 @@ $maxDailyLoss = 100.00;
 $pollMs           = 100;             // polling cadence (ms)
 $maxPolls       = 20;              // 20*100ms ~= 2s
 
+// Daily loss guard health (0=inactive/invalid, 1=ok)
+$DAY_GUARD_OK = 0;
+
 // Initialize session equity baseline for daily-loss guard
 ExecHotKey("Initialize Session Equity");

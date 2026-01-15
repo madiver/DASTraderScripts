@@ -23,15 +23,10 @@ if ($eq <= 0) {
 }
 
 // ---- Step 3: Resolve current account ----
-$M = GetWindowObj("Primary_OE");
-$acct = "";
-if (IsObj($M)) { $acct = StrTrim("" + $M.Account); }
-
-// Default to SIM if account is unknown
-if (StrLen($acct) == 0 || StrFind($acct, "TR") == 0) {
-    $AccName = "%%SIMULATED%%";   // SIM
-} else {
-    $AccName = "%%LIVE%%";        // LIVE
+$AccName = $DAY_ACC;
+if ($AccName == "") {
+    MsgBox("No session account set. Use Switch to SIM/LIVE first.");
+    return;
 }
 
 // ---- Step 4: Store baseline and reset lock ----
@@ -39,7 +34,7 @@ $eqKey   = "DAY_EQUITY_START_" + $AccName;
 $lockKey = "TRADING_LOCKED_"   + $AccName;
 
 SetVar($eqKey, $eq);
-SetVar("DAY_ACC",          $AccName);
+$DAY_ACC = $AccName;
 SetVar("DAY_EQUITY_START", $eq);
 SetVar($lockKey,        0);
 SetVar("TRADING_LOCKED", 0);

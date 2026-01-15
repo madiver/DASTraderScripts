@@ -5,15 +5,10 @@
 // Resets the starting equity baseline for the active account and clears lock state.
 
 // ---- Step 1: Resolve active account ----
-$M = GetWindowObj("Primary_OE");
-$acct = "";
-if (IsObj($M)) { $acct = StrTrim("" + $M.Account); }
-
-// Default to SIM if account is unknown
-if (StrLen($acct) == 0 || StrFind($acct, "TR") == 0) {
-    $AccName = "%%SIMULATED%%";   // SIM
-} else {
-    $AccName = "%%LIVE%%";        // LIVE
+$AccName = $DAY_ACC;
+if ($AccName == "") {
+    MsgBox("No session account set. Use Switch to SIM/LIVE first.");
+    return;
 }
 
 // ---- Step 2: Confirm reset ----
@@ -37,7 +32,7 @@ $eqStart = $acc.Equity;
 SetVar($eqKey, $eqStart);
 
 // ---- Step 6: Update current-session globals ----
-SetVar("DAY_ACC",          $AccName);
+$DAY_ACC = $AccName;
 SetVar("DAY_EQUITY_START", $eqStart);
 
 // ---- Step 7: Reset lock state ----
