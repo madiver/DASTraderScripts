@@ -167,6 +167,8 @@ as price accelerates.
 - Adaptive stop-limit offsets are used only when a dynamic stop is active; the
   offset is derived from the live spread at stop placement and capped by an
   internal maximum.
+- When `$dynamicStop = 1`, initial entries must use Buy IB; `buy_25_*` and
+  `buy_50_*` only allow scale-ins.
 - Dynamic state is cleared when flat by the timer script.
 
 ## TAKE PROFIT

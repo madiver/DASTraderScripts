@@ -8,6 +8,7 @@ All notable changes to this repository will be documented in this file.
 - Gate adaptive stop-limit offsets to dynamic-stop trades only (else use $exitOffset).
 - Add dynamic stop toggle hotkey and keymap binding (Alt+Ctrl+Win+D).
 - Clear dynamic stop state when flat via the timer script.
+- Block buy_25/buy_50 initial entries when dynamic stop mode is enabled.
 - Rename $TRLIVE to $LIVEACT and update references.
 - Add USERGUIDE.md with setup, behavior, and workflow documentation.
 - Document SIM/LIVE token replacement guidance for manual installs.

@@ -43,6 +43,12 @@ if (IsObj($M)) {
     $posBefore = Pos;
     $avgBefore = AvgCost;
 }
+// ---- Dynamic stop entry guard ----
+if ($dynamicStop == 1 && $posBefore <= 0) {
+    MsgBox("Dynamic stop mode enabled: use a Buy IB entry for the initial position.");
+    return;
+}
+
 
 // ---- Entry sizing and pacing ----
 $addShares     = 25 * $qtyMult;

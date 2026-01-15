@@ -82,6 +82,7 @@ PnL, Stops, Take profit, Utilities & toggles.
 - Dynamic R is based on spread at order send and is fixed for the life of the trade.
 - Dynamic R is cleared when flat by the timer script (see `other scripts/timer.das`).
 - Adaptive stop-limit offsets are used only when a dynamic stop is active; otherwise `$exitOffset` is used.
+- When `dynamicStop = 1`, initial entries must use `buy_ib_*`; `buy_25_*` and `buy_50_*` are scale-in only.
 
 ## Risk Disclaimer
 
