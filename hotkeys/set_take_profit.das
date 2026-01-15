@@ -2,7 +2,7 @@
 // TAKE-PROFIT ALERT BUILDER (R MULTIPLE, SIZE-AWARE)
 // Group: Take profit
 // =====================
-// Builds a TP alert from $stopLossTrigger, $takeProfitFactor, and $takeProfitSize.
+// Builds a TP alert from effective R, $takeProfitFactor, and $takeProfitSize.
 
 // ---- Step 1: Focus Primary_OE ----
 FocusWindow Primary_OE;
@@ -10,7 +10,11 @@ FocusWindow Primary_OE;
 // ---- Step 2: Load profit factor (R multiple) ----
 
 // Effective TP distance in dollars per share
-$tpDist = $stopLossTrigger * $takeProfitFactor;
+$effR = $stopLossTrigger;
+if ($dynamicStop == 1 && $dynamicStopActive == 1) {
+    $effR = $dynamicStopR;
+}
+$tpDist = $effR * $takeProfitFactor;
 
 // ---- Step 3: Load montage context ----
 $mySym = Symbol;

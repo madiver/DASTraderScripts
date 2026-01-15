@@ -2,9 +2,10 @@
 // SET AUTO STOP (1R, LONG ONLY)
 // Group: Stops
 // =====================
-// Reusable stop-loss engine using montage context and $stopLossTrigger.
+// Reusable stop-loss engine using montage context and effective R.
 // Uses:
-// - $stopLossTrigger (1R in dollars)
+// - $stopLossTrigger (fixed 1R in dollars)
+// - $dynamicStopActive/$dynamicStopR (dynamic 1R for buy_ib trades)
 // - $entryRefPx as fallback if AvgCost lags
 // - Caller should ensure $useAutoStop is enabled
 // - Primary_OE montage (no global Symbol/Account)
@@ -51,7 +52,9 @@ if ($posNow <= 0 || $avgNow <= 0) {
 }
 
 // ---- Tunables ----
-$useAdaptiveLimitOff  = 1;     // 1=offset based on spread; 0=use fixed $limitOff
+// Use adaptive offset only when an active dynamic stop is in effect.
+$useAdaptiveLimitOff  = 0;     // 1=offset based on spread; 0=use fixed $limitOff
+if ($dynamicStop == 1 && $dynamicStopActive == 1) { $useAdaptiveLimitOff = 1; }
 $adapt_k              = 2.0;   // limit offset = max(minTicks*inc, min(maxLimitOff, k*spread))
 $adapt_minTicks       = 2;     // min ticks for stop-limit offset
 $adapt_maxLimitOff    = 0.25;  // hard cap in dollars on limit offset
@@ -65,7 +68,11 @@ $accObj.CancelOrder("SELL", $mySym, 0);
 Wait(350);
 
 // ---- Step 4: Compute raw 1R stop ----
-$stop = $avgNow - $stopLossTrigger;
+$effR = $stopLossTrigger;
+if ($dynamicStop == 1 && $dynamicStopActive == 1) {
+    $effR = $dynamicStopR;
+}
+$stop = $avgNow - $effR;
 
 // ---- Step 5: Resolve tick-size bands ----
 $inc = 0.01;

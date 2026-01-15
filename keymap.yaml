@@ -29,10 +29,10 @@
   scriptPath: hotkeys/cancel_all_no_stops.das
 
 # Buy orders: Bid+ SL
-- id: buy_10_bid_plus_sl
+- id: buy_ib_bid_plus_sl
   key: Ctrl+Shift+1
-  label: Buy 10 Bid+ SL
-  scriptPath: hotkeys/buy_10_bid_plus_sl.das
+  label: Buy IB Bid+ SL
+  scriptPath: hotkeys/buy_ib_bid_plus_sl.das
 - id: buy_25_bid_plus_sl
   key: Ctrl+Shift+2
   label: Buy 25 Bid+ SL
@@ -43,10 +43,10 @@
   scriptPath: hotkeys/buy_50_bid_plus_sl.das
 
 # Buy orders: Bid SL
-- id: buy_10_bid_sl
+- id: buy_ib_bid_sl
   key: Alt+Ctrl+1
-  label: Buy 10 Bid SL
-  scriptPath: hotkeys/buy_10_bid_sl.das
+  label: Buy IB Bid SL
+  scriptPath: hotkeys/buy_ib_bid_sl.das
 - id: buy_25_bid_sl
   key: Alt+Ctrl+2
   label: Buy 25 Bid SL
@@ -57,10 +57,10 @@
   scriptPath: hotkeys/buy_50_bid_sl.das
 
 # Buy orders: Ask SL
-- id: buy_10_ask_sl
+- id: buy_ib_ask_sl
   key: Alt+Shift+1
-  label: Buy 10 Ask SL
-  scriptPath: hotkeys/buy_10_ask_sl.das
+  label: Buy IB Ask SL
+  scriptPath: hotkeys/buy_ib_ask_sl.das
 - id: buy_25_ask_sl
   key: Alt+Shift+2
   label: Buy 25 Ask SL
@@ -71,10 +71,10 @@
   scriptPath: hotkeys/buy_50_ask_sl.das
 
 # Buy orders: Ask+ SL
-- id: buy_10_ask_plus_sl
+- id: buy_ib_ask_plus_sl
   key: Alt+Ctrl+Shift+1
-  label: Buy 10 Ask+ SL
-  scriptPath: hotkeys/buy_10_ask_plus_sl.das
+  label: Buy IB Ask+ SL
+  scriptPath: hotkeys/buy_ib_ask_plus_sl.das
 - id: buy_25_ask_plus_sl
   key: Alt+Ctrl+Shift+2
   label: Buy 25 Ask+ SL
@@ -177,6 +177,10 @@
   key: Alt+Ctrl+Win+'
   label: Toggle Spread Check Feature
   scriptPath: hotkeys/toggle_spread_check_feature.das
+- id: toggle_dynamic_stop
+  key: Alt+Ctrl+Win+D
+  label: Toggle Dynamic Stop
+  scriptPath: hotkeys/toggle_dynamic_stop.das
 
 # Session equity & PnL
 - id: initialize_session_equity

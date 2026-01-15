@@ -8,7 +8,7 @@
 $accName = GetVar("DAY_ACC");
 if ($accName == "" ) { return; }
 
-if ($accName == $TRLIVE) {
+if ($accName == $LIVEACT) {
 
     $eqStartStr = GetVar("DAY_EQUITY_START");
     if ($eqStartStr == "") { return; }
@@ -80,6 +80,12 @@ if ($oneSecondScriptCnt % 5 ==0) {
             }
 
             $i = $i + 1;
+        }
+
+        // ---- Clear dynamic stop state when flat ----
+        if ($dynamicStopActive == 1) {
+            $dynamicStopActive = 0;
+            $dynamicStopR = 0;
         }
     }
 }

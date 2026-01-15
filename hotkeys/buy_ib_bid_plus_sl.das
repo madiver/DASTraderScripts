@@ -1,6 +1,6 @@
 // =====================
-// SCALING-AWARE ENTRY
-// Group: Buy orders: Bid SL
+// xsSCALING-AWARE ENTRY
+// Group: Buy orders: Bid+ SL
 // =====================
 // Places a size-scaled limit entry with spread/stop safety, then arms stop/TP.
 
@@ -100,9 +100,26 @@ if ($bid <= 0 || $ask <= 0 || $spread < 0) {
     return;
 }
 
+// ---- Step 0b: Resolve effective R (dynamic vs fixed) ----
+$useDynStop = ($dynamicStop == 1);
+$dynRNew = 0;
+$effR = $stopLossTrigger;
+if ($useDynStop == 1) {
+    if ($posBefore <= 0) {
+        $dynMult = $dynamicStopMult;
+        if ($dynMult <= 0) { $dynMult = 2; }
+        $dynRNew = $spread * $dynMult;
+        $effR = $dynRNew;
+    } else {
+        if ($dynamicStopActive == 1) {
+            $effR = $dynamicStopR;
+        }
+    }
+}
+
 // Projected entry/stop based on reference side
-$pxEntry    = $refPx;
-$hypoStop = $pxEntry - $stopLossTrigger;
+$pxEntry    = $refPx + $entryOffset;
+$hypoStop = $pxEntry - $effR;
 
 // ---- Tick increment for safety checks ----
 $inc = 0.01;
@@ -125,7 +142,7 @@ if ($useSlippageMargin == 1) {
 }
 
 // Spread relative to stop distance guard (tune threshold as desired)
-$spreadTooWide = ($spread > ($stopLossTrigger * 0.75)) && $useSpreadCheck == 1;
+$spreadTooWide = ($spread > ($effR * 0.75)) && $useSpreadCheck == 1;
 
 // Abort if safety checks fail and we are not adding to an existing position
 if (($stopVsBidFail == 1 || $spreadTooWide == 1) && $posBefore <=0) {
@@ -138,13 +155,13 @@ if (($stopVsBidFail == 1 || $spreadTooWide == 1) && $posBefore <=0) {
     return;
 }
 
-// Per-trade risk cap (projected risk = stopLossTrigger * projectedShares)
+// Per-trade risk cap (projected risk = effR * projectedShares)
 if ($usePerTradeRiskCap == 1) {
     $riskShares = $addShares;
     if ($posBefore > 0) {
         $riskShares = $posBefore + $addShares;
     }
-    $projRisk = $stopLossTrigger * $riskShares;
+    $projRisk = $effR * $riskShares;
     if ($projRisk > $riskCapDollars) {
         MsgBox("Risk cap exceeded for " + Symbol + ": projected $" + $projRisk + " > cap $" + $riskCapDollars + ". Aborting.");
         return;
@@ -163,7 +180,7 @@ if ($posBefore > 0) {
         MsgBox("Scale-in aborted: AvgCost unavailable for " + Symbol + ".");
         return;
     }
-    if (($bid - $avgBefore) < $stopLossTrigger) {
+    if (($bid - $avgBefore) < $effR) {
         MsgBox("Scale-in aborted: position not >= 1R in profit for " + Symbol + ".");
         return;
     }
@@ -220,6 +237,12 @@ if ($filled == 2 && $cancelRemainderOnPartial == 1) {
     $order.Cancel();
     // brief wait to let the residual cancel
     Wait(200);
+}
+
+// ---- Step 5b: Persist dynamic R for new trades ----
+if ($dynamicStop == 1 && $posBefore <= 0) {
+    $dynamicStopR = $dynRNew;
+    $dynamicStopActive = 1;
 }
 
 // ---- Step 6: Arm unified 1R stop via "Set Auto Stop" ----

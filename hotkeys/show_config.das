@@ -34,6 +34,10 @@ $msg =
 "entryOffset: $" + $entryOffset + "\n" +
 "exitOffset: $" + $exitOffset + "\n" +
 "stopLossTrigger (1R): $" + $stopLossTrigger + "\n" +
+"dynamicStop: " + $dynamicStop + "\n" +
+"dynamicStopMult: " + $dynamicStopMult + "\n" +
+"dynamicStopActive: " + $dynamicStopActive + "\n" +
+"dynamicStopR: $" + $dynamicStopR + "\n" +
 "takeProfitFactor: " + $takeProfitFactor + "R\n" +
 "takeProfitSize: " + ($takeProfitSize * 100) + "%\n\n" +
 
@@ -58,7 +62,7 @@ $msg =
 "Account: " + $acct + "\n" +
 "Mode: " + $acctMode + "\n" +
 "SIM Account: " + $TRSIM + "\n" +
-"LIVE Account: " + $TRLIVE + "\n\n" +
+"LIVE Account: " + $LIVEACT + "\n\n" +
 
 // ---- Session State ----
 "SESSION STATE\n" +

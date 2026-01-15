@@ -2,13 +2,23 @@
 
 All notable changes to this repository will be documented in this file.
 
+## 0.2.1 - TBD
+- Rename ice-breaker entry scripts from buy_10_* to buy_ib_* and update key bindings.
+- Add dynamic stop mode for buy_ib entries with spread-based R and TP integration.
+- Gate adaptive stop-limit offsets to dynamic-stop trades only (else use $exitOffset).
+- Add dynamic stop toggle hotkey and keymap binding (Alt+Ctrl+Win+D).
+- Clear dynamic stop state when flat via the timer script.
+- Rename $TRLIVE to $LIVEACT and update references.
+- Add USERGUIDE.md with setup, behavior, and workflow documentation.
+- Document SIM/LIVE token replacement guidance for manual installs.
+
 ## 0.2.0 - 2026-01-12
 - Apply profit-only scale-in gate across all buy scripts (10/25/50 sizes).
 - Use scale-in-specific BE stop when adding to existing positions.
 - Align cancel-order sequencing to run after scale-in validation.
 - Enforce projected total-size risk cap on all buy scripts.
-- Ensure ice-breaker sizing never rounds to zero (minimum 5 shares) on buy_10 scripts.
-- Fix buy_10 rehab scale-in gate to use the pre-entry position snapshot.
+- Ensure ice-breaker sizing never rounds to zero (minimum 5 shares) on buy_ib scripts.
+- Fix buy_ib rehab scale-in gate to use the pre-entry position snapshot.
 
 ## 0.1.5 - 2026-01-10
 - Increase $qtyMult to 5x (maxPositionSize now 750 shares).

@@ -53,11 +53,20 @@ $takeProfitFactor = 1.0;
 // Example: 0.50 = sell half at TP
 $takeProfitSize = 0.25;
 
+// ---- 2b) Dynamic Stop Settings (buy_ib only) ----
+// 1 = enable dynamic spread-based R for buy_ib entries, else fixed R.
+$dynamicStop = 0;
+// Multiplier for spread-based R when dynamicStop is enabled.
+$dynamicStopMult = 2;
+// Runtime state for active dynamic trades (do not edit manually).
+$dynamicStopActive = 0;
+$dynamicStopR = 0;
+
 // ---- 3) Account Tokens (Simulation / Live) ----
 //
 // These vars store your SIM and LIVE account identifiers.
 $TRSIM  = "%%SIMULATED%%"; // your SIM trading account
-$TRLIVE = "%%LIVE%%";      // your LIVE trading account
+$LIVEACT = "%%LIVE%%";      // your LIVE trading account
 
 // ---- 4) Sizing & Risk Limits ----
 

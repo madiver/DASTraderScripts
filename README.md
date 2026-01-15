@@ -12,6 +12,8 @@ a Stream Deck when trading, which I find preferable to the keyboard.
 
 These scripts can be manually copied and pasted directly into the DAS Trader script editor or you may want to consider using the DAS Hotkey Tools to automate the process (see the Requirements section below).
 
+Note: The VS Code extension replaces `%%SIMULATED%%` and `%%LIVE%%` tokens when it builds the `Hotkey.htk`. If you copy scripts manually, make sure those placeholders are replaced in the SIM/LIVE switch and session scripts, and set `$TRSIM`/`$LIVEACT` in `hotkeys/set_global_variables.das` to your actual account identifiers.
+
 Finally, please read the Risk Disclaimer section below and understand that you are using these scripts at your own risk and they are provided here purely for educational purposes.
 
 Serious about day trading? You can find me on Discord here:  https://discord.gg/UvZYTEGrvh
@@ -66,8 +68,15 @@ PnL, Stops, Take profit, Utilities & toggles.
 
 - Scale-ins are allowed only when the existing position is at least 1R in profit (based on `stopLossTrigger` and current BID vs AvgCost).
 - When adding to an existing long, the scripts use the scale-in-specific BE stop hotkey (`Set Auto Stop BE Scale 1/1`).
-- Buy_10 scripts use an ice-breaker size that rounds to 5-share lots with a minimum of 5 shares.
+- Buy_IB scripts use an ice-breaker size that rounds to 5-share lots with a minimum of 5 shares.
 - Projected risk caps are evaluated against total size after the add (current position + new shares).
+
+## Dynamic Stops (Buy_IB Only)
+
+- Controlled by `dynamicStop` and `dynamicStopMult` in `hotkeys/set_global_variables.das`.
+- Dynamic R is based on spread at order send and is fixed for the life of the trade.
+- Dynamic R is cleared when flat by the timer script (see `other scripts/timer.das`).
+- Adaptive stop-limit offsets are used only when a dynamic stop is active; otherwise `$exitOffset` is used.
 
 ## Risk Disclaimer
 
