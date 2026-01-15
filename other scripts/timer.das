@@ -6,20 +6,28 @@
 
 // ---- Step 1: Load account and equity baseline ----
 $accName = GetVar("DAY_ACC");
-if ($accName == "" ) { return; }
+if ($accName == "" ) {
+    return;
+}
 
 if ($accName == $LIVEACT) {
 
     $eqStartStr = GetVar("DAY_EQUITY_START");
-    if ($eqStartStr == "") { return; }
+    if ($eqStartStr == "") {
+        return;
+    }
 
     $eqStart = $eqStartStr * 1;
-    if ($eqStart <= 0) { return; }
+    if ($eqStart <= 0) {
+        return;
+    }
 
     // Read current equity for this account
     $acc   = GetAccountObj($accName);
     $eqNow = $acc.Equity;
-    if ($eqNow <= 0) { return; }
+    if ($eqNow <= 0) {
+        return;
+    }
 
     // Compute drawdown
     $dd = $eqStart - $eqNow;
@@ -27,7 +35,9 @@ if ($accName == $LIVEACT) {
     // ---- Step 2: Enforce daily loss lock ----
     // Use the global max daily loss value
     $limit = $maxDailyLoss;
-    if ($limit <= 0) { return; }
+    if ($limit <= 0) {
+        return;
+    }
 
     // Per-account lock key
     $lockKey = "TRADING_LOCKED_" + $accName;
@@ -45,9 +55,12 @@ if ($accName == $LIVEACT) {
 
     }
 
-}
+} 
 
-// ---- Step 3: Clear TP alerts when flat ----
+// ---- Step 3: Timer-based stop/TP arming ----
+ExecHotkey("Timer Entry Handler");
+
+// ---- Step 4: Clear TP alerts when flat ----
 
 $oneSecondScriptCnt = $oneSecondScriptCnt + 1;
 
@@ -57,7 +70,9 @@ if ($oneSecondScriptCnt % 5 ==0) {
 
     // Make sure we can access Primary_OE
     $M = GetWindowObj("Primary_OE");
-    if (!IsObj($M)) { return; }
+    if (!IsObj($M)) {
+        return;
+    }
 
     // Snapshot symbol and position
     $mySym  = $M.Symb;

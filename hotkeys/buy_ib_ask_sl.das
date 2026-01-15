@@ -178,12 +178,24 @@ $pxEntry = Round($pxEntry, 102, $inc);
 // ---- Scale-in gate: only allow profit-preserving adds ----
 if ($posBefore > 0) {
     if ($avgBefore <= 0) {
-        MsgBox("Scale-in aborted: AvgCost unavailable for " + Symbol + ".");
+        MsgBox("Scale-in aborted: AvgCost unavailable for " + Symbol + ".");    
         return;
     }
     if (($bid - $avgBefore) < $effR) {
         MsgBox("Scale-in aborted: position not >= 1R in profit for " + Symbol + ".");
         return;
+    }
+}
+
+// ---- Timer arming state (post-entry handling) ----
+if ($useTimerArming == 1) {
+    $entryPosBefore = $posBefore;
+    $entryAvgBefore = $avgBefore;
+    $entryScaleIn = 0;
+    if ($posBefore > 0) { $entryScaleIn = 1; }
+    $entryDynR = 0;
+    if ($dynamicStop == 1 && $posBefore <= 0) {
+        $entryDynR = $dynRNew;
     }
 }
 
@@ -201,6 +213,13 @@ $order.Type    = "L";      // Limit
 $order.Price   = $pxEntry;
 $order.Share   = $addShares;
 $order.Send();
+
+if ($useTimerArming == 1) {
+    $entryPending = 1;
+    $entryStage = 0;
+    $entryTicks = 0;
+    return;
+}
 
 
 // ---- Step 4: Poll for fill ----

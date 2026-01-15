@@ -4,6 +4,10 @@
 // =====================
 // Builds a TP alert from effective R, $takeProfitFactor, and $takeProfitSize.
 
+// ---- Timer context ----
+$timerActive = 0;
+if ($timerMode == 1) { $timerActive = 1; $timerMode = 0; }
+
 // ---- Step 1: Focus Primary_OE ----
 FocusWindow Primary_OE;
 
@@ -17,18 +21,21 @@ if ($dynamicStop == 1 && $dynamicStopActive == 1) {
 $tpDist = $effR * $takeProfitFactor;
 
 // ---- Step 3: Load montage context ----
-$mySym = Symbol;
-$myAcc = Account;
+$M = GetWindowObj("Primary_OE");
+if (!IsObj($M)) {
+    MsgBox("Set Take Profit: montage 'Primary_OE' not found. Aborting.");
+    return;
+}
 
-$accObj = GetAccountObj($myAcc);
-$posNow = $accObj.GetPosition($mySym).Share;
-$avgNow = AvgCost;
+$mySym = $M.Symb;
+$posNow = $M.Pos;
+$avgNow = $M.AvgCost;
 
 // No position: nothing to alert.
 if ($posNow == 0) { return; }
 
 // If AvgCost still initializing, fall back to last sale
-if ($avgNow <= 0) { $avgNow = Last; }
+if ($avgNow <= 0) { $avgNow = $M.Last; }
 
 // ---- Step 4: Compute the target price ----
 $tpPx = $avgNow;
@@ -67,7 +74,7 @@ if ($posNow > 0) {
 
 // ---- Step 8: Script executed when the alert triggers ----
 // This calls the executor hotkey that uses $takeProfitSize.
-wait(2000);
+if ($timerActive != 1) { Wait(2000); }
 $al.Script =
     "SetVar(\"TP_SYMBOL\",\"" + $mySym + "\");" +
     "FocusWindow Primary_OE;" +

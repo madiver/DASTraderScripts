@@ -56,6 +56,20 @@ $msg =
 "pollMs: " + $pollMs + "\n" +
 "maxPolls: " + $maxPolls + "\n\n" +
 
+// ---- Timer Arming ----
+"TIMER ARMING\n" +
+"-----------------\n" +
+"useTimerArming: " + $useTimerArming + "\n" +
+"entryPending: " + $entryPending + "\n" +
+"entryStage: " + $entryStage + "\n" +
+"entryTicks: " + $entryTicks + "\n" +
+"entryMaxTicks: " + $entryMaxTicks + "\n" +
+"entrySymbol: " + $entrySymbol + "\n" +
+"entryPosBefore: " + $entryPosBefore + "\n" +
+"entryAvgBefore: " + $entryAvgBefore + "\n" +
+"entryScaleIn: " + $entryScaleIn + "\n" +
+"entryDynR: $" + $entryDynR + "\n\n" +
+
 // ---- Account Mode ----
 "ACCOUNT MODE\n" +
 "-----------------\n" +

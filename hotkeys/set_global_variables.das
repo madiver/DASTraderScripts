@@ -17,6 +17,19 @@ $oneSecondScriptCnt = 0;
 // Rehab mode: limit entries to ice-breaker size (1/4 normal size)
 $rehab = 0;
 
+// Timer-based arming (entry hotkeys return early; timer places stop/TP)
+$useTimerArming = 1;
+$timerMode = 0;         // internal flag for timer-triggered hotkeys
+$entryPending = 0;
+$entryStage = 0;        // 0=wait fill, 1=cancel sells, 2=send stop, 3=set TP
+$entryTicks = 0;
+$entryMaxTicks = 10;    // timeout in timer ticks while waiting for fill
+$entryPosBefore = 0;
+$entryAvgBefore = 0;
+$entryScaleIn = 0;
+$entryDynR = 0;
+$entrySymbol = "";
+
 // ---- 1) Feature Toggles ----
 $useSlippageMargin        = 1;     // 1=guard stop vs bid with margin
 $slipTicksMin             = 2;     // minimum ticks to add as slippage margin

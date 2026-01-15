@@ -181,6 +181,10 @@
   key: Alt+Ctrl+Win+D
   label: Toggle Dynamic Stop
   scriptPath: hotkeys/toggle_dynamic_stop.das
+- id: timer_entry_handler
+  key:
+  label: Timer Entry Handler
+  scriptPath: hotkeys/timer_entry_handler.das
 
 # Session equity & PnL
 - id: initialize_session_equity

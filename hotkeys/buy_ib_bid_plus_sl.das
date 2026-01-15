@@ -177,7 +177,7 @@ $pxEntry = Round($pxEntry, 102, $inc);
 // ---- Scale-in gate: only allow profit-preserving adds ----
 if ($posBefore > 0) {
     if ($avgBefore <= 0) {
-        MsgBox("Scale-in aborted: AvgCost unavailable for " + Symbol + ".");
+        MsgBox("Scale-in aborted: AvgCost unavailable for " + Symbol + ".");    
         return;
     }
     if (($bid - $avgBefore) < $effR) {
@@ -186,7 +186,19 @@ if ($posBefore > 0) {
     }
 }
 
-// ---- Step 3: Cancel BUY working orders (keep protection until fill) ----
+// ---- Timer arming state (post-entry handling) ----
+if ($useTimerArming == 1) {
+    $entryPosBefore = $posBefore;
+    $entryAvgBefore = $avgBefore;
+    $entryScaleIn = 0;
+    if ($posBefore > 0) { $entryScaleIn = 1; }
+    $entryDynR = 0;
+    if ($dynamicStop == 1 && $posBefore <= 0) {
+        $entryDynR = $dynRNew;
+    }
+}
+
+// ---- Step 3: Cancel BUY working orders (keep protection until fill) ----     
 $acc = GetAccountObj(Account);
 $acc.CancelOrder("BUY", Symbol, 0);
 $order = NewOrderObj();
@@ -199,6 +211,13 @@ $order.Type    = "L";      // Limit
 $order.Price   = $pxEntry;
 $order.Share   = $addShares;
 $order.Send();
+
+if ($useTimerArming == 1) {
+    $entryPending = 1;
+    $entryStage = 0;
+    $entryTicks = 0;
+    return;
+}
 
 
 // ---- Step 4: Poll for fill ----

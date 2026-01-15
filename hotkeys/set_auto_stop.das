@@ -9,6 +9,10 @@
 // - $entryRefPx as fallback if AvgCost lags
 // - Caller should ensure $useAutoStop is enabled
 // - Primary_OE montage (no global Symbol/Account)
+// ---- Timer context ----
+$timerActive = 0;
+if ($timerMode == 1) { $timerActive = 1; $timerMode = 0; }
+
 // ---- Step 1: Load Primary_OE montage ----
 
 $M = GetWindowObj("Primary_OE");
@@ -59,11 +63,16 @@ $adapt_minTicks       = 2;     // min ticks for stop-limit offset
 $adapt_maxLimitOff    = 0.25;  // hard cap in dollars on limit offset
 
 // ---- Step 3: Cancel existing SELL orders ----
-$accObj = GetAccountObj($myAcc);
-$accObj.CancelOrder("SELL", $mySym, 0);
+$skipCancel = 0;
+if ($timerActive == 1) { $skipCancel = 1; }
 
-// Let cancels register; avoid races
-Wait(350);
+if ($skipCancel == 0) {
+    $accObj = GetAccountObj($myAcc);
+    $accObj.CancelOrder("SELL", $mySym, 0);
+
+    // Let cancels register; avoid races
+    Wait(350);
+}
 
 // ---- Step 4: Compute raw 1R stop ----
 $effR = $stopLossTrigger;

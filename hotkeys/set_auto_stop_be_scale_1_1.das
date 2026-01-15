@@ -11,10 +11,16 @@
 // - Primary_OE montage exists
 // - Uses montage object properties (.Symb, .Account, .Pos, .AvgCost)
 // - Honors $useAutoStop
+// ---- Timer context ----
+$timerActive = 0;
+if ($timerMode == 1) { $timerActive = 1; $timerMode = 0; }
+
 // ---- Tunables ----
 $portionDenominator = 1;    // 1 = full, 2 = half, 4 = quarter
 $beOffset           = 0.03; // BE trigger offset
 $cancelWaitMs       = 1000; // cancel throttle wait
+$skipCancel         = 0;
+if ($timerActive == 1) { $skipCancel = 1; }
 // ---- Step 1: Feature toggle ----
 if ($useAutoStop != "Yes") {
     return;
@@ -103,9 +109,11 @@ if ($qtyProtect <= 0) {
 }
 
 // ---- Step 8: Cancel existing SELL orders (account scoped) ----
-$accObj = GetAccountObj($myAcc);
-$accObj.CancelOrder("SELL", $mySym, 0);
-Wait($cancelWaitMs);
+if ($skipCancel == 0) {
+    $accObj = GetAccountObj($myAcc);
+    $accObj.CancelOrder("SELL", $mySym, 0);
+    Wait($cancelWaitMs);
+}
 
 // ---- Step 9: If not yet in profit, place BE stop-limit ----
 if ($bid < $beStopTrigger) {
