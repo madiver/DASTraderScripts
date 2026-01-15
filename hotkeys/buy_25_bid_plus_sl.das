@@ -136,13 +136,15 @@ if (($stopVsBidFail == 1 || $spreadTooWide == 1) && $posBefore <=0) {
     return;
 }
 
-// Per-trade risk cap (projected risk = stopLossTrigger * projectedShares)
+// Per-trade risk cap (projected risk = effR * projectedShares)
 if ($usePerTradeRiskCap == 1) {
+    $effR = $stopLossTrigger;
+    if ($dynamicStop == 1 && $dynamicStopActive == 1 && $dynamicStopR > 0) { $effR = $dynamicStopR; }
     $riskShares = $addShares;
     if ($posBefore > 0) {
         $riskShares = $posBefore + $addShares;
     }
-    $projRisk = $stopLossTrigger * $riskShares;
+    $projRisk = $effR * $riskShares;
     if ($projRisk > $riskCapDollars) {
         MsgBox("Risk cap exceeded for " + Symbol + ": projected $" + $projRisk + " > cap $" + $riskCapDollars + ". Aborting.");
         return;

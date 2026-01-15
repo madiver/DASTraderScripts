@@ -7,6 +7,7 @@ All notable changes to this repository will be documented in this file.
 - Require a set session account for equity baseline scripts (no implicit SIM fallback).
 - Track daily loss guard health via `DAY_GUARD_OK` and surface it in the config display.
 - Check PnL now resolves the session account and baseline internally instead of assuming pre-set variables.
+- Risk cap for buy_25/buy_50 now uses the active dynamic stop R when dynamic stop is enabled.
 - Block buy_25/buy_50 initial entries when dynamic stop mode is enabled (warns via MsgBox).
 - Cancel timed-out timer-based buy entries instead of leaving them working.
 - Re-arm stop/TP on timer ticks when position size increases after a fill.
