@@ -19,7 +19,7 @@ $mySym = $M.Symb;
 $myAcc = $M.Account;
 
 // If TP_SYMBOL is set and differs from current montage symbol, try to switch
-if ($takeProfitSymbol != "" && $takeProfitSym != $mySym) {
+if ($takeProfitSymbol != "" && $takeProfitSymbol != $mySym) {
     $M.Symb = $takeProfitSymbol;        // attempt to switch montage symbol
     Wait(100);                                      // allow DAS to update
     $mySym = $M.Symb;

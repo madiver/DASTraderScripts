@@ -15,6 +15,7 @@ All notable changes to this repository will be documented in this file.
 - Set Auto Stop no longer forces focus to the Primary_OE montage before reading state.
 - Route entry hotkeys to timer-based stop/TP staging so you can exit immediately; fresh entries skip SELL cancels.
 - Set Take Profit now reads symbol/position from Primary_OE to support timer-based arming.
+- Fix Take Profit Executor symbol comparison to avoid unnecessary montage switching.
 
 ## 0.2.0 - 2026-01-12
 - Apply profit-only scale-in gate across all buy scripts (10/25/50 sizes).
