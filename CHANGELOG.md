@@ -2,7 +2,7 @@
 
 All notable changes to this repository will be documented in this file.
 
-## 0.2.1 - TBD
+## 0.2.1 - 2026-01-15
 - Rename ice-breaker entry scripts from buy_10_* to buy_ib_* and update key bindings.
 - Add dynamic stop mode for buy_ib entries with spread-based R and TP integration.
 - Gate adaptive stop-limit offsets to dynamic-stop trades only (else use $exitOffset).
