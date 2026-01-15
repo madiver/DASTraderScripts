@@ -2,13 +2,15 @@
 
 All notable changes to this repository will be documented in this file.
 
+## 0.2.2 - TBD
+- Block buy_25/buy_50 initial entries when dynamic stop mode is enabled (warns via MsgBox).
+
 ## 0.2.1 - 2026-01-15
 - Rename ice-breaker entry scripts from buy_10_* to buy_ib_* and update key bindings.
 - Add dynamic stop mode for buy_ib entries with spread-based R and TP integration.
 - Gate adaptive stop-limit offsets to dynamic-stop trades only (else use $exitOffset).
 - Add dynamic stop toggle hotkey and keymap binding (Alt+Ctrl+Win+D).
 - Clear dynamic stop state when flat via the timer script.
-- Block buy_25/buy_50 initial entries when dynamic stop mode is enabled.
 - Rename $TRLIVE to $LIVEACT and update references.
 - Add USERGUIDE.md with setup, behavior, and workflow documentation.
 - Document SIM/LIVE token replacement guidance for manual installs.
