@@ -11,6 +11,8 @@ All notable changes to this repository will be documented in this file.
 - Rename $TRLIVE to $LIVEACT and update references.
 - Add USERGUIDE.md with setup, behavior, and workflow documentation.
 - Document SIM/LIVE token replacement guidance for manual installs.
+- Remove post-send stop verification delay and retry logic in Set Auto Stop to reduce stop placement latency (low risk).
+- Set Auto Stop no longer forces focus to the Primary_OE montage before reading state.
 
 ## 0.2.0 - 2026-01-12
 - Apply profit-only scale-in gate across all buy scripts (10/25/50 sizes).

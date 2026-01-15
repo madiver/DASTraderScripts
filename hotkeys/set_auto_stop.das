@@ -10,7 +10,6 @@
 // - Caller should ensure $useAutoStop is enabled
 // - Primary_OE montage (no global Symbol/Account)
 // ---- Step 1: Load Primary_OE montage ----
-FocusWindow Primary_OE;
 
 $M = GetWindowObj("Primary_OE");
 if (!IsObj($M)) {
@@ -58,7 +57,6 @@ if ($dynamicStop == 1 && $dynamicStopActive == 1) { $useAdaptiveLimitOff = 1; }
 $adapt_k              = 2.0;   // limit offset = max(minTicks*inc, min(maxLimitOff, k*spread))
 $adapt_minTicks       = 2;     // min ticks for stop-limit offset
 $adapt_maxLimitOff    = 0.25;  // hard cap in dollars on limit offset
-$verifyStopPosted     = 1;     // 1=read back stop and verify; retry once; then fallback to SL
 
 // ---- Step 3: Cancel existing SELL orders ----
 $accObj = GetAccountObj($myAcc);
@@ -120,38 +118,5 @@ $s.StopPrice = $stop;
 $s.Price        = $px;
 $s.Share       = $qtyProtect;  // protect entire current position
 $s.Send();
-
-// Allow time for stop to register
-Wait(200);
-
-// ---- Step 8: Verify stop posted (optional) ----
-if ($verifyStopPosted == 1) {
-    $s.GetInfo();   // refresh object if supported
-    $ok = 1;
-
-    if ($s.StopPrice != $stop)      { $ok = 0; }
-    if ($s.Price     != $px)        { $ok = 0; }
-    if ($s.Share     != $qtyProtect){ $ok = 0; }
-
-    if ($ok == 0) {
-        // retry once after a brief backoff
-        Wait(300);
-        $s.Send();
-        Wait(200);
-        $s.GetInfo();
-
-        $ok = 1;
-        if ($s.StopPrice != $stop)      { $ok = 0; }
-        if ($s.Price     != $px)        { $ok = 0; }
-        if ($s.Share     != $qtyProtect){ $ok = 0; }
-
-        // If still not OK, fallback to plain SL
-        if ($ok == 0) {
-            $s.Type = "SL";
-            $s.Send();
-            MsgBox("Set Auto Stop: verification failed for " + $mySym + ". Fallback SL sent.");
-        }
-    }
-}
 
 // --- End Set Auto Stop ---
