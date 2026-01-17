@@ -32,6 +32,8 @@ $entrySymbol = "";
 $tpSymbol = "";
 $HIJACKED_LOCKED = 0;
 $singlePositionSymbol = "";  // runtime symbol for single-position guard
+$trade_ok = 1;               // runtime flag set by Check Global Guards
+$testMode = 0;               // 1=skip market-dependent checks and order send
 $entryWatch = 0;
 $entryLastPos = 0;
 
@@ -97,7 +99,7 @@ $LIVEACT = "%%LIVE%%";      // your LIVE trading account
 $qtyMult = 6;
 
 // Maximum allowed position size (shares)
-$maxPositionSize = $qtyMult * 100;
+$maxPositionSize = 500;
 
 // Maximum allowed $ risk *per trade*
 // Useful for guarding against oversized positions or bad spreads

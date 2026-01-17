@@ -8,6 +8,11 @@ if ($useTimerArming != 1) {
     return;
 }
 
+// Skip timer handling while the pending-entry test is active in test mode.
+if ($testMode == 1 && GetVar("TEST_PENDING_ENTRY_ACTIVE") * 1 == 1) {
+    return;
+}
+
 // Make sure we can access Primary_OE
 $M = GetWindowObj("Primary_OE");
 if (!IsObj($M)) {

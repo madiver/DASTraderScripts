@@ -16,7 +16,12 @@ All notable changes to this repository will be documented in this file.
 - Add timer re-arm tracking state (`entryWatch`, `entryLastPos`) to globals and config display.
 - Add single-position guard (default on) to block buys on a different symbol (script-tracked).
 - Add toggle hotkey for the single-position guard (Alt+Ctrl+Win+M).
-- Reduce default `maxPositionSize` to `qtyMult * 100` (600 shares).
+- Add `$testMode` to skip market-dependent checks and order sends for guard testing.
+- Add toggle hotkey for test mode (Alt+Ctrl+Win+T).
+- Add test daily loss guard toggle (Alt+Ctrl+Shift+Win+1).
+- Add test guard toggles for hijack, single-position, pending entry, and max position size (Alt+Ctrl+Shift+Win+2/3/4/5).
+- Restrict test mode and test toggles to SIM when enabling.
+- Set default `maxPositionSize` to 500 shares.
 
 ### Bug Fixes
 - Bind session account from SIM/LIVE switch hotkeys to keep daily loss guard aligned with explicit mode switches.
@@ -37,6 +42,8 @@ All notable changes to this repository will be documented in this file.
 ### Cleanup
 - Update README/USERGUIDE to highlight the user guide, hijack protection, and default globals.
 - Rename `$highJackProtection` to `$hijackProtection`.
+- Centralize global buy guards in `Check Global Guards` and expose `$trade_ok`.
+- Move the position window toggle hotkey to Alt+Ctrl+Win+P.
 
 ## 0.2.1 - 2026-01-15
 

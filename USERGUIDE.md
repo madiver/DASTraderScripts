@@ -30,6 +30,8 @@ Runtime counters and modes:
 - `$rehab`: enables rehab mode to block scale-ins and larger entries in LIVE (and SIM when `$applyLiveGuardsToSim = 1`).
 - `$HIJACKED_LOCKED`: runtime lock set when hijack protection triggers.
 - `$singlePositionSymbol`: runtime symbol tracked by the single-position guard.
+- `$trade_ok`: runtime flag set by `Check Global Guards` for buy hotkeys.
+- `$testMode`: when set to 1, buy hotkeys exit after non-market guards (no order sent).
 
 Feature toggles and entry guards:
 - `$useSlippageMargin`: enables the stop-vs-bid margin check in buy scripts.
@@ -105,6 +107,8 @@ baseline values when you run "Set Global Variables."
 | Runtime | `$tpSymbol` | `""` |
 | Runtime | `$HIJACKED_LOCKED` | `0` |
 | Runtime | `$singlePositionSymbol` | `""` |
+| Runtime | `$trade_ok` | `1` |
+| Runtime | `$testMode` | `0` |
 | Runtime | `$entryWatch` | `0` |
 | Runtime | `$entryLastPos` | `0` |
 | Toggles | `$useSlippageMargin` | `1` |
@@ -134,7 +138,7 @@ baseline values when you run "Set Global Variables."
 | Accounts | `$TRSIM` | `"%%SIMULATED%%"` |
 | Accounts | `$LIVEACT` | `"%%LIVE%%"` |
 | Sizing | `$qtyMult` | `6` |
-| Sizing | `$maxPositionSize` | `qtyMult * 100 (600)` |
+| Sizing | `$maxPositionSize` | `500` |
 | Limits | `$riskCapDollars` | `100.00` |
 | Limits | `$maxDailyLoss` | `100.00` |
 | Polling | `$pollMs` | `100` |
@@ -145,6 +149,10 @@ baseline values when you run "Set Global Variables."
 loss baseline used by the timer script. The session account (`$DAY_ACC`) is set
 by the SIM/LIVE switch hotkeys, so run those at the start of a session to bind
 the guard rails to the correct account.
+
+Test mode: set `$testMode = 1` to run buy hotkeys through non-market guard
+checks only (no order is sent). Use this for off-hours validation of lock
+states and guard logic. Test mode and the test toggles are SIM-only.
 
 Use "Show Config" to view the current runtime values.
 
@@ -180,6 +188,16 @@ position has moved at least 1R in your favor.
   would exceed `$riskCapDollars` after the add.
 - Spread safety checks and slippage margins guard entries before an order is
   sent.
+
+### Single-position guard
+
+When `$singlePositionGuard = 1` (default), buy hotkeys only allow one active
+symbol at a time. If `$singlePositionSymbol` is set, new entries on a different
+symbol are blocked. The guard also blocks when `$entryPending = 1` for another
+symbol (timer staging), so you cannot start a second entry while a buy is still
+waiting to fill. The pending-entry block clears when the pending entry times
+out/cancels, or when the original symbol is back in Primary_OE and the position
+is flat.
 
 ## SELL ORDERS
 
@@ -338,6 +356,18 @@ Safety toggles:
   apply in SIM (`$applyLiveGuardsToSim`).
 - `toggle_single_position_guard.das` toggles the single-position guard
   (`$singlePositionGuard`).
+- `toggle_test_mode.das` toggles test mode (`$testMode`) for off-hours guard checks.
+- `toggle_test_daily_loss_guard.das` toggles a daily loss guard test using
+  `DAY_EQUITY_START` (requires `$testMode = 1`).
+- `toggle_test_hijack_guard.das` toggles a hijack-guard test by lowering
+  `maxPositionSize` (requires `$testMode = 1` and an open position).
+- `toggle_test_single_position_guard.das` toggles a simulated active symbol for
+  the single-position guard (requires `$testMode = 1`).
+- `toggle_test_pending_entry_guard.das` toggles a simulated pending entry for
+  the guard (requires `$testMode = 1` and a flat position).
+- `toggle_test_max_position_guard.das` toggles a max-position guard test by
+  setting `maxPositionSize` to the current position (requires `$testMode = 1`
+  and an open position).
 - `enable_rehab_mode.das` toggles rehab mode on/off; disabling requires typing `YES`.
 
 Account and session:

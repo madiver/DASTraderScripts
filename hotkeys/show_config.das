@@ -15,6 +15,17 @@ if (IsObj($M)) {
     }
 }
 
+// ---- Test guard status ----
+$testDayActive = 0;
+if ($DAY_ACC != "") {
+    $testDayKey = "TEST_DAY_EQUITY_START_" + $DAY_ACC;
+    if (GetVar($testDayKey) != "") { $testDayActive = 1; }
+}
+$testHijackActive = GetVar("TEST_HIJACK_ACTIVE") * 1;
+$testSingleActive = GetVar("TEST_SINGLE_POSITION_ACTIVE") * 1;
+$testPendingActive = GetVar("TEST_PENDING_ENTRY_ACTIVE") * 1;
+$testMaxPosActive = GetVar("TEST_MAX_POSITION_ACTIVE") * 1;
+
 // ---- Config Output ----
 $msg =
 "RUNTIME\n" +
@@ -22,6 +33,8 @@ $msg =
 "rehab: " + $rehab + "\n" +
 "HIJACKED_LOCKED: " + $HIJACKED_LOCKED + "\n" +
 "singlePositionSymbol: " + $singlePositionSymbol + "\n" +
+"trade_ok: " + $trade_ok + "\n" +
+"testMode: " + $testMode + "\n" +
 "oneSecondScriptCnt: " + $oneSecondScriptCnt + "\n" +
 "timerMode: " + $timerMode + "\n" +
 "useTimerArming: " + $useTimerArming + "\n" +
@@ -98,6 +111,11 @@ $msg =
 "DAY_ACC: " + $DAY_ACC + "\n" +
 "DAY_EQUITY_START: $" + GetVar("DAY_EQUITY_START") + "\n" +
 "TRADING_LOCKED: " + GetVar("TRADING_LOCKED") + "\n" +
-"DAY_GUARD_OK: " + $DAY_GUARD_OK + "\n";
+"DAY_GUARD_OK: " + $DAY_GUARD_OK + "\n" +
+"TEST_DAILY_LOSS_OVERRIDE: " + $testDayActive + "\n" +
+"TEST_HIJACK_OVERRIDE: " + $testHijackActive + "\n" +
+"TEST_SINGLE_POSITION_OVERRIDE: " + $testSingleActive + "\n" +
+"TEST_PENDING_ENTRY_OVERRIDE: " + $testPendingActive + "\n" +
+"TEST_MAX_POSITION_OVERRIDE: " + $testMaxPosActive + "\n";
 
 MsgBox($msg);

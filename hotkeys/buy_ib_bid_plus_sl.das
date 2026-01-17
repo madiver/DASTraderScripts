@@ -6,38 +6,10 @@
 
 FocusWindow Primary_OE;
 
-// ---- Daily loss lock guard ----
-$accName = $DAY_ACC;
-$lockKey = "TRADING_LOCKED_" + $accName;
-$locked  = GetVar($lockKey) * 1;
+// ---- Global guard checks ----
+ExecHotkey("Check Global Guards");
+if ($trade_ok != 1) { return; }
 
-if ($locked == 1) {
-    MsgBox("Trading locked for " + $accName + " (daily loss limit hit).");
-    return;
-}
-
-// ---- Single-position guard (script-tracked) ----
-if ($singlePositionGuard == 1) {
-    $M = GetWindowObj("Primary_OE");
-    if (IsObj($M)) {
-        $curSym = $M.Symb;
-        $curPos = $M.Pos;
-
-        if ($singlePositionSymbol != "" && $curSym == $singlePositionSymbol && $curPos <= 0) {
-            $singlePositionSymbol = "";
-        }
-
-        if ($entryPending == 1 && $entrySymbol != "" && $curSym != $entrySymbol) {
-            MsgBox("Single-position mode: pending entry in " + $entrySymbol + ". New entries blocked.");
-            return;
-        }
-
-        if ($singlePositionSymbol != "" && $curSym != $singlePositionSymbol) {
-            MsgBox("Single-position mode: active symbol " + $singlePositionSymbol + ". New entries blocked.");
-            return;
-        }
-    }
-}
 // Track entry symbol and reset TP symbol override
 $M = GetWindowObj("Primary_OE");
 if (IsObj($M)) {
@@ -46,16 +18,6 @@ if (IsObj($M)) {
     $entrySymbol = Symbol;
 }
 $tpSymbol = "";
-
-// ---- Hijack protection guard ----
-$acct = "";
-if (IsObj($M)) { $acct = StrTrim("" + $M.Account); }
-$isLive = 0;
-if (StrLen($acct) > 0 && StrFind($acct, "TR") != 0) { $isLive = 1; }
-if ($HIJACKED_LOCKED == 1 && ($isLive == 1 || $applyLiveGuardsToSim == 1)) {
-    MsgBox("Trading locked for " + $acct + " (hijack protection triggered).");
-    return;
-}
 
 // ---- Capture pre-entry position and avg cost (TP logic) ----
 $posBefore = 0;
@@ -116,6 +78,11 @@ if ($maxPositionSize > 0) {
 
 }
 
+// ---- Test mode short-circuit ----
+if ($testMode == 1) {
+    MsgBox("Test mode: entry checks passed (no order sent).");
+    return;
+}
 // ---- Tick-size bands (for price snapping) ----
 // Resolve the increment later using current prices.
 //   < $0.25 -> 0.0005
