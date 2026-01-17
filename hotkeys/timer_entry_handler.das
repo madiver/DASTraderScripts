@@ -135,6 +135,7 @@ if ($entryStage == 0) {
 
     if ($entryScaleIn == 1) {
         if ($posNow > $entryPosBefore) {
+            if ($singlePositionSymbol == "") { $singlePositionSymbol = $mySym; }
             $entryStage = 1; // cancel stage
             $entryTicks = 0;
         } else {
@@ -152,6 +153,7 @@ if ($entryStage == 0) {
     }
 
     if ($posNow > 0) {
+        if ($singlePositionSymbol == "") { $singlePositionSymbol = $mySym; }
         if ($entryDynR > 0 && $dynamicStop == 1) {
             $dynamicStopR = $entryDynR;
             $dynamicStopActive = 1;

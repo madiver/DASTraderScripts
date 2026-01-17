@@ -12,7 +12,7 @@ These scripts assume you have a primary montage window named `Primary_OE` (Prima
 
 Regardless of the method you choose, the timer script must be installed manually in DAS Trader under "Timer Event Scripts." I also recommend adding `ExecHotKey("Set Global Variables");` to your Desktop Load Scripts so globals are initialized every time DAS starts.
 
-Important: update `$TRSIM` and `$LIVEACT` in `hotkeys/set_global_variables.das` with your actual account identifiers if they are not already populated. `$LIVEACT` is used by the timer for live-only daily loss guards and `$TRSIM` is shown in the config display. Also verify that any `%%SIMULATED%%` and `%%LIVE%%` placeholders have been replaced in the SIM/LIVE switch and session scripts (the VS Code extension handles this during build; if you copy scripts manually, you must replace them yourself).
+Important: update `$TRSIM` and `$LIVEACT` in `hotkeys/set_global_variables.das` with your actual account identifiers if they are not already populated. `$LIVEACT` is used by the timer for guard rails and `$TRSIM` is shown in the config display. `$applyLiveGuardsToSim` controls whether the live-only guards (daily loss, hijack, rehab) also apply in SIM; it defaults to `1`. Set it to `0` if you want those guards to run only in LIVE. Also verify that any `%%SIMULATED%%` and `%%LIVE%%` placeholders have been replaced in the SIM/LIVE switch and session scripts (the VS Code extension handles this during build; if you copy scripts manually, you must replace them yourself).
 
 By default (`$useTimerArming = 1`), a buy hotkey sends the limit order, records entry context, and returns immediately. A timer-driven handler then waits for a fill and arms stop loss / take profit on subsequent 1-second ticks. If position size increases on later ticks, the handler cancels existing sell orders, re-arms the stop, and only re-arms TP when the TP reset conditions are met. If no fill appears within `$entryMaxTicks`, the handler cancels the working buy order and clears the pending state. If `$useTimerArming = 0`, the buy hotkey polls for a fill up to `$maxPolls * $pollMs`; if nothing fills, the order is canceled and the script exits without arming any protection. If a partial fill meets `$minFillShares`, the remainder is canceled (when enabled) and the scripts proceed as if the trade is active, using the average entry price for subsequent calculations.
 
@@ -27,8 +27,9 @@ Variables by category:
 
 Runtime counters and modes:
 - `$oneSecondScriptCnt`: internal counter used by `other scripts/timer.das`.
-- `$rehab`: enables rehab mode to block scale-ins and larger live entries.
+- `$rehab`: enables rehab mode to block scale-ins and larger entries in LIVE (and SIM when `$applyLiveGuardsToSim = 1`).
 - `$HIJACKED_LOCKED`: runtime lock set when hijack protection triggers.
+- `$singlePositionSymbol`: runtime symbol tracked by the single-position guard.
 
 Feature toggles and entry guards:
 - `$useSlippageMargin`: enables the stop-vs-bid margin check in buy scripts.
@@ -40,7 +41,9 @@ Feature toggles and entry guards:
 - `$usePerTradeRiskCap`: blocks entries if projected net risk to the planned stop exceeds `$riskCapDollars`.
 - `$useSpreadCheck`: enables spread-vs-R safety checks before entries.
 - `$pegToBid`: when enabled, BE limit sells can peg to bid instead of AvgCost.
-- `$highJackProtection`: enables the position-size hijack backstop (live only).
+- `$hijackProtection`: enables the position-size hijack backstop (LIVE, and SIM when `$applyLiveGuardsToSim = 1`).
+- `$applyLiveGuardsToSim`: when set to 1 (default), apply daily loss, hijack, and rehab guards in SIM.
+- `$singlePositionGuard`: when set to 1 (default), block new entries on a different symbol (script-tracked).
 - `$useAutoStop`: toggles auto stop placement.
 - `$useTakeProfit`: toggles take-profit alerts/executor behavior.
 - `$resetStopOnCancel`: re-arms the stop after `cancel_all.das` if long.
@@ -101,6 +104,7 @@ baseline values when you run "Set Global Variables."
 | Runtime | `$entrySymbol` | `""` |
 | Runtime | `$tpSymbol` | `""` |
 | Runtime | `$HIJACKED_LOCKED` | `0` |
+| Runtime | `$singlePositionSymbol` | `""` |
 | Runtime | `$entryWatch` | `0` |
 | Runtime | `$entryLastPos` | `0` |
 | Toggles | `$useSlippageMargin` | `1` |
@@ -112,7 +116,9 @@ baseline values when you run "Set Global Variables."
 | Toggles | `$usePerTradeRiskCap` | `1` |
 | Toggles | `$useSpreadCheck` | `1` |
 | Toggles | `$pegToBid` | `0` |
-| Toggles | `$highJackProtection` | `1` |
+| Toggles | `$hijackProtection` | `1` |
+| Toggles | `$applyLiveGuardsToSim` | `1` |
+| Toggles | `$singlePositionGuard` | `1` |
 | Toggles | `$useAutoStop` | `"Yes"` |
 | Toggles | `$useTakeProfit` | `"Yes"` |
 | Toggles | `$resetStopOnCancel` | `"Yes"` |
@@ -128,7 +134,7 @@ baseline values when you run "Set Global Variables."
 | Accounts | `$TRSIM` | `"%%SIMULATED%%"` |
 | Accounts | `$LIVEACT` | `"%%LIVE%%"` |
 | Sizing | `$qtyMult` | `6` |
-| Sizing | `$maxPositionSize` | `qtyMult * 150 (900)` |
+| Sizing | `$maxPositionSize` | `qtyMult * 100 (600)` |
 | Limits | `$riskCapDollars` | `100.00` |
 | Limits | `$maxDailyLoss` | `100.00` |
 | Polling | `$pollMs` | `100` |
@@ -144,9 +150,9 @@ Use "Show Config" to view the current runtime values.
 
 ## BUY ORDERS
 
-Sizing philosophy: start small to probe the trade, add only when it is working, and cap exposure with hard limits. Base sizing is a 50-share clip multiplied by `$qtyMult`. Buy 25 uses half of that clip, Buy 50 uses the full clip, and Buy IB (ice breaker) uses roughly one quarter of the 50-share clip (rounded to 5-share lots). This keeps the sizing deterministic and proportional to your 1R risk. In rehab mode (`$rehab = 1`), live trading is restricted to ice breaker entries and scale-ins are blocked.
+Sizing philosophy: start small to probe the trade, add only when it is working, and cap exposure with hard limits. Base sizing is a 50-share clip multiplied by `$qtyMult`. Buy 25 uses half of that clip, Buy 50 uses the full clip, and Buy IB (ice breaker) uses roughly one quarter of the 50-share clip (rounded to 5-share lots). This keeps the sizing deterministic and proportional to your 1R risk. In rehab mode (`$rehab = 1`), trading is restricted to ice breaker entries and scale-ins are blocked in LIVE and SIM when `$applyLiveGuardsToSim = 1`.
 
-Rehab mode is a safety throttle for live trading. When enabled (`$rehab = 1`), the scripts block scale-ins and prevent larger clip entries in live accounts, forcing you to trade only ice breaker size while you reset discipline or reduce risk after a drawdown. You can set the default by changing `$rehab` in `hotkeys/set_global_variables.das` and re-running "Set Global Variables" (or restarting DAS), or enable it for the current session using the `Enable Rehab Mode` hotkey.
+Rehab mode is a safety throttle for live trading. When enabled (`$rehab = 1`), the scripts block scale-ins and prevent larger clip entries in live accounts, forcing you to trade only ice breaker size while you reset discipline or reduce risk after a drawdown. The same restrictions apply in SIM when `$applyLiveGuardsToSim = 1` (default). You can set the default by changing `$rehab` in `hotkeys/set_global_variables.das` and re-running "Set Global Variables" (or restarting DAS), or toggle it for the current session using the `Toggle Rehab Mode` hotkey. Disabling rehab requires typing `YES` to confirm.
 
 ### Ice breaker, half, and full size
 
@@ -169,7 +175,7 @@ position has moved at least 1R in your favor.
   `$stopLossTrigger` for normal trades. Buy IB uses dynamic R when enabled; buy_25/buy_50 use dynamic R only when `dynamicStop = 1` and `dynamicStopActive = 1`, otherwise `$stopLossTrigger`.
 - When adding to a position, the scripts arm the scale-in BE stop
   (`Set Auto Stop BE Scale 1/1`) so the combined position is protected.
-- Live rehab mode (`$rehab = 1`) blocks scale-ins entirely.
+- Rehab mode (`$rehab = 1`) blocks scale-ins entirely in LIVE and SIM when `$applyLiveGuardsToSim = 1`.
 - Entries are rejected if `$maxPositionSize` or the net risk to the planned stop
   would exceed `$riskCapDollars` after the add.
 - Spread safety checks and slippage margins guard entries before an order is
@@ -263,18 +269,31 @@ These controls help prevent low-quality fills and oversized risk.
 - Max daily loss: a daily lock prevents new entries while equity drawdown is at
   or above the threshold (`$maxDailyLoss`) and auto-unlocks when drawdown drops
   back below the limit. The lock is enforced by the timer script.
-- Hijack protection: if the live position size exceeds `$maxPositionSize`, the
-  timer triggers GTFO, locks all montage order buttons, and sets
-  `$HIJACKED_LOCKED` to block new buys. The lock clears only after restarting
-  DAS or re-running `Set Global Variables`, and montage unlock is manual.
+- Hijack protection: if the position size exceeds `$maxPositionSize` (LIVE, and
+  SIM when `$applyLiveGuardsToSim = 1`), the timer triggers GTFO, locks all
+  montage order buttons, and sets `$HIJACKED_LOCKED` to block new buys. The lock
+  clears only after restarting DAS or re-running `Set Global Variables`, and
+  montage unlock is manual.
+- Single-position guard: when `$singlePositionGuard = 1`, buy hotkeys block
+  entries on a different symbol once a position is tracked. This is
+  script-tracked using the Primary_OE montage; if you close a position while
+  on another symbol, the lock clears when you return to the original symbol or
+  re-run `Set Global Variables`. Positions opened or closed outside the hotkeys
+  may not be detected until the montage returns to the active symbol.
 - Per-trade risk cap: blocks entries when projected risk exceeds
   `$riskCapDollars` (`$usePerTradeRiskCap`).
 
+SIM vs LIVE: daily loss lock, hijack protection, and rehab gating apply in LIVE
+and SIM when `$applyLiveGuardsToSim = 1` (default). Set
+`$applyLiveGuardsToSim = 0` to keep those three guards live-only. All other
+guard rails apply in both SIM and LIVE.
+
 ### Hijack protection (position-size backstop)
 
-This is a strict, live-only discipline backstop. It is enabled by default via
-`$highJackProtection = 1` and continuously compares your live position size to
-`$maxPositionSize` using the `Primary_OE` montage.
+This is a strict discipline backstop. It is enabled by default via
+`$hijackProtection = 1` and continuously compares your position size to
+`$maxPositionSize` using the `Primary_OE` montage. It applies to LIVE and to
+SIM when `$applyLiveGuardsToSim = 1` (default).
 
 If the timer detects a position larger than `$maxPositionSize`, it:
 - Triggers `GTFO` to flatten.
@@ -290,9 +309,9 @@ Reset behavior:
 
 `other scripts/timer.das` does three things:
 
-1) Enforces the daily loss lock (live account only) using the session equity
-   baseline.
-2) Enforces hijack protection on position size (live account only).
+1) Enforces the daily loss lock for LIVE and SIM when `$applyLiveGuardsToSim = 1`
+   (default) using the session equity baseline.
+2) Enforces hijack protection on position size (same scope as above).
 3) Runs `Timer Entry Handler` each tick to arm stops/TP after fills when
    `$useTimerArming = 1`.
 4) Clears take-profit alerts and dynamic stop state when flat.
@@ -315,7 +334,11 @@ Safety toggles:
   and take-profit alerts.
 - `toggle_spread_check_feature.das` enables/disables the spread safety guard.
 - `toggle_dynamic_stop.das` enables/disables dynamic R for Buy IB entries.
-- `enable_rehab_mode.das` sets rehab mode on (no toggle) and shows confirmation.
+- `toggle_apply_live_guards_to_sim.das` toggles whether live-only guards also
+  apply in SIM (`$applyLiveGuardsToSim`).
+- `toggle_single_position_guard.das` toggles the single-position guard
+  (`$singlePositionGuard`).
+- `enable_rehab_mode.das` toggles rehab mode on/off; disabling requires typing `YES`.
 
 Account and session:
 - `set_global_variables.das` refreshes all global settings and initializes the

@@ -31,6 +31,7 @@ $entryDynR = 0;
 $entrySymbol = "";
 $tpSymbol = "";
 $HIJACKED_LOCKED = 0;
+$singlePositionSymbol = "";  // runtime symbol for single-position guard
 $entryWatch = 0;
 $entryLastPos = 0;
 
@@ -44,7 +45,9 @@ $cancelRemainderOnPartial = 1;     // 1=cancel remainder before arming stop on p
 $usePerTradeRiskCap       = 1;     // 1=abort if projected risk exceeds cap
 $useSpreadCheck           = 1;     // 1=check spreads before allowing buy order
 $pegToBid                 = 0;     // 1=use bid for BE limit sells when applicable
-$highJackProtection       = 1;     // 1=enable position-size hijack protection
+$hijackProtection       = 1;     // 1=enable position-size hijack protection
+$applyLiveGuardsToSim     = 1;     // 1=apply live-only guards (daily loss, hijack, rehab) in SIM
+$singlePositionGuard      = 1;     // 1=block new entries on a different symbol (script-tracked)
 
 $useAutoStop = "Yes";
 $useTakeProfit = "Yes";
@@ -94,7 +97,7 @@ $LIVEACT = "%%LIVE%%";      // your LIVE trading account
 $qtyMult = 6;
 
 // Maximum allowed position size (shares)
-$maxPositionSize = $qtyMult * 150;
+$maxPositionSize = $qtyMult * 100;
 
 // Maximum allowed $ risk *per trade*
 // Useful for guarding against oversized positions or bad spreads

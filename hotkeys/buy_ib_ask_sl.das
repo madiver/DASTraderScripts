@@ -16,6 +16,28 @@ if ($locked == 1) {
     return;
 }
 
+// ---- Single-position guard (script-tracked) ----
+if ($singlePositionGuard == 1) {
+    $M = GetWindowObj("Primary_OE");
+    if (IsObj($M)) {
+        $curSym = $M.Symb;
+        $curPos = $M.Pos;
+
+        if ($singlePositionSymbol != "" && $curSym == $singlePositionSymbol && $curPos <= 0) {
+            $singlePositionSymbol = "";
+        }
+
+        if ($entryPending == 1 && $entrySymbol != "" && $curSym != $entrySymbol) {
+            MsgBox("Single-position mode: pending entry in " + $entrySymbol + ". New entries blocked.");
+            return;
+        }
+
+        if ($singlePositionSymbol != "" && $curSym != $singlePositionSymbol) {
+            MsgBox("Single-position mode: active symbol " + $singlePositionSymbol + ". New entries blocked.");
+            return;
+        }
+    }
+}
 // Track entry symbol and reset TP symbol override
 $M = GetWindowObj("Primary_OE");
 if (IsObj($M)) {
@@ -30,7 +52,7 @@ $acct = "";
 if (IsObj($M)) { $acct = StrTrim("" + $M.Account); }
 $isLive = 0;
 if (StrLen($acct) > 0 && StrFind($acct, "TR") != 0) { $isLive = 1; }
-if ($HIJACKED_LOCKED == 1 && $isLive == 1) {
+if ($HIJACKED_LOCKED == 1 && ($isLive == 1 || $applyLiveGuardsToSim == 1)) {
     MsgBox("Trading locked for " + $acct + " (hijack protection triggered).");
     return;
 }
@@ -47,12 +69,12 @@ if (IsObj($M)) {
     $avgBefore = AvgCost;
 }
 
-// Rehab gate: block scaling in while rehab mode is enabled (live only).
+// Rehab gate: block scaling in while rehab mode is enabled (LIVE; optional SIM).
 $acct = "";
 if (IsObj($M)) { $acct = StrTrim("" + $M.Account); }
 $isLive = 0;
 if (StrLen($acct) > 0 && StrFind($acct, "TR") != 0) { $isLive = 1; }
-if ($rehab == 1 && $posBefore > 0 && $isLive == 1) {
+if ($rehab == 1 && $posBefore > 0 && ($isLive == 1 || $applyLiveGuardsToSim == 1)) {
     MsgBox("ABORTED: Rehab size violation, scaling in not allowed!");
     return;
 }
@@ -278,6 +300,9 @@ if ($filled == 0) {
     $order.Cancel();
     return;
 }
+
+// ---- Single-position guard: lock symbol on fill ----
+if ($singlePositionSymbol == "") { $singlePositionSymbol = $entrySymbol; }
 
 // Optional: freeze size before arming stop when partial accepted
 if ($filled == 2 && $cancelRemainderOnPartial == 1) {

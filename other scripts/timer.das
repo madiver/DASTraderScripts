@@ -11,7 +11,12 @@ if ($accName == "" ) {
     return;
 }
 
-if ($accName == $LIVEACT) {
+$liveGuardActive = 0;
+if ($accName == $LIVEACT || ($accName == $TRSIM && $applyLiveGuardsToSim == 1)) {
+    $liveGuardActive = 1;
+}
+
+if ($liveGuardActive == 1) {
 
     $eqStartStr = GetVar("DAY_EQUITY_START");
     if ($eqStartStr == "") {
@@ -69,7 +74,7 @@ if ($accName == $LIVEACT) {
     }
 
     // ---- Step 2b: Hijack protection (position-size backstop) ----
-    if ($highJackProtection == 1 && $maxPositionSize > 0 && $HIJACKED_LOCKED != 1) {
+    if ($hijackProtection == 1 && $maxPositionSize > 0 && $HIJACKED_LOCKED != 1) {
         $M = GetWindowObj("Primary_OE");
         if (IsObj($M)) {
             $posNow = $M.Pos;
@@ -83,6 +88,20 @@ if ($accName == $LIVEACT) {
     }
 
 } 
+
+// ---- Single-position guard tracking (script-tracked) ----
+$M = GetWindowObj("Primary_OE");
+if (IsObj($M)) {
+    $symNow = $M.Symb;
+    $posNow = $M.Pos;
+    if ($singlePositionSymbol == "" && $posNow > 0) {
+        $singlePositionSymbol = $symNow;
+    } else {
+        if ($singlePositionSymbol != "" && $symNow == $singlePositionSymbol && $posNow <= 0) {
+            $singlePositionSymbol = "";
+        }
+    }
+}
 
 // ---- Step 3: Timer-based stop/TP arming ----
 ExecHotkey("Timer Entry Handler");

@@ -2,14 +2,21 @@
 
 All notable changes to this repository will be documented in this file.
 
-## 0.3.0 - 2026-01-19
+## 0.3.0 - 2026-01-20
 
 ### Features
 - Track daily loss guard health via `DAY_GUARD_OK` and surface it in the config display.
 - Auto-unlock the daily loss guard when drawdown drops back below `maxDailyLoss`.
-- Add non-toggle rehab enable hotkey bound to Alt+Ctrl+Win+H.
+- Add rehab mode toggle hotkey bound to Alt+Ctrl+Win+H.
+- Require typed `YES` confirmation to disable rehab mode.
 - Add live-only hijack protection that triggers GTFO, locks montages, and blocks new buys when position size exceeds max.
+- Add `$applyLiveGuardsToSim` to apply daily loss, hijack, and rehab guards in SIM.
+- Default `$applyLiveGuardsToSim` to `1` (guards apply in SIM).
+- Add toggle hotkey for `$applyLiveGuardsToSim` (Alt+Ctrl+Win+G).
 - Add timer re-arm tracking state (`entryWatch`, `entryLastPos`) to globals and config display.
+- Add single-position guard (default on) to block buys on a different symbol (script-tracked).
+- Add toggle hotkey for the single-position guard (Alt+Ctrl+Win+M).
+- Reduce default `maxPositionSize` to `qtyMult * 100` (600 shares).
 
 ### Bug Fixes
 - Bind session account from SIM/LIVE switch hotkeys to keep daily loss guard aligned with explicit mode switches.
@@ -29,6 +36,7 @@ All notable changes to this repository will be documented in this file.
 
 ### Cleanup
 - Update README/USERGUIDE to highlight the user guide, hijack protection, and default globals.
+- Rename `$highJackProtection` to `$hijackProtection`.
 
 ## 0.2.1 - 2026-01-15
 
