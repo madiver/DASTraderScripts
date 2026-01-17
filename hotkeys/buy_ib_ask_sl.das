@@ -7,7 +7,7 @@
 FocusWindow Primary_OE;
 
 // ---- Daily loss lock guard ----
-$accName = GetVar("DAY_ACC");
+$accName = $DAY_ACC;
 $lockKey = "TRADING_LOCKED_" + $accName;
 $locked  = GetVar($lockKey) * 1;
 
@@ -24,6 +24,16 @@ if (IsObj($M)) {
     $entrySymbol = Symbol;
 }
 $tpSymbol = "";
+
+// ---- Hijack protection guard ----
+$acct = "";
+if (IsObj($M)) { $acct = StrTrim("" + $M.Account); }
+$isLive = 0;
+if (StrLen($acct) > 0 && StrFind($acct, "TR") != 0) { $isLive = 1; }
+if ($HIJACKED_LOCKED == 1 && $isLive == 1) {
+    MsgBox("Trading locked for " + $acct + " (hijack protection triggered).");
+    return;
+}
 
 // ---- Capture pre-entry position and avg cost (TP logic) ----
 $posBefore = 0;
@@ -155,13 +165,29 @@ if (($stopVsBidFail == 1 || $spreadTooWide == 1) && $posBefore <=0) {
     return;
 }
 
-// Per-trade risk cap (projected risk = effR * projectedShares)
+// Per-trade risk cap (projected net risk to planned stop)
 if ($usePerTradeRiskCap == 1) {
-    $riskShares = $addShares;
+    $totalShares = $addShares;
     if ($posBefore > 0) {
-        $riskShares = $posBefore + $addShares;
+        $totalShares = $posBefore + $addShares;
     }
-    $projRisk = $effR * $riskShares;
+
+    $projAvg = $pxEntry;
+    $projStop = $projAvg - $effR;
+    if ($posBefore > 0 && $avgBefore > 0) {
+        $projAvg = (($avgBefore * $posBefore) + ($pxEntry * $addShares)) / $totalShares;
+        $beOffset = 0.03;
+        $beTrigger = $projAvg + $beOffset;
+        if ($bid < $beTrigger) {
+            $projStop = $projAvg;
+        } else {
+            $projStop = $projAvg + $beOffset;
+        }
+    }
+
+    $riskPerShare = $projAvg - $projStop;
+    if ($riskPerShare < 0) { $riskPerShare = 0; }
+    $projRisk = $riskPerShare * $totalShares;
     if ($projRisk > $riskCapDollars) {
         MsgBox("Risk cap exceeded for " + Symbol + ": projected $" + $projRisk + " > cap $" + $riskCapDollars + ". Aborting.");
         return;
@@ -302,5 +328,6 @@ if ($useTakeProfit == "Yes") {
 }
 
 // ---- End ----
+
 
 

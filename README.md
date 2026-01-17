@@ -6,13 +6,13 @@ Shared DAS Trader `.das` scripts and a canonical `keymap.yaml`, maintained for u
 
 This repository contains human-readable DAS Trader hotkey scripts plus a keymap file that can be compiled into a DAS `Hotkey.htk` file. It exists to make large hotkey libraries easier to review, version, and share than editing Hotkey.htk directly.
 
-These are the scripts I trade with on a daily basis. They are routinely updated as I encounter new scenarios I wish to explore and as I gradually advance my trading experience. If you choose to use these scripts,
-it is important that you carefully review the global settings in `hotkeys/set_global_variables.das` and ensure `keymap.yaml` reflects the keyboard or Stream Deck hotkeys you wish to use (mine are tailored to my setup). It is worth noting that I primarily use
-a Stream Deck when trading, which I find preferable to the keyboard.
+These are the scripts I trade with on a daily basis. If you choose to use them, start by reading the user guide and then review the global settings in `hotkeys/set_global_variables.das` and the bindings in `keymap.yaml` (mine are tailored to my setup). I primarily use a Stream Deck.
 
-These scripts can be manually copied and pasted directly into the DAS Trader script editor or you may want to consider using the DAS Hotkey Tools to automate the process (see the Requirements section below).
+Read this first: [USERGUIDE.md](USERGUIDE.md)
 
-Note: The VS Code extension replaces `%%SIMULATED%%` and `%%LIVE%%` tokens when it builds the `Hotkey.htk`. If you copy scripts manually, make sure those placeholders are replaced in the SIM/LIVE switch and session scripts, and set `$TRSIM`/`$LIVEACT` in `hotkeys/set_global_variables.das` to your actual account identifiers.
+These scripts can be manually copied and pasted into the DAS Trader script editor, or you can use the DAS Hotkey Tools to automate the process (see Requirements).
+
+Note: The VS Code extension replaces `%%SIMULATED%%` and `%%LIVE%%` tokens when it builds the `Hotkey.htk`. If you copy scripts manually, replace those placeholders in SIM/LIVE switch and session scripts, and set `$TRSIM`/`$LIVEACT` in `hotkeys/set_global_variables.das` to your actual account identifiers.
 
 Finally, please read the Risk Disclaimer section below and understand that you are using these scripts at your own risk and they are provided here purely for educational purposes.
 
@@ -78,7 +78,7 @@ PnL, Stops, Take profit, Utilities & toggles.
 - Scale-ins are allowed only when the existing position is at least 1R in profit (dynamic R when active, otherwise `stopLossTrigger`).
 - When adding to an existing long, the scripts use the scale-in-specific BE stop hotkey (`Set Auto Stop BE Scale 1/1`).
 - Buy_IB scripts use an ice-breaker size that rounds to 5-share lots with a minimum of 5 shares.
-- Projected risk caps are evaluated against total size after the add (current position + new shares).
+- Projected risk caps are evaluated against net risk to the planned stop on total size after the add (current position + new shares).
 
 ## Dynamic Stops (Buy_IB Only)
 

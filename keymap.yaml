@@ -181,6 +181,10 @@
   key: Alt+Ctrl+Win+D
   label: Toggle Dynamic Stop
   scriptPath: hotkeys/toggle_dynamic_stop.das
+- id: enable_rehab_mode
+  key: Alt+Ctrl+Win+H
+  label: Enable Rehab Mode
+  scriptPath: hotkeys/enable_rehab_mode.das
 - id: timer_entry_handler
   key:
   label: Timer Entry Handler

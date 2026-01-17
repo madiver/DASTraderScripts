@@ -15,12 +15,18 @@ if ($rehab == 1 && $isLive == 1) { MsgBox("ABORTED: Rehab share size violation!"
 FocusWindow Primary_OE;
  
 // ---- Daily loss lock guard ----
-$accName = GetVar("DAY_ACC");
+$accName = $DAY_ACC;
 $lockKey = "TRADING_LOCKED_" + $accName;
 $locked  = GetVar($lockKey) * 1;
 
 if ($locked == 1) {
     MsgBox("Trading locked for " + $accName + " (daily loss limit hit).");
+    return;
+}
+
+// ---- Hijack protection guard ----
+if ($HIJACKED_LOCKED == 1 && $isLive == 1) {
+    MsgBox("Trading locked for " + $acct + " (hijack protection triggered).");
     return;
 }
 
@@ -137,15 +143,33 @@ if (($stopVsBidFail == 1 || $spreadTooWide == 1) && $posBefore <=0) {
     return;
 }
 
-// Per-trade risk cap (projected risk = effR * projectedShares)
+// Per-trade risk cap (projected net risk to planned stop)
 if ($usePerTradeRiskCap == 1) {
+    $totalShares = $addShares;
+    if ($posBefore > 0) {
+        $totalShares = $posBefore + $addShares;
+    }
+
     $effR = $stopLossTrigger;
     if ($dynamicStop == 1 && $dynamicStopActive == 1 && $dynamicStopR > 0) { $effR = $dynamicStopR; }
-    $riskShares = $addShares;
-    if ($posBefore > 0) {
-        $riskShares = $posBefore + $addShares;
+
+    $projAvg = $pxEntry;
+    $projStop = $projAvg - $effR;
+    if ($posBefore > 0 && $avgBefore > 0) {
+        $projAvg = (($avgBefore * $posBefore) + ($pxEntry * $addShares)) / $totalShares;
+        $beOffset = 0.03;
+        $beTrigger = $projAvg + $beOffset;
+        if ($bid < $beTrigger) {
+            $projStop = $projAvg;
+        } else {
+            $projStop = $projAvg + $beOffset;
+        }
     }
-    $projRisk = $effR * $riskShares;
+
+    $riskPerShare = $projAvg - $projStop;
+    if ($riskPerShare < 0) { $riskPerShare = 0; }
+    $projRisk = $riskPerShare * $totalShares;
+
     if ($projRisk > $riskCapDollars) {
         MsgBox("Risk cap exceeded for " + Symbol + ": projected $" + $projRisk + " > cap $" + $riskCapDollars + ". Aborting.");
         return;
@@ -277,6 +301,7 @@ if ($useTakeProfit == "Yes") {
 }
 
 // ---- End ----
+
 
 
 

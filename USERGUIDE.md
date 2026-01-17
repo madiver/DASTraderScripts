@@ -28,6 +28,7 @@ Variables by category:
 Runtime counters and modes:
 - `$oneSecondScriptCnt`: internal counter used by `other scripts/timer.das`.
 - `$rehab`: enables rehab mode to block scale-ins and larger live entries.
+- `$HIJACKED_LOCKED`: runtime lock set when hijack protection triggers.
 
 Feature toggles and entry guards:
 - `$useSlippageMargin`: enables the stop-vs-bid margin check in buy scripts.
@@ -36,8 +37,10 @@ Feature toggles and entry guards:
 - `$acceptPartial`: allows partial fills within the polling window.
 - `$minFillShares`: minimum shares to accept when partial fills are allowed.
 - `$cancelRemainderOnPartial`: cancels the unfilled remainder before arming stops.
-- `$usePerTradeRiskCap`: blocks entries if projected risk exceeds `$riskCapDollars`.
+- `$usePerTradeRiskCap`: blocks entries if projected net risk to the planned stop exceeds `$riskCapDollars`.
 - `$useSpreadCheck`: enables spread-vs-R safety checks before entries.
+- `$pegToBid`: when enabled, BE limit sells can peg to bid instead of AvgCost.
+- `$highJackProtection`: enables the position-size hijack backstop (live only).
 - `$useAutoStop`: toggles auto stop placement.
 - `$useTakeProfit`: toggles take-profit alerts/executor behavior.
 - `$resetStopOnCancel`: re-arms the stop after `cancel_all.das` if long.
@@ -63,8 +66,8 @@ Account tokens:
 Sizing and risk limits:
 - `$qtyMult`: position size multiplier.
 - `$maxPositionSize`: maximum total position size in shares.
-- `$riskCapDollars`: maximum projected risk per trade in dollars.
-- `$maxDailyLoss`: daily loss lock threshold.
+- `$riskCapDollars`: maximum projected net risk per trade in dollars.
+- `$maxDailyLoss`: daily loss lock threshold (equity drawdown; auto-unlocks when drawdown falls back below the limit).
 
 Order fill polling:
 - `$pollMs`: polling interval in milliseconds.
@@ -76,8 +79,66 @@ Timer-based entry arming (runtime):
 - `$entrySymbol`, `$entryPosBefore`, `$entryAvgBefore`, `$entryScaleIn`, `$entryDynR`: captured entry context used by the timer handler.
 - `$entryWatch`, `$entryLastPos`: track position size changes so the handler can re-arm stops/TP when size increases.
 
+### Defaults table
+
+Defaults are pulled from `hotkeys/set_global_variables.das` and reflect the
+baseline values when you run "Set Global Variables."
+
+| Category | Variable | Default |
+| --- | --- | --- |
+| Runtime | `$oneSecondScriptCnt` | `0` |
+| Runtime | `$rehab` | `0` |
+| Runtime | `$useTimerArming` | `1` |
+| Runtime | `$timerMode` | `0` |
+| Runtime | `$entryPending` | `0` |
+| Runtime | `$entryStage` | `0` |
+| Runtime | `$entryTicks` | `0` |
+| Runtime | `$entryMaxTicks` | `10` |
+| Runtime | `$entryPosBefore` | `0` |
+| Runtime | `$entryAvgBefore` | `0` |
+| Runtime | `$entryScaleIn` | `0` |
+| Runtime | `$entryDynR` | `0` |
+| Runtime | `$entrySymbol` | `""` |
+| Runtime | `$tpSymbol` | `""` |
+| Runtime | `$HIJACKED_LOCKED` | `0` |
+| Runtime | `$entryWatch` | `0` |
+| Runtime | `$entryLastPos` | `0` |
+| Toggles | `$useSlippageMargin` | `1` |
+| Toggles | `$slipTicksMin` | `2` |
+| Toggles | `$slipSpreadFrac` | `0.25` |
+| Toggles | `$acceptPartial` | `1` |
+| Toggles | `$minFillShares` | `1` |
+| Toggles | `$cancelRemainderOnPartial` | `1` |
+| Toggles | `$usePerTradeRiskCap` | `1` |
+| Toggles | `$useSpreadCheck` | `1` |
+| Toggles | `$pegToBid` | `0` |
+| Toggles | `$highJackProtection` | `1` |
+| Toggles | `$useAutoStop` | `"Yes"` |
+| Toggles | `$useTakeProfit` | `"Yes"` |
+| Toggles | `$resetStopOnCancel` | `"Yes"` |
+| Risk | `$entryOffset` | `0.03` |
+| Risk | `$exitOffset` | `0.10` |
+| Risk | `$stopLossTrigger` | `0.10` |
+| Risk | `$takeProfitFactor` | `1.0` |
+| Risk | `$takeProfitSize` | `0.25` |
+| Dynamic stop | `$dynamicStop` | `0` |
+| Dynamic stop | `$dynamicStopMult` | `2` |
+| Dynamic stop | `$dynamicStopActive` | `0` |
+| Dynamic stop | `$dynamicStopR` | `0` |
+| Accounts | `$TRSIM` | `"%%SIMULATED%%"` |
+| Accounts | `$LIVEACT` | `"%%LIVE%%"` |
+| Sizing | `$qtyMult` | `6` |
+| Sizing | `$maxPositionSize` | `qtyMult * 150 (900)` |
+| Limits | `$riskCapDollars` | `100.00` |
+| Limits | `$maxDailyLoss` | `100.00` |
+| Polling | `$pollMs` | `100` |
+| Polling | `$maxPolls` | `20` |
+| Guard | `$DAY_GUARD_OK` | `0` |
+
 `Set Global Variables` also runs `Initialize Session Equity` to seed the daily
-loss baseline used by the timer script.
+loss baseline used by the timer script. The session account (`$DAY_ACC`) is set
+by the SIM/LIVE switch hotkeys, so run those at the start of a session to bind
+the guard rails to the correct account.
 
 Use "Show Config" to view the current runtime values.
 
@@ -85,7 +146,7 @@ Use "Show Config" to view the current runtime values.
 
 Sizing philosophy: start small to probe the trade, add only when it is working, and cap exposure with hard limits. Base sizing is a 50-share clip multiplied by `$qtyMult`. Buy 25 uses half of that clip, Buy 50 uses the full clip, and Buy IB (ice breaker) uses roughly one quarter of the 50-share clip (rounded to 5-share lots). This keeps the sizing deterministic and proportional to your 1R risk. In rehab mode (`$rehab = 1`), live trading is restricted to ice breaker entries and scale-ins are blocked.
 
-Rehab mode is a safety throttle for live trading. When enabled (`$rehab = 1`), the scripts block scale-ins and prevent larger clip entries in live accounts, forcing you to trade only ice breaker size while you reset discipline or reduce risk after a drawdown. You set it by changing `$rehab` in `hotkeys/set_global_variables.das` and re-running "Set Global Variables" (or restarting DAS).
+Rehab mode is a safety throttle for live trading. When enabled (`$rehab = 1`), the scripts block scale-ins and prevent larger clip entries in live accounts, forcing you to trade only ice breaker size while you reset discipline or reduce risk after a drawdown. You can set the default by changing `$rehab` in `hotkeys/set_global_variables.das` and re-running "Set Global Variables" (or restarting DAS), or enable it for the current session using the `Enable Rehab Mode` hotkey.
 
 ### Ice breaker, half, and full size
 
@@ -109,8 +170,8 @@ position has moved at least 1R in your favor.
 - When adding to a position, the scripts arm the scale-in BE stop
   (`Set Auto Stop BE Scale 1/1`) so the combined position is protected.
 - Live rehab mode (`$rehab = 1`) blocks scale-ins entirely.
-- Entries are rejected if `$maxPositionSize` or `$riskCapDollars` would be
-  exceeded after the add.
+- Entries are rejected if `$maxPositionSize` or the net risk to the planned stop
+  would exceed `$riskCapDollars` after the add.
 - Spread safety checks and slippage margins guard entries before an order is
   sent.
 
@@ -199,10 +260,31 @@ These controls help prevent low-quality fills and oversized risk.
   (`$useSpreadCheck`).
 - Slippage margin: requires the planned stop to sit below bid by a minimum
   tick/spread buffer (`$useSlippageMargin`, `$slipTicksMin`, `$slipSpreadFrac`).
-- Max daily loss: a daily lock prevents new entries after a drawdown threshold
-  (`$maxDailyLoss`). The lock is enforced by the timer script.
+- Max daily loss: a daily lock prevents new entries while equity drawdown is at
+  or above the threshold (`$maxDailyLoss`) and auto-unlocks when drawdown drops
+  back below the limit. The lock is enforced by the timer script.
+- Hijack protection: if the live position size exceeds `$maxPositionSize`, the
+  timer triggers GTFO, locks all montage order buttons, and sets
+  `$HIJACKED_LOCKED` to block new buys. The lock clears only after restarting
+  DAS or re-running `Set Global Variables`, and montage unlock is manual.
 - Per-trade risk cap: blocks entries when projected risk exceeds
   `$riskCapDollars` (`$usePerTradeRiskCap`).
+
+### Hijack protection (position-size backstop)
+
+This is a strict, live-only discipline backstop. It is enabled by default via
+`$highJackProtection = 1` and continuously compares your live position size to
+`$maxPositionSize` using the `Primary_OE` montage.
+
+If the timer detects a position larger than `$maxPositionSize`, it:
+- Triggers `GTFO` to flatten.
+- Locks all montage order buttons via `LockAllMontage Lock`.
+- Sets `$HIJACKED_LOCKED` to block new buys.
+- Plays a brief voice alert.
+
+Reset behavior:
+- `$HIJACKED_LOCKED` clears only after restarting DAS or re-running `Set Global Variables`.
+- Montage lock must be manually cleared (UI lock icon or `LockAllMontage Unlock`).
 
 ## TIMER SCRIPT
 
@@ -210,9 +292,10 @@ These controls help prevent low-quality fills and oversized risk.
 
 1) Enforces the daily loss lock (live account only) using the session equity
    baseline.
-2) Runs `Timer Entry Handler` each tick to arm stops/TP after fills when
+2) Enforces hijack protection on position size (live account only).
+3) Runs `Timer Entry Handler` each tick to arm stops/TP after fills when
    `$useTimerArming = 1`.
-3) Clears take-profit alerts and dynamic stop state when flat.
+4) Clears take-profit alerts and dynamic stop state when flat.
 
 Installation: add this script to DAS Trader's timer so it runs every second.
 It is not installed automatically by the hotkey build. Ensure
@@ -232,6 +315,7 @@ Safety toggles:
   and take-profit alerts.
 - `toggle_spread_check_feature.das` enables/disables the spread safety guard.
 - `toggle_dynamic_stop.das` enables/disables dynamic R for Buy IB entries.
+- `enable_rehab_mode.das` sets rehab mode on (no toggle) and shows confirmation.
 
 Account and session:
 - `set_global_variables.das` refreshes all global settings and initializes the
@@ -249,7 +333,7 @@ Order control:
 UI and convenience:
 - `show_config.das` displays current globals and account mode.
 - `select_primary_order_entry.das` focuses the Primary_OE montage.
-- `toggle_position_window.das` opens/closes the DAS Position window.
+- `toggle_position_window.das` toggles AlwaysOnTop for the DAS Position windows.
 
 ## OTHER NOTES
 

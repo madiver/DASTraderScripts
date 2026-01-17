@@ -29,6 +29,8 @@ $entryAvgBefore = 0;
 $entryScaleIn = 0;
 $entryDynR = 0;
 $entrySymbol = "";
+$tpSymbol = "";
+$HIJACKED_LOCKED = 0;
 $entryWatch = 0;
 $entryLastPos = 0;
 
@@ -41,6 +43,8 @@ $minFillShares            = 1;     // minimum shares to accept when $acceptParti
 $cancelRemainderOnPartial = 1;     // 1=cancel remainder before arming stop on partial
 $usePerTradeRiskCap       = 1;     // 1=abort if projected risk exceeds cap
 $useSpreadCheck           = 1;     // 1=check spreads before allowing buy order
+$pegToBid                 = 0;     // 1=use bid for BE limit sells when applicable
+$highJackProtection       = 1;     // 1=enable position-size hijack protection
 
 $useAutoStop = "Yes";
 $useTakeProfit = "Yes";
@@ -87,7 +91,7 @@ $LIVEACT = "%%LIVE%%";      // your LIVE trading account
 
 // Multiplier for position sizing
 // Example: if base clip is 50 shares, qtyMult=4 -> 200 shares per entry
-$qtyMult = 5;
+$qtyMult = 6;
 
 // Maximum allowed position size (shares)
 $maxPositionSize = $qtyMult * 150;

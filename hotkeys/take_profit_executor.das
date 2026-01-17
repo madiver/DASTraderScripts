@@ -18,20 +18,26 @@ if (!IsObj($M)) {
 $mySym = $M.Symb;
 $myAcc = $M.Account;
 
-// If TP_SYMBOL is set and differs from current montage symbol, try to switch
-if ($takeProfitSymbol != "" && $takeProfitSymbol != $mySym) {
-    $M.Symb = $takeProfitSymbol;        // attempt to switch montage symbol
-    Wait(100);                                      // allow DAS to update
+$tpSym = GetVar("TP_SYMBOL");
+if ($tpSym == "") { $tpSym = $takeProfitSymbol; }
+if ($tpSym == "") { $tpSym = $mySym; }
+
+// If TP symbol is set and differs from current montage symbol, try to switch
+if ($tpSym != "" && $tpSym != $mySym) {
+    $M.Symb = $tpSym;        // attempt to switch montage symbol
+    Wait(100);               // allow DAS to update
     $mySym = $M.Symb;
     $myAcc = $M.Account;
 
-    // Safety: if we still aren't on TP_SYMBOL, abort to avoid touching wrong symbol
-    if ($mySym != $takeProfitSymbol) {
-        MsgBox("TP Executor: failed to switch Primary_OE to " + $takeProfitSymbol +
+    // Safety: if we still aren't on TP symbol, abort to avoid touching wrong symbol
+    if ($mySym != $tpSym) {
+        MsgBox("TP Executor: failed to switch Primary_OE to " + $tpSym +
                ". Currently on " + $mySym + ". Aborting.");
         return;
     }
 }
+
+$takeProfitSymbol = $mySym;
 
 // Load position from the (possibly updated) montage
 $posNow = $M.Pos;
@@ -141,7 +147,9 @@ if ($useAutoStop == "Yes") {
 
     if ($filledState == 1) {
         // FULL TP fill -> lock remaining at BE
+        $tpSymbol = $mySym;
         ExecHotkey("Set Auto Stop BE 1/1");
+        $tpSymbol = "";
     } else {
         // No fill OR partial fill -> re-arm original 1R stop
         ExecHotkey("Set Auto Stop");
@@ -156,5 +164,8 @@ if ($useTakeProfit == "Yes") {
         ExecHotkey("Set Take Profit");
     }
 }
+
+// Clear TP symbol marker to avoid stale overrides
+SetVar("TP_SYMBOL", "");
 
 // ---- End Take Profit Executor ----

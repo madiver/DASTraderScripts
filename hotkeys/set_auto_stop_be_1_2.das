@@ -85,9 +85,9 @@ $beStopTrigger = Round($avgSnap + $beOffset, 102, $inc);
 
 // ---- Step 7: Quantity to protect (partial) ----
 $qtyProtect = $posNow / $portionDenominator;
-if ($qtyProtect <= 0) {
-    return;
-}
+$qtyProtect = Round($qtyProtect, 102, 1);
+if ($qtyProtect > $posNow) { $qtyProtect = $posNow; }
+if ($qtyProtect < 1) { $qtyProtect = $posNow; }
 
 // ---- Step 8: Cancel existing SELL orders (account scoped) ----
 $accObj = GetAccountObj($myAcc);

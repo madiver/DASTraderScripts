@@ -57,6 +57,30 @@ if ($accName == $LIVEACT) {
         SetVar("TRADING_LOCKED", 1);
 
     }
+    // If back under limit and locked, auto-unlock
+    if ($dd < $limit && $locked == 1) {
+
+        // Clear per-account lock
+        SetVar($lockKey, 0);
+
+        // Also clear current lock mirror
+        SetVar("TRADING_LOCKED", 0);
+
+    }
+
+    // ---- Step 2b: Hijack protection (position-size backstop) ----
+    if ($highJackProtection == 1 && $maxPositionSize > 0 && $HIJACKED_LOCKED != 1) {
+        $M = GetWindowObj("Primary_OE");
+        if (IsObj($M)) {
+            $posNow = $M.Pos;
+            if ($posNow > $maxPositionSize) {
+                $HIJACKED_LOCKED = 1;
+                ExecHotkey("GTFO");
+                LockAllMontage Lock;
+                Speak("Hijack protection triggered.");
+            }
+        }
+    }
 
 } 
 
