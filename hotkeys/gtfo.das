@@ -13,7 +13,15 @@ if ($posNow <= 0) { return; }
 CXL ALL;
 ROUTE="ARCAL";
 TIF=DAY+;
-$px = $M.Bid - 0.50;
+$refPx = $M.Bid;
+if ($refPx <= 0) { $refPx = $M.Last; }
+if ($refPx <= 0) { return; }
+$inc = 0.01;
+if ($refPx < 1)    { $inc = 0.001; }
+if ($refPx < 0.25) { $inc = 0.0005; }
+$px = $refPx - 0.50;
+if ($px < $inc) { $px = $inc; }
+$px = Round($px, 102, $inc);
 Price=$px;
 Share=$posNow;
 SELL=Send;

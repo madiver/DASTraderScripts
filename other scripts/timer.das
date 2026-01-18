@@ -148,5 +148,8 @@ if ($oneSecondScriptCnt % 5 ==0) {
             $dynamicStopActive = 0;
             $dynamicStopR = 0;
         }
+
+        // ---- Clear entry reference when flat ----
+        $entryRefPx = 0;
     }
 }

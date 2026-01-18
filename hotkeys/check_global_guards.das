@@ -8,6 +8,11 @@ $trade_ok = 1;
 
 // ---- Daily loss lock guard ----
 $accName = $DAY_ACC;
+if ($accName == "") {
+    MsgBox("No session account set. Use Switch to SIM/LIVE first.");
+    $trade_ok = 0;
+    return;
+}
 $lockKey = "TRADING_LOCKED_" + $accName;
 $locked  = GetVar($lockKey) * 1;
 

@@ -12,6 +12,20 @@ These scripts assume you have a primary montage window named `Primary_OE` (Prima
 
 Regardless of the method you choose, the timer script must be installed manually in DAS Trader under "Timer Event Scripts." I also recommend adding `ExecHotKey("Set Global Variables");` to your Desktop Load Scripts so globals are initialized every time DAS starts.
 
+## QUICK START
+
+1) Build or import hotkeys:
+   - Use the DAS Hotkey Tools VS Code extension to compile `keymap.yaml` into `Hotkey.htk`, then load it in DAS, or
+   - Copy/paste the `.das` scripts into DAS manually.
+2) If you use the VS Code extension, set these settings first:
+   - `dasHotkeyTools.outputPath` (required).
+   - `dasHotkeyTools.liveAccount` and `dasHotkeyTools.simulatedAccount` for `%%LIVE%%` / `%%SIMULATED%%` substitution.
+   - Optional: `dasHotkeyTools.placeholders.failOnMissing` to block builds when placeholders are unresolved.
+3) Ensure your montage is named `Primary_OE` and the timer script `other scripts/timer.das` is installed under Timer Event Scripts.
+4) Run `switch_to_sim.das` or `switch_to_live.das` to bind the session account.
+5) Run `set_global_variables.das` to initialize globals and the daily-loss baseline.
+6) Use `show_config.das` to confirm account mode, defaults, and guard states.
+
 Important: update `$TRSIM` and `$LIVEACT` in `hotkeys/set_global_variables.das` with your actual account identifiers if they are not already populated. `$LIVEACT` is used by the timer for guard rails and `$TRSIM` is shown in the config display. `$applyLiveGuardsToSim` controls whether the live-only guards (daily loss, hijack, rehab) also apply in SIM; it defaults to `1`. Set it to `0` if you want those guards to run only in LIVE. Also verify that any `%%SIMULATED%%` and `%%LIVE%%` placeholders have been replaced in the SIM/LIVE switch and session scripts (the VS Code extension handles this during build; if you copy scripts manually, you must replace them yourself).
 
 By default (`$useTimerArming = 1`), a buy hotkey sends the limit order, records entry context, and returns immediately. A timer-driven handler then waits for a fill and arms stop loss / take profit on subsequent 1-second ticks. If position size increases on later ticks, the handler cancels existing sell orders, re-arms the stop, and only re-arms TP when the TP reset conditions are met. If no fill appears within `$entryMaxTicks`, the handler cancels the working buy order and clears the pending state. If `$useTimerArming = 0`, the buy hotkey polls for a fill up to `$maxPolls * $pollMs`; if nothing fills, the order is canceled and the script exits without arming any protection. If a partial fill meets `$minFillShares`, the remainder is canceled (when enabled) and the scripts proceed as if the trade is active, using the average entry price for subsequent calculations.
@@ -82,6 +96,7 @@ Order fill polling:
 Timer-based entry arming (runtime):
 - `$entryPending`, `$entryStage`, `$entryTicks`, `$entryMaxTicks`: timer state and timeout for arming stops/TP after fills. When the timeout is reached, the handler cancels the working buy order.
 - `$entrySymbol`, `$entryPosBefore`, `$entryAvgBefore`, `$entryScaleIn`, `$entryDynR`: captured entry context used by the timer handler.
+- `$entryRefPx`: entry reference price used as a fallback for stop placement when AvgCost lags.
 - `$entryWatch`, `$entryLastPos`: track position size changes so the handler can re-arm stops/TP when size increases.
 
 ### Defaults table
@@ -105,6 +120,7 @@ baseline values when you run "Set Global Variables."
 | Runtime | `$entryDynR` | `0` |
 | Runtime | `$entrySymbol` | `""` |
 | Runtime | `$tpSymbol` | `""` |
+| Runtime | `$entryRefPx` | `0` |
 | Runtime | `$HIJACKED_LOCKED` | `0` |
 | Runtime | `$singlePositionSymbol` | `""` |
 | Runtime | `$trade_ok` | `1` |
@@ -197,7 +213,9 @@ symbol are blocked. The guard also blocks when `$entryPending = 1` for another
 symbol (timer staging), so you cannot start a second entry while a buy is still
 waiting to fill. The pending-entry block clears when the pending entry times
 out/cancels, or when the original symbol is back in Primary_OE and the position
-is flat.
+is flat. If you switch the montage to a different symbol while an entry is
+pending, the timer cancels the working buy and clears the pending state to
+avoid unprotected fills.
 
 ## SELL ORDERS
 
@@ -234,9 +252,9 @@ Break-even (BE) scripts move protection to breakeven once a position is working.
 `Set Auto Stop` places a stop-limit order at 1R below avg cost for long
 positions. R is `$stopLossTrigger` when dynamic stops are inactive. The script
 uses the montage average cost when available and falls back to the entry
-reference price or last price if AvgCost is lagging. It cancels existing sell
-orders for the symbol before placing the new stop, except when invoked in timer
-mode (`$timerMode`) where cancels are skipped.
+reference price (`$entryRefPx`) or last price if AvgCost is lagging. It cancels
+existing sell orders for the symbol before placing the new stop, except when
+invoked in timer mode (`$timerMode`) where cancels are skipped.
 
 When dynamic stops are inactive, the stop-limit offset uses `$exitOffset`. The
 order is snapped to valid tick sizes and sent as a STOP/SLP order.
@@ -325,7 +343,7 @@ Reset behavior:
 
 ## TIMER SCRIPT
 
-`other scripts/timer.das` does three things:
+`other scripts/timer.das` does four things:
 
 1) Enforces the daily loss lock for LIVE and SIM when `$applyLiveGuardsToSim = 1`
    (default) using the session equity baseline.

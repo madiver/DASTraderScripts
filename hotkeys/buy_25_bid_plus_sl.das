@@ -174,6 +174,7 @@ $inc = 0.01;
 if ($pxEntry < 1 || $bid < 1 || $ask < 1) { $inc = 0.001; }
 if ($pxEntry < 0.25 || $bid < 0.25 || $ask < 0.25) { $inc = 0.0005; }
 $pxEntry = Round($pxEntry, 102, $inc);
+$entryRefPx = $pxEntry;
 // ---- Scale-in gate: only allow profit-preserving adds ----
 if ($posBefore > 0) {
     $gateR = $stopLossTrigger;

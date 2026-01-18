@@ -30,6 +30,7 @@ $entryScaleIn = 0;
 $entryDynR = 0;
 $entrySymbol = "";
 $tpSymbol = "";
+$entryRefPx = 0;
 $HIJACKED_LOCKED = 0;
 $singlePositionSymbol = "";  // runtime symbol for single-position guard
 $trade_ok = 1;               // runtime flag set by Check Global Guards

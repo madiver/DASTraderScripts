@@ -38,9 +38,14 @@ All notable changes to this repository will be documented in this file.
 - Re-arm stop/TP on timer ticks when position size increases after a fill.
 - Gate buy_25/buy_50 scale-ins on dynamic R when `dynamicStop = 1` and `dynamicStopActive = 1`.
 - Cancel existing sell orders before timer-based re-arms on size increases.
+- Cancel pending buy orders when montage symbol changes during timer staging to avoid unprotected fills.
+- Clamp GTFO exit price to a valid tick and non-negative value when quotes are missing or low.
+- Block buys when no session account is set (enforces daily-loss guard setup).
+- Set and clear `entryRefPx` so stop fallbacks don't anchor to stale values.
 
 ### Cleanup
 - Update README/USERGUIDE to highlight the user guide, hijack protection, and default globals.
+- Expand README/USERGUIDE quick start with constraints and VS Code extension settings.
 - Rename `$highJackProtection` to `$hijackProtection`.
 - Centralize global buy guards in `Check Global Guards` and expose `$trade_ok`.
 - Move the position window toggle hotkey to Alt+Ctrl+Win+P.

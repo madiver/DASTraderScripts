@@ -99,6 +99,8 @@ if ($entryWatch == 1) {
 
 // Safety: bail if montage symbol doesn't match the entry
 if ($entrySymbol != "" && $mySym != $entrySymbol) {
+    $accObj = GetAccountObj($M.Account);
+    $accObj.CancelOrder("BUY", $entrySymbol, 0);
     $entryPending = 0;
     $entryStage = 0;
     $entryTicks = 0;
@@ -106,6 +108,7 @@ if ($entrySymbol != "" && $mySym != $entrySymbol) {
     $entryScaleIn = 0;
     $entryWatch = 0;
     $entryLastPos = 0;
+    $entryRefPx = 0;
     return;
 }
 
