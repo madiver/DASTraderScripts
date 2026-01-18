@@ -9,6 +9,7 @@ All notable changes to this repository will be documented in this file.
 - Auto-unlock the daily loss guard when drawdown drops back below `maxDailyLoss`.
 - Add rehab mode toggle hotkey bound to Alt+Ctrl+Win+H.
 - Require typed `YES` confirmation to disable rehab mode.
+- Add rehab-specific take-profit sizing via `$takeProfitSizeRehab` (applied at trigger time in LIVE and SIM when `$applyLiveGuardsToSim = 1`).
 - Add live-only hijack protection that triggers GTFO, locks montages, and blocks new buys when position size exceeds max.
 - Add `$applyLiveGuardsToSim` to apply daily loss, hijack, and rehab guards in SIM.
 - Default `$applyLiveGuardsToSim` to `1` (guards apply in SIM).

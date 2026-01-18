@@ -2,7 +2,7 @@
 // PARTIAL TAKE-PROFIT EXECUTION (SIZE-AWARE, LONG ONLY)
 // Group: Take profit
 // =====================
-// Uses $takeProfitSize to send a partial TP and re-arm stops/TP based on fill.
+// Uses $takeProfitSize (or rehab size when active) to send a partial TP and re-arm stops/TP based on fill.
 
 // ---- Step 1: Focus Primary_OE ----
 FocusWindow Primary_OE;
@@ -68,7 +68,15 @@ if ($posNow <= 0) {
 }
 
 // ---- Step 4: Compute shares to take ----
-$tpRaw   = ($posNow * $takeProfitSize);
+// Resolve TP size (rehab vs normal).
+$tpSize = $takeProfitSize;
+$isLive = 0;
+if (StrLen($myAcc) > 0 && StrFind($myAcc, "TR") != 0) { $isLive = 1; }
+if ($rehab == 1 && ($isLive == 1 || $applyLiveGuardsToSim == 1)) {
+    $tpSize = $takeProfitSizeRehab;
+}
+
+$tpRaw   = ($posNow * $tpSize);
 $takeQty = Round($tpRaw, 102, 1);      // nearest whole share
 
 // Clamp: never more than current position

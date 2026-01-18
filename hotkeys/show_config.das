@@ -75,7 +75,7 @@ $msg =
 "exitOffset: $" + $exitOffset + "\n" +
 "stopLossTrigger (1R): $" + $stopLossTrigger + "\n" +
 "takeProfitFactor: " + $takeProfitFactor + "R\n" +
-"takeProfitSize: " + ($takeProfitSize * 100) + "%\n\n" +
+"takeProfitSize: " + ($takeProfitSize * 100) + "% (rehab: " + ($takeProfitSizeRehab * 100) + "%)\n\n" +
 
 "DYNAMIC STOP\n" +
 "-----------------\n" +

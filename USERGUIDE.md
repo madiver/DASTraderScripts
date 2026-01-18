@@ -71,6 +71,7 @@ Risk and execution:
 - `$stopLossTrigger`: fixed 1R risk per share (used when dynamic stops are off).
 - `$takeProfitFactor`: R multiple for take-profit alerts.
 - `$takeProfitSize`: fraction of the position to sell on a TP trigger.
+- `$takeProfitSizeRehab`: TP fraction when rehab is active (LIVE; SIM when `$applyLiveGuardsToSim = 1`).
 
 Dynamic stop settings (buy_ib only):
 - `$dynamicStop`: enables spread-based R for buy IB entries.
@@ -147,6 +148,7 @@ baseline values when you run "Set Global Variables."
 | Risk | `$stopLossTrigger` | `0.10` |
 | Risk | `$takeProfitFactor` | `1.0` |
 | Risk | `$takeProfitSize` | `0.25` |
+| Risk | `$takeProfitSizeRehab` | `0.50` |
 | Dynamic stop | `$dynamicStop` | `0` |
 | Dynamic stop | `$dynamicStopMult` | `2` |
 | Dynamic stop | `$dynamicStopActive` | `0` |
@@ -288,7 +290,7 @@ hotkey. It is not a resting broker-side order.
 
 When the alert fires, `Take Profit Executor`:
 - Cancels existing sell orders for the symbol.
-- Sells a partial position sized by `$takeProfitSize`.
+- Sells a partial position sized by `$takeProfitSize` (or `$takeProfitSizeRehab` when rehab is active in LIVE, and in SIM when `$applyLiveGuardsToSim = 1`).
 - Re-arms stops and (if needed) re-establishes the TP alert after the fill.
 
 Stale take-profit alerts are cleaned up by the timer script a few seconds after
