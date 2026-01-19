@@ -174,6 +174,75 @@ states and guard logic. Test mode and the test toggles are SIM-only.
 
 Use "Show Config" to view the current runtime values.
 
+## KEY BINDINGS
+
+Key bindings are sourced from `keymap.yaml`. I primarily use these with a
+Stream Deck, so bindings can be arbitrarily long because the Stream Deck lets
+me send complex keystrokes with a single button press. If you are using a
+keyboard, you will almost certainly want to modify the bindings to your
+liking. "Unbound" means the script is not assigned to a hotkey in the current
+map, and those entries are primarily intended for internal use by other
+scripts rather than direct invocation.
+
+| Key binding | Script | Description |
+| --- | --- | --- |
+| `Ctrl+Shift+Q` | `hotkeys/cancel_all.das` | Cancel orders, clear TP alerts, re-arm stops. |
+| `Alt+Ctrl+Q` | `hotkeys/gtfo.das` | Emergency exit: cancel orders, sell full at bid-0.50. |
+| `Ctrl+,` | `hotkeys/set_global_variables.das` | Load defaults and initialize session equity. |
+| `Alt+Ctrl+S` | `hotkeys/switch_to_sim.das` | Switch montage and filters to SIM. |
+| `Alt+Ctrl+L` | `hotkeys/switch_to_live.das` | Switch montage and filters to LIVE. |
+| `Alt+Ctrl+.` | `hotkeys/show_config.das` | Show current globals, account mode, guard states. |
+| Unbound | `hotkeys/check_global_guards.das` | Run guard checks and set `$trade_ok`. |
+| Unbound | `hotkeys/cancel_all_no_stops.das` | Cancel orders and TP alerts without re-arming stops. |
+| `Ctrl+Shift+1` | `hotkeys/buy_ib_bid_plus_sl.das` | Ice breaker buy at bid + offset with auto stop/TP. |
+| `Ctrl+Shift+2` | `hotkeys/buy_25_bid_plus_sl.das` | Half-clip buy at bid + offset with auto stop/TP. |
+| `Ctrl+Shift+3` | `hotkeys/buy_50_bid_plus_sl.das` | Full-clip buy at bid + offset with auto stop/TP. |
+| `Alt+Ctrl+1` | `hotkeys/buy_ib_bid_sl.das` | Ice breaker buy at bid with auto stop/TP. |
+| `Alt+Ctrl+2` | `hotkeys/buy_25_bid_sl.das` | Half-clip buy at bid with auto stop/TP. |
+| `Alt+Ctrl+3` | `hotkeys/buy_50_bid_sl.das` | Full-clip buy at bid with auto stop/TP. |
+| `Alt+Shift+1` | `hotkeys/buy_ib_ask_sl.das` | Ice breaker buy at ask with auto stop/TP. |
+| `Alt+Shift+2` | `hotkeys/buy_25_ask_sl.das` | Half-clip buy at ask with auto stop/TP. |
+| `Alt+Shift+3` | `hotkeys/buy_50_ask_sl.das` | Full-clip buy at ask with auto stop/TP. |
+| `Alt+Ctrl+Shift+1` | `hotkeys/buy_ib_ask_plus_sl.das` | Ice breaker buy at ask + offset with auto stop/TP. |
+| `Alt+Ctrl+Shift+2` | `hotkeys/buy_25_ask_plus_sl.das` | Half-clip buy at ask + offset with auto stop/TP. |
+| `Alt+Ctrl+Shift+3` | `hotkeys/buy_50_ask_plus_sl.das` | Full-clip buy at ask + offset with auto stop/TP. |
+| `Ctrl+A` | `hotkeys/sell_1_1_ask.das` | Sell full position at ask. |
+| `Ctrl+S` | `hotkeys/sell_1_2_ask.das` | Sell half position at ask. |
+| `Ctrl+D` | `hotkeys/sell_1_4_ask.das` | Sell quarter position at ask. |
+| `Ctrl+Z` | `hotkeys/sell_1_1_bid.das` | Sell full position at bid minus offset. |
+| `Ctrl+X` | `hotkeys/sell_1_2_bid.das` | Sell half position at bid minus offset. |
+| `Ctrl+C` | `hotkeys/sell_1_4_bid.das` | Sell quarter position at bid minus offset. |
+| `Ctrl+Shift+S` | `hotkeys/set_auto_stop.das` | Place 1R stop-limit for full position. |
+| `Ctrl+Shift+B` | `hotkeys/set_auto_stop_be_1_1.das` | Breakeven stop/limit for full position. |
+| Unbound | `hotkeys/set_auto_stop_be_scale_1_1.das` | Scale-in BE stop/limit for full position. |
+| `Alt+Ctrl+Win+-` | `hotkeys/set_0_10_stop.das` | Set 1R stop-loss trigger to $0.10. |
+| `Alt+Ctrl+Win+=` | `hotkeys/set_0_15_stop.das` | Set 1R stop-loss trigger to $0.15. |
+| `Alt+Ctrl+Win+[` | `hotkeys/set_0_20_stop.das` | Set 1R stop-loss trigger to $0.20. |
+| `Alt+Ctrl+Win+0` | `hotkeys/set_0_05_stop.das` | Set 1R stop-loss trigger to $0.05. |
+| `Alt+Ctrl+B` | `hotkeys/set_auto_stop_be_1_2.das` | Breakeven stop/limit for half position. |
+| `Ctrl+Shift+T` | `hotkeys/set_take_profit.das` | Create R-based take-profit alert. |
+| Unbound | `hotkeys/take_profit_executor.das` | Execute TP partial when alert fires. |
+| `Alt+Ctrl+Win+1` | `hotkeys/select_primary_order_entry.das` | Focus the Primary_OE montage. |
+| `Alt+Ctrl+Win+P` | `hotkeys/toggle_position_window.das` | Toggle Positions windows AlwaysOnTop. |
+| `Alt+Ctrl+Win+]` | `hotkeys/toggle_stp_feature.das` | Toggle auto stop-loss feature. |
+| `Alt+Ctrl+Win+/` | `hotkeys/toggle_tp_feature.das` | Toggle take-profit alerts. |
+| `Alt+Ctrl+Win+'` | `hotkeys/toggle_spread_check_feature.das` | Toggle spread safety guard. |
+| `Alt+Ctrl+Win+D` | `hotkeys/toggle_dynamic_stop.das` | Toggle dynamic R for Buy IB. |
+| `Alt+Ctrl+Win+G` | `hotkeys/toggle_apply_live_guards_to_sim.das` | Toggle live-only guards in SIM. |
+| `Alt+Ctrl+Win+M` | `hotkeys/toggle_single_position_guard.das` | Toggle single-symbol entry guard. |
+| `Alt+Ctrl+Win+T` | `hotkeys/toggle_test_mode.das` | Toggle test mode (no order sends). |
+| `Alt+Ctrl+Shift+Win+1` | `hotkeys/toggle_test_daily_loss_guard.das` | Toggle daily loss guard test. |
+| `Alt+Ctrl+Shift+Win+2` | `hotkeys/toggle_test_hijack_guard.das` | Toggle hijack guard test. |
+| `Alt+Ctrl+Shift+Win+3` | `hotkeys/toggle_test_single_position_guard.das` | Toggle single-position guard test. |
+| `Alt+Ctrl+Shift+Win+4` | `hotkeys/toggle_test_pending_entry_guard.das` | Toggle pending-entry guard test. |
+| `Alt+Ctrl+Shift+Win+5` | `hotkeys/toggle_test_max_position_guard.das` | Toggle max-position guard test. |
+| `Alt+Ctrl+Win+H` | `hotkeys/enable_rehab_mode.das` | Toggle rehab mode (YES to disable). |
+| Unbound | `hotkeys/timer_entry_handler.das` | Timer-driven stop/TP arming for entries. |
+| Unbound | `hotkeys/initialize_session_equity.das` | Initialize daily-loss baseline for account. |
+| `Alt+Ctrl+E` | `hotkeys/session_max_loss_check.das` | Set manual starting equity baseline. |
+| `Alt+Ctrl+P` | `hotkeys/check_pnl.das` | Show session equity, PnL, and lock state. |
+| `Alt+Ctrl+U` | `hotkeys/reset_starting_equity.das` | Reset starting equity baseline (confirm YES). |
+
 ## BUY ORDERS
 
 Sizing philosophy: start small to probe the trade, add only when it is working, and cap exposure with hard limits. Base sizing is a 50-share clip multiplied by `$qtyMult`. Buy 25 uses half of that clip, Buy 50 uses the full clip, and Buy IB (ice breaker) uses roughly one quarter of the 50-share clip (rounded to 5-share lots). This keeps the sizing deterministic and proportional to your 1R risk. In rehab mode (`$rehab = 1`), trading is restricted to ice breaker entries and scale-ins are blocked in LIVE and SIM when `$applyLiveGuardsToSim = 1`.

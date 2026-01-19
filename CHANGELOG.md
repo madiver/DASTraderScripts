@@ -50,6 +50,8 @@ All notable changes to this repository will be documented in this file.
 - Rename `$highJackProtection` to `$hijackProtection`.
 - Centralize global buy guards in `Check Global Guards` and expose `$trade_ok`.
 - Move the position window toggle hotkey to Alt+Ctrl+Win+P.
+- Add a key bindings section to USERGUIDE with Stream Deck guidance and unbound script notes.
+- Expand key binding descriptions for clarity and remove confusing wording in SIM/LIVE switch rows.
 
 ## 0.2.1 - 2026-01-15
 
