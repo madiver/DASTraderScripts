@@ -19,7 +19,7 @@ $rehab = 0;
 
 // Timer-based arming (entry hotkeys return early; timer places stop/TP)
 $useTimerArming = 1;
-$timerMode = 0;         // internal flag for timer-triggered hotkeys
+$timerMode = 1;         // internal flag for timer-triggered hotkeys
 $entryPending = 0;
 $entryStage = 0;        // 0=wait fill, 1=cancel sells, 2=send stop, 3=set TP
 $entryTicks = 0;
@@ -29,6 +29,14 @@ $entryAvgBefore = 0;
 $entryScaleIn = 0;
 $entryDynR = 0;
 $entrySymbol = "";
+$tpSymbol = "";
+$entryRefPx = 0;
+$HIJACKED_LOCKED = 0;
+$singlePositionSymbol = "";  // runtime symbol for single-position guard
+$trade_ok = 1;               // runtime flag set by Check Global Guards
+$testMode = 0;               // 1=skip market-dependent checks and order send
+$entryWatch = 0;
+$entryLastPos = 0;
 
 // ---- 1) Feature Toggles ----
 $useSlippageMargin        = 1;     // 1=guard stop vs bid with margin
@@ -39,6 +47,10 @@ $minFillShares            = 1;     // minimum shares to accept when $acceptParti
 $cancelRemainderOnPartial = 1;     // 1=cancel remainder before arming stop on partial
 $usePerTradeRiskCap       = 1;     // 1=abort if projected risk exceeds cap
 $useSpreadCheck           = 1;     // 1=check spreads before allowing buy order
+$pegToBid                 = 0;     // 1=use bid for BE limit sells when applicable
+$hijackProtection       = 1;     // 1=enable position-size hijack protection
+$applyLiveGuardsToSim     = 1;     // 1=apply live-only guards (daily loss, hijack, rehab) in SIM
+$singlePositionGuard      = 1;     // 1=block new entries on a different symbol (script-tracked)
 
 $useAutoStop = "Yes";
 $useTakeProfit = "Yes";
@@ -65,6 +77,8 @@ $takeProfitFactor = 1.0;
 // Portion of your position to sell/cover when the TP alert hits
 // Example: 0.50 = sell half at TP
 $takeProfitSize = 0.25;
+// Portion to sell/cover when rehab mode is active (LIVE; SIM if $applyLiveGuardsToSim = 1)
+$takeProfitSizeRehab = 0.50;
 
 // ---- 2b) Dynamic Stop Settings (buy_ib only) ----
 // 1 = enable dynamic spread-based R for buy_ib entries, else fixed R.
@@ -85,10 +99,10 @@ $LIVEACT = "%%LIVE%%";      // your LIVE trading account
 
 // Multiplier for position sizing
 // Example: if base clip is 50 shares, qtyMult=4 -> 200 shares per entry
-$qtyMult = 5;
+$qtyMult = 6;
 
 // Maximum allowed position size (shares)
-$maxPositionSize = $qtyMult * 150;
+$maxPositionSize = 500;
 
 // Maximum allowed $ risk *per trade*
 // Useful for guarding against oversized positions or bad spreads
@@ -101,6 +115,9 @@ $maxDailyLoss = 100.00;
 // Order entry fill wait parameters
 $pollMs           = 100;             // polling cadence (ms)
 $maxPolls       = 20;              // 20*100ms ~= 2s
+
+// Daily loss guard health (0=inactive/invalid, 1=ok)
+$DAY_GUARD_OK = 0;
 
 // Initialize session equity baseline for daily-loss guard
 ExecHotKey("Initialize Session Equity");

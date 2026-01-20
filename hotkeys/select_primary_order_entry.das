@@ -6,4 +6,4 @@
 
 FocusWindow Primary_OE;
 $c1 = GetWindowObj("Chart_1m");
-$c1.Symbol = SYMB;
+if (IsObj($c1)) { $c1.Symbol = SYMB; }

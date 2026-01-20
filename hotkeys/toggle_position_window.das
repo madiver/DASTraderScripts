@@ -7,7 +7,7 @@
 SetFocus Primary_OE;
 
 $pos = GetWindowObj("Positions_Sim");
-$pos.AlwaysOnTop;;
+if (IsObj($pos)) { $pos.AlwaysOnTop; }
 
 $pos = GetWindowObj("Positions_Live");
-$pos.AlwaysOnTop;
+if (IsObj($pos)) { $pos.AlwaysOnTop; }

@@ -4,13 +4,23 @@
 // =====================
 // Timer handler: enforces daily loss lock and clears TP alerts when flat.
 
+// ---- Step 0: Hijack protection (position-size backstop) ----
+// Keep the timer script small; run hijack logic in a hotkey.
+ExecHotkey("Hijack Exit");
+
 // ---- Step 1: Load account and equity baseline ----
-$accName = GetVar("DAY_ACC");
+$accName = $DAY_ACC;
+$DAY_GUARD_OK = 0;
 if ($accName == "" ) {
     return;
 }
 
-if ($accName == $LIVEACT) {
+$liveGuardActive = 0;
+if ($accName == $LIVEACT || ($accName == $TRSIM && $applyLiveGuardsToSim == 1)) {
+    $liveGuardActive = 1;
+}
+
+if ($liveGuardActive == 1) {
 
     $eqStartStr = GetVar("DAY_EQUITY_START");
     if ($eqStartStr == "") {
@@ -39,6 +49,8 @@ if ($accName == $LIVEACT) {
         return;
     }
 
+    $DAY_GUARD_OK = 1;
+
     // Per-account lock key
     $lockKey = "TRADING_LOCKED_" + $accName;
     $lockedStr = GetVar($lockKey);
@@ -54,8 +66,32 @@ if ($accName == $LIVEACT) {
         SetVar("TRADING_LOCKED", 1);
 
     }
+    // If back under limit and locked, auto-unlock
+    if ($dd < $limit && $locked == 1) {
+
+        // Clear per-account lock
+        SetVar($lockKey, 0);
+
+        // Also clear current lock mirror
+        SetVar("TRADING_LOCKED", 0);
+
+    }
 
 } 
+
+// ---- Single-position guard tracking (script-tracked) ----
+$M = GetWindowObj("Primary_OE");
+if (IsObj($M)) {
+    $symNow = $M.Symb;
+    $posNow = $M.Pos;
+    if ($singlePositionSymbol == "" && $posNow > 0) {
+        $singlePositionSymbol = $symNow;
+    } else {
+        if ($singlePositionSymbol != "" && $symNow == $singlePositionSymbol && $posNow <= 0) {
+            $singlePositionSymbol = "";
+        }
+    }
+}
 
 // ---- Step 3: Timer-based stop/TP arming ----
 ExecHotkey("Timer Entry Handler");
@@ -63,8 +99,7 @@ ExecHotkey("Timer Entry Handler");
 // ---- Step 4: Clear TP alerts when flat ----
 
 $oneSecondScriptCnt = $oneSecondScriptCnt + 1;
-
-if ($oneSecondScriptCnt % 5 ==0) {
+if ($oneSecondScriptCnt >= 5) {
 
     $oneSecondScriptCnt= 0;
 
@@ -102,5 +137,8 @@ if ($oneSecondScriptCnt % 5 ==0) {
             $dynamicStopActive = 0;
             $dynamicStopR = 0;
         }
+
+        // ---- Clear entry reference when flat ----
+        $entryRefPx = 0;
     }
 }

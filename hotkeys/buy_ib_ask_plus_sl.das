@@ -6,15 +6,9 @@
 
 FocusWindow Primary_OE;
 
-// ---- Daily loss lock guard ----
-$accName = GetVar("DAY_ACC");
-$lockKey = "TRADING_LOCKED_" + $accName;
-$locked  = GetVar($lockKey) * 1;
-
-if ($locked == 1) {
-    MsgBox("Trading locked for " + $accName + " (daily loss limit hit).");
-    return;
-}
+// ---- Global guard checks ----
+ExecHotkey("Check Global Guards");
+if ($trade_ok != 1) { return; }
 
 // Track entry symbol and reset TP symbol override
 $M = GetWindowObj("Primary_OE");
@@ -37,12 +31,12 @@ if (IsObj($M)) {
     $avgBefore = AvgCost;
 }
 
-// Rehab gate: block scaling in while rehab mode is enabled (live only).
+// Rehab gate: block scaling in while rehab mode is enabled (LIVE; optional SIM).
 $acct = "";
 if (IsObj($M)) { $acct = StrTrim("" + $M.Account); }
 $isLive = 0;
 if (StrLen($acct) > 0 && StrFind($acct, "TR") != 0) { $isLive = 1; }
-if ($rehab == 1 && $posBefore > 0 && $isLive == 1) {
+if ($rehab == 1 && $posBefore > 0 && ($isLive == 1 || $applyLiveGuardsToSim == 1)) {
     MsgBox("ABORTED: Rehab size violation, scaling in not allowed!");
     return;
 }
@@ -84,6 +78,11 @@ if ($maxPositionSize > 0) {
 
 }
 
+// ---- Test mode short-circuit ----
+if ($testMode == 1) {
+    MsgBox("Test mode: entry checks passed (no order sent).");
+    return;
+}
 // ---- Tick-size bands (for price snapping) ----
 // Resolve the increment later using current prices.
 //   < $0.25 -> 0.0005
@@ -155,13 +154,29 @@ if (($stopVsBidFail == 1 || $spreadTooWide == 1) && $posBefore <=0) {
     return;
 }
 
-// Per-trade risk cap (projected risk = effR * projectedShares)
+// Per-trade risk cap (projected net risk to planned stop)
 if ($usePerTradeRiskCap == 1) {
-    $riskShares = $addShares;
+    $totalShares = $addShares;
     if ($posBefore > 0) {
-        $riskShares = $posBefore + $addShares;
+        $totalShares = $posBefore + $addShares;
     }
-    $projRisk = $effR * $riskShares;
+
+    $projAvg = $pxEntry;
+    $projStop = $projAvg - $effR;
+    if ($posBefore > 0 && $avgBefore > 0) {
+        $projAvg = (($avgBefore * $posBefore) + ($pxEntry * $addShares)) / $totalShares;
+        $beOffset = 0.03;
+        $beTrigger = $projAvg + $beOffset;
+        if ($bid < $beTrigger) {
+            $projStop = $projAvg;
+        } else {
+            $projStop = $projAvg + $beOffset;
+        }
+    }
+
+    $riskPerShare = $projAvg - $projStop;
+    if ($riskPerShare < 0) { $riskPerShare = 0; }
+    $projRisk = $riskPerShare * $totalShares;
     if ($projRisk > $riskCapDollars) {
         MsgBox("Risk cap exceeded for " + Symbol + ": projected $" + $projRisk + " > cap $" + $riskCapDollars + ". Aborting.");
         return;
@@ -174,6 +189,7 @@ $inc = 0.01;
 if ($pxEntry < 1 || $bid < 1 || $ask < 1) { $inc = 0.001; }
 if ($pxEntry < 0.25 || $bid < 0.25 || $ask < 0.25) { $inc = 0.0005; }
 $pxEntry = Round($pxEntry, 102, $inc);
+$entryRefPx = $pxEntry;
 // ---- Scale-in gate: only allow profit-preserving adds ----
 if ($posBefore > 0) {
     if ($avgBefore <= 0) {
@@ -251,6 +267,9 @@ if ($filled == 0) {
     return;
 }
 
+// ---- Single-position guard: lock symbol on fill ----
+if ($singlePositionSymbol == "") { $singlePositionSymbol = $entrySymbol; }
+
 // Optional: freeze size before arming stop when partial accepted
 if ($filled == 2 && $cancelRemainderOnPartial == 1) {
     $order.Cancel();
@@ -300,6 +319,7 @@ if ($useTakeProfit == "Yes") {
 }
 
 // ---- End ----
+
 
 
 

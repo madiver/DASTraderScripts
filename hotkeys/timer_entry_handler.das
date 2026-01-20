@@ -7,7 +7,9 @@
 if ($useTimerArming != 1) {
     return;
 }
-if ($entryPending != 1) {
+
+// Skip timer handling while the pending-entry test is active in test mode.
+if ($testMode == 1 && GetVar("TEST_PENDING_ENTRY_ACTIVE") * 1 == 1) {
     return;
 }
 
@@ -21,13 +23,92 @@ if (!IsObj($M)) {
 $mySym  = $M.Symb;
 $posNow = $M.Pos;
 
+// If no pending entry, optionally re-arm when size increases
+if ($entryPending != 1) {
+    if ($entryWatch == 1) {
+        if ($entrySymbol != "" && $mySym != $entrySymbol) {
+            $entryWatch = 0;
+            $entryLastPos = 0;
+            $entryScaleIn = 0;
+            $entrySymbol = "";
+            return;
+        }
+        if ($posNow <= 0) {
+            $entryWatch = 0;
+            $entryLastPos = 0;
+            $entryScaleIn = 0;
+            $entrySymbol = "";
+            return;
+        }
+
+        if ($entryLastPos <= 0) {
+            $entryLastPos = $posNow;
+            return;
+        }
+
+        if ($posNow > $entryLastPos) {
+            if ($useAutoStop == "Yes") {
+                $accObj = GetAccountObj($M.Account);
+                $accObj.CancelOrder("SELL", $mySym, 0);
+                $timerMode = 1;
+                if ($entryScaleIn == 1) {
+                    ExecHotkey("Set Auto Stop BE Scale 1/1");
+                } else {
+                    ExecHotkey("Set Auto Stop");
+                }
+                if ($timerMode == 1) {
+                    $timerMode = 0;
+                }
+            }
+
+            if ($useTakeProfit == "Yes") {
+                $doTp = 0;
+                if ($entryPosBefore <= 0) {
+                    $doTp = 1;
+                } else {
+                    $bidNow = $M.Bid;
+                    if ($entryAvgBefore <= 0) {
+                        $doTp = 1;
+                    } else {
+                        if ($bidNow <= $entryAvgBefore) {
+                            $doTp = 1;
+                        }
+                    }
+                }
+
+                if ($doTp == 1) {
+                    $timerMode = 1;
+                    ExecHotkey("Set Take Profit");
+                    if ($timerMode == 1) {
+                        $timerMode = 0;
+                    }
+                }
+            }
+        }
+
+        $entryLastPos = $posNow;
+    }
+    return;
+}
+
+// Reset watch when handling a new pending entry
+if ($entryWatch == 1) {
+    $entryWatch = 0;
+    $entryLastPos = 0;
+}
+
 // Safety: bail if montage symbol doesn't match the entry
 if ($entrySymbol != "" && $mySym != $entrySymbol) {
+    $accObj = GetAccountObj($M.Account);
+    $accObj.CancelOrder("BUY", $entrySymbol, 0);
     $entryPending = 0;
     $entryStage = 0;
     $entryTicks = 0;
     $entryDynR = 0;
     $entryScaleIn = 0;
+    $entryWatch = 0;
+    $entryLastPos = 0;
+    $entryRefPx = 0;
     return;
 }
 
@@ -39,6 +120,8 @@ if ($entryScaleIn == 1) {
         $entryTicks = 0;
         $entryDynR = 0;
         $entryScaleIn = 0;
+        $entryWatch = 0;
+        $entryLastPos = 0;
         return;
     }
 } else {
@@ -48,6 +131,8 @@ if ($entryScaleIn == 1) {
         $entryTicks = 0;
         $entryDynR = 0;
         $entryScaleIn = 0;
+        $entryWatch = 0;
+        $entryLastPos = 0;
         return;
     }
 }
@@ -58,10 +143,13 @@ if ($entryStage == 0) {
 
     if ($entryScaleIn == 1) {
         if ($posNow > $entryPosBefore) {
+            if ($singlePositionSymbol == "") { $singlePositionSymbol = $mySym; }
             $entryStage = 1; // cancel stage
             $entryTicks = 0;
         } else {
             if ($entryMaxTicks > 0 && $entryTicks >= $entryMaxTicks) {
+                $accObj = GetAccountObj($M.Account);
+                $accObj.CancelOrder("BUY", $mySym, 0);
                 $entryPending = 0;
                 $entryStage = 0;
                 $entryTicks = 0;
@@ -73,6 +161,7 @@ if ($entryStage == 0) {
     }
 
     if ($posNow > 0) {
+        if ($singlePositionSymbol == "") { $singlePositionSymbol = $mySym; }
         if ($entryDynR > 0 && $dynamicStop == 1) {
             $dynamicStopR = $entryDynR;
             $dynamicStopActive = 1;
@@ -81,6 +170,8 @@ if ($entryStage == 0) {
         $entryTicks = 0;
     } else {
         if ($entryMaxTicks > 0 && $entryTicks >= $entryMaxTicks) {
+            $accObj = GetAccountObj($M.Account);
+            $accObj.CancelOrder("BUY", $mySym, 0);
             $entryPending = 0;
             $entryStage = 0;
             $entryTicks = 0;
@@ -148,6 +239,7 @@ if ($entryStage == 3) {
     $entryStage = 0;
     $entryTicks = 0;
     $entryDynR = 0;
-    $entryScaleIn = 0;
+    $entryWatch = 1;
+    $entryLastPos = $posNow;
     return;
 }
