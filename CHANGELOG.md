@@ -43,6 +43,7 @@ All notable changes to this repository will be documented in this file.
 - Clamp GTFO exit price to a valid tick and non-negative value when quotes are missing or low.
 - Block buys when no session account is set (enforces daily-loss guard setup).
 - Set and clear `entryRefPx` so stop fallbacks don't anchor to stale values.
+- Keep pending-entry blocking active while allowing the single-position guard to be disabled.
 
 ### Cleanup
 - Update README/USERGUIDE to highlight the user guide, hijack protection, and default globals.

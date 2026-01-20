@@ -110,7 +110,7 @@ baseline values when you run "Set Global Variables."
 | Runtime | `$oneSecondScriptCnt` | `0` |
 | Runtime | `$rehab` | `0` |
 | Runtime | `$useTimerArming` | `1` |
-| Runtime | `$timerMode` | `0` |
+| Runtime | `$timerMode` | `1` |
 | Runtime | `$entryPending` | `0` |
 | Runtime | `$entryStage` | `0` |
 | Runtime | `$entryTicks` | `0` |

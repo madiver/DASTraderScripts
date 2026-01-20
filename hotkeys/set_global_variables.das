@@ -19,7 +19,7 @@ $rehab = 0;
 
 // Timer-based arming (entry hotkeys return early; timer places stop/TP)
 $useTimerArming = 1;
-$timerMode = 0;         // internal flag for timer-triggered hotkeys
+$timerMode = 1;         // internal flag for timer-triggered hotkeys
 $entryPending = 0;
 $entryStage = 0;        // 0=wait fill, 1=cancel sells, 2=send stop, 3=set TP
 $entryTicks = 0;
