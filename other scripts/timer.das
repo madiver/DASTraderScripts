@@ -4,6 +4,10 @@
 // =====================
 // Timer handler: enforces daily loss lock and clears TP alerts when flat.
 
+// ---- Step 0: Hijack protection (position-size backstop) ----
+// Keep the timer script small; run hijack logic in a hotkey.
+ExecHotkey("Hijack Exit");
+
 // ---- Step 1: Load account and equity baseline ----
 $accName = $DAY_ACC;
 $DAY_GUARD_OK = 0;
@@ -73,20 +77,6 @@ if ($liveGuardActive == 1) {
 
     }
 
-    // ---- Step 2b: Hijack protection (position-size backstop) ----
-    if ($hijackProtection == 1 && $maxPositionSize > 0 && $HIJACKED_LOCKED != 1) {
-        $M = GetWindowObj("Primary_OE");
-        if (IsObj($M)) {
-            $posNow = $M.Pos;
-            if ($posNow > $maxPositionSize) {
-                $HIJACKED_LOCKED = 1;
-                ExecHotkey("GTFO");
-                LockAllMontage Lock;
-                Speak("Hijack protection triggered.");
-            }
-        }
-    }
-
 } 
 
 // ---- Single-position guard tracking (script-tracked) ----
@@ -109,8 +99,7 @@ ExecHotkey("Timer Entry Handler");
 // ---- Step 4: Clear TP alerts when flat ----
 
 $oneSecondScriptCnt = $oneSecondScriptCnt + 1;
-
-if ($oneSecondScriptCnt % 5 ==0) {
+if ($oneSecondScriptCnt >= 5) {
 
     $oneSecondScriptCnt= 0;
 

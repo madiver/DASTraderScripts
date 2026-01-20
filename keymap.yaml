@@ -221,6 +221,10 @@
   key: Alt+Ctrl+Win+H
   label: Toggle Rehab Mode
   scriptPath: hotkeys/enable_rehab_mode.das
+- id: hijack_exit
+  key:
+  label: Hijack Exit
+  scriptPath: hotkeys/hijack_exit.das
 - id: timer_entry_handler
   key:
   label: Timer Entry Handler

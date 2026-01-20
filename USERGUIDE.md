@@ -237,6 +237,7 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Shift+Win+4` | `hotkeys/toggle_test_pending_entry_guard.das` | Toggle pending-entry guard test. |
 | `Alt+Ctrl+Shift+Win+5` | `hotkeys/toggle_test_max_position_guard.das` | Toggle max-position guard test. |
 | `Alt+Ctrl+Win+H` | `hotkeys/enable_rehab_mode.das` | Toggle rehab mode (YES to disable). |
+| Unbound | `hotkeys/hijack_exit.das` | Hijack guard exit/lock enforcement (timer-only). |
 | Unbound | `hotkeys/timer_entry_handler.das` | Timer-driven stop/TP arming for entries. |
 | Unbound | `hotkeys/initialize_session_equity.das` | Initialize daily-loss baseline for account. |
 | `Alt+Ctrl+E` | `hotkeys/session_max_loss_check.das` | Set manual starting equity baseline. |
@@ -376,6 +377,12 @@ These controls help prevent low-quality fills and oversized risk.
 - Max daily loss: a daily lock prevents new entries while equity drawdown is at
   or above the threshold (`$maxDailyLoss`) and auto-unlocks when drawdown drops
   back below the limit. The lock is enforced by the timer script.
+  Limitations: the guard uses a stored starting equity snapshot and compares it
+  to the account's current Equity value. If DAS restarts or crashes mid-session,
+  the baseline may be stale until you run `Reset Starting Equity` or `Set Start Equity`.
+  Equity can include unrealized PnL and may lag the account window briefly, so
+  the guard is a best-effort safety backstop rather than an exact match to your
+  realized PnL at every moment.
 - Hijack protection: if the position size exceeds `$maxPositionSize` (LIVE, and
   SIM when `$applyLiveGuardsToSim = 1`), the timer triggers GTFO, locks all
   montage order buttons, and sets `$HIJACKED_LOCKED` to block new buys. The lock

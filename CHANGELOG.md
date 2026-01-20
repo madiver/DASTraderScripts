@@ -15,6 +15,7 @@ All notable changes to this repository will be documented in this file.
 - Default `$applyLiveGuardsToSim` to `1` (guards apply in SIM).
 - Add toggle hotkey for `$applyLiveGuardsToSim` (Alt+Ctrl+Win+G).
 - Add timer re-arm tracking state (`entryWatch`, `entryLastPos`) to globals and config display.
+- Default `$timerMode` to `1` so timer-triggered hotkeys run in timer context by default.
 - Add single-position guard (default on) to block buys on a different symbol (script-tracked).
 - Add toggle hotkey for the single-position guard (Alt+Ctrl+Win+M).
 - Add `$testMode` to skip market-dependent checks and order sends for guard testing.
@@ -44,6 +45,7 @@ All notable changes to this repository will be documented in this file.
 - Block buys when no session account is set (enforces daily-loss guard setup).
 - Set and clear `entryRefPx` so stop fallbacks don't anchor to stale values.
 - Keep pending-entry blocking active while allowing the single-position guard to be disabled.
+- Move hijack exit enforcement into a dedicated hotkey (`Hijack Exit`) called by the timer to avoid timer script size limits and ensure timer-safe order sends.
 
 ### Cleanup
 - Update README/USERGUIDE to highlight the user guide, hijack protection, and default globals.
