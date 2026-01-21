@@ -112,6 +112,7 @@ $msg =
 "DAY_ACC: " + $DAY_ACC + "\n" +
 "DAY_EQUITY_START: $" + GetVar("DAY_EQUITY_START") + "\n" +
 "TRADING_LOCKED: " + GetVar("TRADING_LOCKED") + "\n" +
+"DAY_FLAT_TICKS: " + $dayLossFlatTicks + "\n" +
 "DAY_GUARD_OK: " + $DAY_GUARD_OK + "\n" +
 "TEST_DAILY_LOSS_OVERRIDE: " + $testDayActive + "\n" +
 "TEST_HIJACK_OVERRIDE: " + $testHijackActive + "\n" +

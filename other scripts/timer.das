@@ -32,49 +32,68 @@ if ($liveGuardActive == 1) {
         return;
     }
 
-    // Read current equity for this account
-    $acc   = GetAccountObj($accName);
-    $eqNow = $acc.Equity;
-    if ($eqNow <= 0) {
-        return;
+    // Only evaluate daily loss when flat (Primary_OE) with a 2-tick settle delay.
+    $flatReady = 0;
+    $M = GetWindowObj("Primary_OE");
+    if (IsObj($M)) {
+        $posNow = $M.Pos;
+        if ($posNow <= 0) {
+            if ($dayLossFlatTicks < 2) { $dayLossFlatTicks = $dayLossFlatTicks + 1; }
+        } else {
+            $dayLossFlatTicks = 0;
+        }
+
+        if ($dayLossFlatTicks >= 2) { $flatReady = 1; }
+    } else {
+        $dayLossFlatTicks = 0;
     }
 
-    // Compute drawdown
-    $dd = $eqStart - $eqNow;
+    if ($flatReady == 1) {
 
-    // ---- Step 2: Enforce daily loss lock ----
-    // Use the global max daily loss value
-    $limit = $maxDailyLoss;
-    if ($limit <= 0) {
-        return;
-    }
+        // Read current equity for this account
+        $acc   = GetAccountObj($accName);
+        $eqNow = $acc.Equity;
+        if ($eqNow <= 0) {
+            return;
+        }
 
-    $DAY_GUARD_OK = 1;
+        // Compute drawdown
+        $dd = $eqStart - $eqNow;
 
-    // Per-account lock key
-    $lockKey = "TRADING_LOCKED_" + $accName;
-    $lockedStr = GetVar($lockKey);
-    $locked    = $lockedStr * 1;
+        // ---- Step 2: Enforce daily loss lock ----
+        // Use the global max daily loss value
+        $limit = $maxDailyLoss;
+        if ($limit <= 0) {
+            return;
+        }
 
-    // If over limit and not already locked, lock this account
-    if ($dd >= $limit && $locked == 0) {
+        $DAY_GUARD_OK = 1;
 
-        // Set per-account lock
-        SetVar($lockKey, 1);
+        // Per-account lock key
+        $lockKey = "TRADING_LOCKED_" + $accName;
+        $lockedStr = GetVar($lockKey);
+        $locked    = $lockedStr * 1;
 
-        // Also set current lock mirror
-        SetVar("TRADING_LOCKED", 1);
+        // If over limit and not already locked, lock this account
+        if ($dd >= $limit && $locked == 0) {
 
-    }
-    // If back under limit and locked, auto-unlock
-    if ($dd < $limit && $locked == 1) {
+            // Set per-account lock
+            SetVar($lockKey, 1);
 
-        // Clear per-account lock
-        SetVar($lockKey, 0);
+            // Also set current lock mirror
+            SetVar("TRADING_LOCKED", 1);
 
-        // Also clear current lock mirror
-        SetVar("TRADING_LOCKED", 0);
+        }
+        // If back under limit and locked, auto-unlock
+        if ($dd < $limit && $locked == 1) {
 
+            // Clear per-account lock
+            SetVar($lockKey, 0);
+
+            // Also clear current lock mirror
+            SetVar("TRADING_LOCKED", 0);
+
+        }
     }
 
 } 

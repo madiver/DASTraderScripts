@@ -385,7 +385,9 @@ These controls help prevent low-quality fills and oversized risk.
   tick/spread buffer (`$useSlippageMargin`, `$slipTicksMin`, `$slipSpreadFrac`).
 - Max daily loss: a daily lock prevents new entries while equity drawdown is at
   or above the threshold (`$maxDailyLoss`) and auto-unlocks when drawdown drops
-  back below the limit. The lock is enforced by the timer script.
+  back below the limit. The lock is enforced by the timer script and is only
+  evaluated when Primary_OE is flat, after a 2-tick settle delay to allow equity
+  to update.
   Limitations: the guard uses a stored starting equity snapshot and compares it
   to the account's current Equity value. If DAS restarts or crashes mid-session,
   the baseline may be stale until you run `Reset Starting Equity` or `Set Start Equity`.

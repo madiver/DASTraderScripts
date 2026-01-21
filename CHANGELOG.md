@@ -10,6 +10,8 @@ All notable changes to this repository will be documented in this file.
 
 ### Bug Fixes
 - BE stop scripts no longer gate on `$useAutoStop`; BE adjustments still run when auto stops are disabled.
+- Daily loss guard now evaluates only when flat, after a 2-tick settle delay to reduce equity lag noise.
+- Initialize `$DAY_ACC` to an empty string to prevent startup timer errors before SIM/LIVE switch.
 
 ### Cleanup
 - None.
