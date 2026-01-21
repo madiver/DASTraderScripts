@@ -40,7 +40,7 @@ if ($CURR_LAST <= 0 || $CURR_LOW <= 0) {
 }
 
 // ============================================================
-// Branch A: Micro pullback (bar -1 impulse + live rejection)
+// Branch A: MICRO PULLBACK (bar -1 impulse + live rejection)
 // ============================================================
 $impBar = $chart.GetBar(-1);
 $impOpen  = $impBar.OPEN;
@@ -106,10 +106,10 @@ if ($microOk == 1) {
 
         $structuredOk = 1;
         $structuredReason = 0;
-        $structuredType = "MICRO";
+        $structuredType = "MICROPB";
         $structuredStop = $stop;
         $structuredR = $dist;
-        MsgLog("Structured stop OK (MICRO): stop $" + $structuredStop + " R $" + $structuredR + " [" + $symbol + "].");
+        MsgLog("Structured stop OK (MICROPB): stop $" + $structuredStop + " R $" + $structuredR + " [" + $symbol + "].");
         return;
     }
 }
@@ -119,7 +119,7 @@ if ($structuredReason == 1) {
 }
 
 // ============================================================
-// Branch B: Pause pullback (completed bars)
+// Branch B: STANDARD PULLBACK (completed bars)
 // ============================================================
 $reason = 9;
 $impulseIndex = 0;
@@ -224,7 +224,7 @@ if ($dist > $structuredMaxStop) {
 
 $structuredOk = 1;
 $structuredReason = 0;
-$structuredType = "PAUSE";
+$structuredType = "STDPB";
 $structuredStop = $stop;
 $structuredR = $dist;
-MsgLog("Structured stop OK (PAUSE): stop $" + $structuredStop + " R $" + $structuredR + " [" + $symbol + "].");
+MsgLog("Structured stop OK (STDPB): stop $" + $structuredStop + " R $" + $structuredR + " [" + $symbol + "].");

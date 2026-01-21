@@ -92,7 +92,7 @@ Structured stop settings (buy_ib only):
 - `$structuredMicroExt`: max extension above impulse high before abort.
 - `$structuredOk`: last structured validation result (1=pass, 0=fail).
 - `$structuredReason`: last structured failure code.
-- `$structuredType`: `"MICRO"` or `"PAUSE"` on pass.
+- `$structuredType`: `"MICROPB"` or `"STDPB"` on pass.
 - `$structuredStop`: last structured stop price.
 - `$structuredR`: last structured R distance.
 - `$structuredSymbol`: symbol used for the last structured check.
@@ -408,12 +408,12 @@ Mechanics summary:
 - The validator first looks for a bullish impulse on the prior 1-minute bar
   (bar -1), requiring a green candle with body >= `$structuredMinImpulse` and
   dominance vs the previous bar (body > bar -2 body).
-- If a valid impulse is found, it attempts a MICRO pullback using live
+- If a valid impulse is found, it attempts a MICROPB pullback using live
   `$CURR_*` values: price must not dip below the impulse high by more than the
   bounded tolerance (`$structuredMicroTolPct` capped by `$structuredMicroTolMax`)
   and must not extend above the impulse high by more than `$structuredMicroExt`.
   The stop is anchored to the live rejection low minus `$structuredBuffer`.
-- If the micro conditions fail, the validator falls back to a PAUSE pullback:
+- If the micro conditions fail, the validator falls back to a STDPB pullback:
   it scans back up to `$structuredMaxLookback` bars for a bullish impulse that
   dominates the next `$structuredMaxPullback` bars, then sets the stop below the
   lowest pullback low (minus `$structuredBuffer`).
