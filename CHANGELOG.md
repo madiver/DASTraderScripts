@@ -2,6 +2,18 @@
 
 All notable changes to this repository will be documented in this file.
 
+## 0.3.1 - Unreleased
+
+### Features
+- Add `$stopMode` ("STANDARD" or "DYNAMIC") to modularize stop logic.
+- Replace the dynamic-stop toggle with explicit standard/dynamic stop mode scripts and key bindings.
+
+### Bug Fixes
+- None.
+
+### Cleanup
+- None.
+
 ## 0.3.0 - 2026-01-20
 
 ### Features

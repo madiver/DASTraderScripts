@@ -75,8 +75,13 @@ if ($skipCancel == 0) {
 }
 
 // ---- Step 4: Compute raw 1R stop ----
+$mode = $stopMode;
+if ($mode == "") {
+    if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "STANDARD"; }
+}
+
 $effR = $stopLossTrigger;
-if ($dynamicStop == 1 && $dynamicStopActive == 1) {
+if ($mode == "DYNAMIC" && $dynamicStopActive == 1) {
     $effR = $dynamicStopR;
 }
 $stop = $avgNow - $effR;

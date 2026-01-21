@@ -79,6 +79,7 @@ $msg =
 
 "DYNAMIC STOP\n" +
 "-----------------\n" +
+"stopMode: " + $stopMode + "\n" +
 "dynamicStop: " + $dynamicStop + "\n" +
 "dynamicStopMult: " + $dynamicStopMult + "\n" +
 "dynamicStopActive: " + $dynamicStopActive + "\n" +

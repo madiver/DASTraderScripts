@@ -162,7 +162,11 @@ if ($entryStage == 0) {
 
     if ($posNow > 0) {
         if ($singlePositionSymbol == "") { $singlePositionSymbol = $mySym; }
-        if ($entryDynR > 0 && $dynamicStop == 1) {
+        $mode = $stopMode;
+        if ($mode == "") {
+            if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "STANDARD"; }
+        }
+        if ($entryDynR > 0 && $mode == "DYNAMIC") {
             $dynamicStopR = $entryDynR;
             $dynamicStopActive = 1;
         }

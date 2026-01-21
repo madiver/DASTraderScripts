@@ -14,8 +14,13 @@ FocusWindow Primary_OE;
 // ---- Step 2: Load profit factor (R multiple) ----
 
 // Effective TP distance in dollars per share
+$mode = $stopMode;
+if ($mode == "") {
+    if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "STANDARD"; }
+}
+
 $effR = $stopLossTrigger;
-if ($dynamicStop == 1 && $dynamicStopActive == 1) {
+if ($mode == "DYNAMIC" && $dynamicStopActive == 1) {
     $effR = $dynamicStopR;
 }
 $tpDist = $effR * $takeProfitFactor;
