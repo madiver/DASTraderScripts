@@ -54,10 +54,16 @@ if ($posNow <= 0 || $avgNow <= 0) {
     return;
 }
 
+// ---- Resolve stop mode ----
+$mode = $stopMode;
+if ($mode == "") {
+    if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "STANDARD"; }
+}
+
 // ---- Tunables ----
 // Use adaptive offset only when an active dynamic stop is in effect.
 $useAdaptiveLimitOff  = 0;     // 1=offset based on spread; 0=use fixed $limitOff
-if ($dynamicStop == 1 && $dynamicStopActive == 1) { $useAdaptiveLimitOff = 1; }
+if ($mode == "DYNAMIC" && $dynamicStopActive == 1) { $useAdaptiveLimitOff = 1; }
 $adapt_k              = 2.0;   // limit offset = max(minTicks*inc, min(maxLimitOff, k*spread))
 $adapt_minTicks       = 2;     // min ticks for stop-limit offset
 $adapt_maxLimitOff    = 0.25;  // hard cap in dollars on limit offset
@@ -75,16 +81,27 @@ if ($skipCancel == 0) {
 }
 
 // ---- Step 4: Compute raw 1R stop ----
-$mode = $stopMode;
-if ($mode == "") {
-    if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "STANDARD"; }
-}
-
 $effR = $stopLossTrigger;
-if ($mode == "DYNAMIC" && $dynamicStopActive == 1) {
-    $effR = $dynamicStopR;
+$stop = 0;
+if ($mode == "STRUCTURED") {
+    if ($structuredStop <= 0) {
+        return;
+    }
+    if ($structuredSymbol != "" && $structuredSymbol != $mySym) {
+        return;
+    }
+    $stop = $structuredStop;
+    $effR = $avgNow - $stop;
+    if ($effR <= 0) {
+        return;
+    }
+    $structuredR = $effR;
+} else {
+    if ($mode == "DYNAMIC" && $dynamicStopActive == 1) {
+        $effR = $dynamicStopR;
+    }
+    $stop = $avgNow - $effR;
 }
-$stop = $avgNow - $effR;
 
 // ---- Step 5: Resolve tick-size bands ----
 $inc = 0.01;

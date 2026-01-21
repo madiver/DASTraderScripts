@@ -149,6 +149,10 @@
   key: Alt+Ctrl+B
   label: Set Auto Stop BE 1/2
   scriptPath: hotkeys/set_auto_stop_be_1_2.das
+- id: structured_stop_validate
+  key:
+  label: Structured Stop Validate
+  scriptPath: hotkeys/structured_stop_validate.das
 
 # Take profit
 - id: set_take_profit

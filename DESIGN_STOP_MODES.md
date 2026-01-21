@@ -6,7 +6,7 @@ Goal: make stop placement modular and extensible by introducing a single stop-mo
 - Add a `$stopMode` global that selects stop logic: `"STANDARD"`, `"DYNAMIC"`, or `"STRUCTURED"`.
 - Keep `$useAutoStop` as the master on/off switch (no `"NONE"` mode stored).
 - Centralize stop placement in a single "stop engine" path used by timer and manual hotkeys.
-- Do not implement structured stops yet; only expose the selector and a toggle hotkey.
+- Implement a structured stop validator and wire it into the order-flow gate/stop engine (initial version).
 
 ## Non-goals
 - Change risk sizing or entry logic.
@@ -23,6 +23,7 @@ Goal: make stop placement modular and extensible by introducing a single stop-mo
 ## Stop Engine Behavior
 - STANDARD: use `$stopLossTrigger` as 1R (current behavior).
 - DYNAMIC: use `$dynamicStopR` when `$dynamicStopActive == 1`; otherwise fall back to `$stopLossTrigger`.
+- STRUCTURED: use `$structuredStop` for the stop price and derive R from the stop distance.
 - Order send uses existing Stop/SLP behavior from `set_auto_stop.das` (no route or offset changes).
 
 ## Toggle / UX Flow

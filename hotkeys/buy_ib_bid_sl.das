@@ -31,6 +31,12 @@ if (IsObj($M)) {
     $avgBefore = AvgCost;
 }
 
+// ---- Resolve stop mode ----
+$mode = $stopMode;
+if ($mode == "") {
+    if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "STANDARD"; }
+}
+
 // Rehab gate: block scaling in while rehab mode is enabled (LIVE; optional SIM).
 $acct = "";
 if (IsObj($M)) { $acct = StrTrim("" + $M.Account); }
@@ -99,8 +105,11 @@ if ($bid <= 0 || $ask <= 0 || $spread < 0) {
     return;
 }
 
-// ---- Step 0b: Resolve effective R (dynamic vs fixed) ----
-$useDynStop = ($dynamicStop == 1);
+// ---- Precompute entry price ----
+$pxEntry = $refPx;
+
+// ---- Step 0b: Resolve effective R (dynamic vs fixed / structured) ----
+$useDynStop = ($mode == "DYNAMIC");
 $dynRNew = 0;
 $effR = $stopLossTrigger;
 if ($useDynStop == 1) {
@@ -115,9 +124,39 @@ if ($useDynStop == 1) {
         }
     }
 }
+if ($mode == "STRUCTURED") {
+    if ($posBefore <= 0) {
+        ExecHotkey("Structured Stop Validate");
+        if ($structuredOk != 1) {
+            MsgBox("Structured stop check failed (reason " + $structuredReason + ").");
+            return;
+        }
+        if ($structuredSymbol != "" && $structuredSymbol != $entrySymbol) {
+            MsgBox("Structured stop symbol mismatch for " + $entrySymbol + ".");
+            return;
+        }
+        $structuredR = $pxEntry - $structuredStop;
+    } else {
+        if ($structuredR <= 0) {
+            MsgBox("Structured stop data missing. Use a structured IB entry first.");
+            return;
+        }
+    }
+
+    if ($structuredSymbol != "" && $structuredSymbol != $entrySymbol) {
+        MsgBox("Structured stop symbol mismatch for " + $entrySymbol + ".");
+        return;
+    }
+
+    if ($structuredStop <= 0 || $structuredR <= 0) {
+        MsgBox("Structured stop data missing. Aborting.");
+        return;
+    }
+
+    $effR = $structuredR;
+}
 
 // Projected entry/stop based on reference side
-$pxEntry    = $refPx;
 $hypoStop = $pxEntry - $effR;
 
 // ---- Tick increment for safety checks ----
@@ -209,7 +248,7 @@ if ($useTimerArming == 1) {
     $entryScaleIn = 0;
     if ($posBefore > 0) { $entryScaleIn = 1; }
     $entryDynR = 0;
-    if ($dynamicStop == 1 && $posBefore <= 0) {
+    if ($mode == "DYNAMIC" && $posBefore <= 0) {
         $entryDynR = $dynRNew;
     }
 }
@@ -278,7 +317,7 @@ if ($filled == 2 && $cancelRemainderOnPartial == 1) {
 }
 
 // ---- Step 5b: Persist dynamic R for new trades ----
-if ($dynamicStop == 1 && $posBefore <= 0) {
+if ($mode == "DYNAMIC" && $posBefore <= 0) {
     $dynamicStopR = $dynRNew;
     $dynamicStopActive = 1;
 }

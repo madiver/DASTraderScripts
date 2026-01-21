@@ -85,6 +85,15 @@ $msg =
 "dynamicStopActive: " + $dynamicStopActive + "\n" +
 "dynamicStopR: $" + $dynamicStopR + "\n\n" +
 
+"STRUCTURED STOP\n" +
+"-----------------\n" +
+"structuredOk: " + $structuredOk + "\n" +
+"structuredReason: " + $structuredReason + "\n" +
+"structuredType: " + $structuredType + "\n" +
+"structuredStop: $" + $structuredStop + "\n" +
+"structuredR: $" + $structuredR + "\n" +
+"structuredSymbol: " + $structuredSymbol + "\n\n" +
+
 "ACCOUNTS\n" +
 "-----------------\n" +
 "Account: " + $acct + "\n" +

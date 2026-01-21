@@ -157,6 +157,16 @@ if ($oneSecondScriptCnt >= 5) {
             $dynamicStopR = 0;
         }
 
+        // ---- Clear structured stop state when flat ----
+        if ($structuredStop != 0 || $structuredR != 0 || $structuredType != "" || $structuredSymbol != "") {
+            $structuredOk = 0;
+            $structuredReason = 0;
+            $structuredType = "";
+            $structuredStop = 0;
+            $structuredR = 0;
+            $structuredSymbol = "";
+        }
+
         // ---- Clear entry reference when flat ----
         $entryRefPx = 0;
     }

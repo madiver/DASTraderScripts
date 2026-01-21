@@ -80,6 +80,23 @@ Dynamic stop settings (buy_ib only):
 - `$dynamicStopActive`: runtime flag set when a dynamic trade is active.
 - `$dynamicStopR`: stored dynamic R used for stops and TP during the trade.
 
+Structured stop settings (buy_ib only):
+- `$structuredMaxLookback`: max bars to scan for the impulse.
+- `$structuredMaxPullback`: max bars to evaluate the pullback.
+- `$structuredBuffer`: stop buffer below the rejection/pullback low.
+- `$structuredMaxStop`: max allowed stop distance (R).
+- `$structuredMinImpulse`: minimum impulse body size.
+- `$structuredMinClearance`: minimum clearance above stop.
+- `$structuredMicroTolPct`: micro pullback tolerance (fraction of impulse body).
+- `$structuredMicroTolMax`: cap for micro tolerance (absolute).
+- `$structuredMicroExt`: max extension above impulse high before abort.
+- `$structuredOk`: last structured validation result (1=pass, 0=fail).
+- `$structuredReason`: last structured failure code.
+- `$structuredType`: `"MICRO"` or `"PAUSE"` on pass.
+- `$structuredStop`: last structured stop price.
+- `$structuredR`: last structured R distance.
+- `$structuredSymbol`: symbol used for the last structured check.
+
 Account tokens:
 - `$TRSIM`: SIM account identifier.
 - `$LIVEACT`: LIVE account identifier.
@@ -155,6 +172,21 @@ baseline values when you run "Set Global Variables."
 | Dynamic stop | `$dynamicStopMult` | `2` |
 | Dynamic stop | `$dynamicStopActive` | `0` |
 | Dynamic stop | `$dynamicStopR` | `0` |
+| Structured stop | `$structuredMaxLookback` | `5` |
+| Structured stop | `$structuredMaxPullback` | `3` |
+| Structured stop | `$structuredBuffer` | `0.05` |
+| Structured stop | `$structuredMaxStop` | `0.40` |
+| Structured stop | `$structuredMinImpulse` | `0.15` |
+| Structured stop | `$structuredMinClearance` | `0.05` |
+| Structured stop | `$structuredMicroTolPct` | `0.25` |
+| Structured stop | `$structuredMicroTolMax` | `0.10` |
+| Structured stop | `$structuredMicroExt` | `0.10` |
+| Structured stop | `$structuredOk` | `0` |
+| Structured stop | `$structuredReason` | `0` |
+| Structured stop | `$structuredType` | `""` |
+| Structured stop | `$structuredStop` | `0` |
+| Structured stop | `$structuredR` | `0` |
+| Structured stop | `$structuredSymbol` | `""` |
 | Accounts | `$TRSIM` | `"%%SIMULATED%%"` |
 | Accounts | `$LIVEACT` | `"%%LIVE%%"` |
 | Sizing | `$qtyMult` | `6` |
@@ -217,6 +249,7 @@ scripts rather than direct invocation.
 | `Ctrl+Shift+S` | `hotkeys/set_auto_stop.das` | Place 1R stop-limit for full position. |
 | `Ctrl+Shift+B` | `hotkeys/set_auto_stop_be_1_1.das` | Breakeven stop/limit for full position. |
 | Unbound | `hotkeys/set_auto_stop_be_scale_1_1.das` | Scale-in BE stop/limit for full position. |
+| Unbound | `hotkeys/structured_stop_validate.das` | Structured stop validation (internal). |
 | `Alt+Ctrl+Win+-` | `hotkeys/set_0_10_stop.das` | Set 1R stop-loss trigger to $0.10. |
 | `Alt+Ctrl+Win+=` | `hotkeys/set_0_15_stop.das` | Set 1R stop-loss trigger to $0.15. |
 | `Alt+Ctrl+Win+[` | `hotkeys/set_0_20_stop.das` | Set 1R stop-loss trigger to $0.20. |
@@ -347,8 +380,8 @@ as price accelerates.
 The stop engine now uses `$stopMode` ("STANDARD", "DYNAMIC", or "STRUCTURED") as
 the selector; `enable_dynamic_stop_mode.das` and
 `enable_standard_stop_mode.das` keep `$stopMode` in sync with `$dynamicStop`.
-`STRUCTURED` currently falls back to standard stop behavior until we wire in
-structured logic.
+`STRUCTURED` uses the structured stop price (`$structuredStop`) and distance
+(`$structuredR`) when present.
 
 - R is computed once at order send: `R = spread * $dynamicStopMult`.
 - R is fixed for the life of the trade and reused for scale-ins.
@@ -359,6 +392,18 @@ structured logic.
 - When `$dynamicStop = 1`, initial entries must use Buy IB; `buy_25_*` and
   `buy_50_*` only allow scale-ins.
 - Dynamic state is cleared when flat by the timer script.
+
+### Structured stop losses
+
+Structured stops are enabled when `$stopMode = "STRUCTURED"` and require the
+`Chart_1m` window running `other scripts/chart_1m.das` so live candle values are
+available. The structured validator computes a stop price from a 1-minute
+impulse/pullback pattern and stores it in `$structuredStop`.
+
+- Only Buy IB entries can open a new position in structured mode.
+- Buy 25/50 hotkeys are allowed only for scale-ins (and require `$structuredR`).
+- If structured data is missing at entry time, the entry is aborted.
+- The stop engine uses `$structuredStop`, and TP distance uses `$structuredR`.
 
 ## TAKE PROFIT
 

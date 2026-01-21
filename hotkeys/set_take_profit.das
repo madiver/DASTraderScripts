@@ -11,21 +11,7 @@ if ($timerMode == 1) { $timerActive = 1; $timerMode = 0; }
 // ---- Step 1: Focus Primary_OE ----
 FocusWindow Primary_OE;
 
-// ---- Step 2: Load profit factor (R multiple) ----
-
-// Effective TP distance in dollars per share
-$mode = $stopMode;
-if ($mode == "") {
-    if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "STANDARD"; }
-}
-
-$effR = $stopLossTrigger;
-if ($mode == "DYNAMIC" && $dynamicStopActive == 1) {
-    $effR = $dynamicStopR;
-}
-$tpDist = $effR * $takeProfitFactor;
-
-// ---- Step 3: Load montage context ----
+// ---- Step 2: Load montage context ----
 $M = GetWindowObj("Primary_OE");
 if (!IsObj($M)) {
     MsgBox("Set Take Profit: montage 'Primary_OE' not found. Aborting.");
@@ -41,6 +27,27 @@ if ($posNow == 0) { return; }
 
 // If AvgCost still initializing, fall back to last sale
 if ($avgNow <= 0) { $avgNow = $M.Last; }
+
+// ---- Step 3: Load profit factor (R multiple) ----
+
+// Effective TP distance in dollars per share
+$mode = $stopMode;
+if ($mode == "") {
+    if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "STANDARD"; }
+}
+
+$effR = $stopLossTrigger;
+if ($mode == "DYNAMIC" && $dynamicStopActive == 1) {
+    $effR = $dynamicStopR;
+}
+if ($mode == "STRUCTURED") {
+    if ($structuredStop <= 0) { return; }
+    if ($structuredSymbol != "" && $structuredSymbol != $mySym) { return; }
+    $effR = $avgNow - $structuredStop;
+    if ($effR <= 0) { return; }
+    $structuredR = $effR;
+}
+$tpDist = $effR * $takeProfitFactor;
 
 // ---- Step 4: Compute the target price ----
 $tpPx = $avgNow;

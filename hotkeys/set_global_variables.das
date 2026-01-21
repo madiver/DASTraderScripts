@@ -93,6 +93,25 @@ $dynamicStopMult = 2;
 $dynamicStopActive = 0;
 $dynamicStopR = 0;
 
+// ---- 2c) Structured Stop Settings (1-minute, buy_ib only) ----
+$structuredMaxLookback = 5;
+$structuredMaxPullback = 3;
+$structuredBuffer = 0.05;
+$structuredMaxStop = 0.40;
+$structuredMinImpulse = 0.15;
+$structuredMinClearance = 0.05;
+$structuredMicroTolPct = 0.25;
+$structuredMicroTolMax = 0.10;
+$structuredMicroExt = 0.10;
+
+// Runtime state for structured stops (do not edit manually).
+$structuredOk = 0;
+$structuredReason = 0;
+$structuredType = "";
+$structuredStop = 0;
+$structuredR = 0;
+$structuredSymbol = "";
+
 // ---- 3) Account Tokens (Simulation / Live) ----
 //
 // These vars store your SIM and LIVE account identifiers.
