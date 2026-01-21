@@ -1,12 +1,12 @@
 # Stop Mode Modularization (0.3.1 Draft)
 
-Goal: make stop placement modular and extensible by introducing a single stop-mode selector while preserving current behavior for STANDARD and DYNAMIC stops.
+Goal: make stop placement modular and extensible by introducing a single stop-mode selector while preserving current behavior for STANDARD and DYNAMIC stops, and stubbing a STRUCTURED mode for later.
 
 ## Scope
-- Add a `$stopMode` global that selects stop logic: `"STANDARD"` or `"DYNAMIC"`.
+- Add a `$stopMode` global that selects stop logic: `"STANDARD"`, `"DYNAMIC"`, or `"STRUCTURED"`.
 - Keep `$useAutoStop` as the master on/off switch (no `"NONE"` mode stored).
 - Centralize stop placement in a single "stop engine" path used by timer and manual hotkeys.
-- Do not implement structured stops yet; only leave a clean insertion point for later.
+- Do not implement structured stops yet; only expose the selector and a toggle hotkey.
 
 ## Non-goals
 - Change risk sizing or entry logic.
@@ -28,6 +28,7 @@ Goal: make stop placement modular and extensible by introducing a single stop-mo
 ## Toggle / UX Flow
 - `enable_dynamic_stop_mode.das` sets `$stopMode = "DYNAMIC"` and enables `$dynamicStop`.
 - `enable_standard_stop_mode.das` sets `$stopMode = "STANDARD"` and disables `$dynamicStop`.
+- `enable_structured_stop_mode.das` sets `$stopMode = "STRUCTURED"` and disables `$dynamicStop`.
 
 ## Integration Points
 - Manual: `set_auto_stop.das` becomes the stop engine (or calls a new `stop_engine.das`).

@@ -13,6 +13,7 @@ Important constraints:
 - Assumes a single active symbol (multi-symbol trading is not supported).
 - Requires a montage named `Primary_OE`.
 - Requires installing `other scripts/timer.das` in DAS Trader's Timer Event Scripts.
+- Requires installing `other scripts/chart_1m.das` as a 1-minute Chart Script.
 
 Read this first: [USERGUIDE.md](USERGUIDE.md)
 

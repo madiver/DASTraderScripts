@@ -5,8 +5,9 @@ All notable changes to this repository will be documented in this file.
 ## 0.3.1 - Unreleased
 
 ### Features
-- Add `$stopMode` ("STANDARD" or "DYNAMIC") to modularize stop logic.
+- Add `$stopMode` ("STANDARD", "DYNAMIC", or "STRUCTURED") to modularize stop logic.
 - Replace the dynamic-stop toggle with explicit standard/dynamic stop mode scripts and key bindings.
+- Add a structured stop mode toggle script and binding (Alt+Ctrl+Win+S).
 
 ### Bug Fixes
 - BE stop scripts no longer gate on `$useAutoStop`; BE adjustments still run when auto stops are disabled.

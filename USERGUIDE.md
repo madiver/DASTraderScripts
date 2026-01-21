@@ -10,7 +10,7 @@ Repository structure: the `hotkeys/` folder contains the `.das` hotkey scripts, 
 
 These scripts assume you have a primary montage window named `Primary_OE` (Primary Order Entry). If that montage name does not exist, many scripts will fail or behave incorrectly. You can reference my DAS Trader desktop and chart settings here: https://github.com/madiver/DASTraderConfig
 
-Regardless of the method you choose, the timer script must be installed manually in DAS Trader under "Timer Event Scripts." I also recommend adding `ExecHotKey("Set Global Variables");` to your Desktop Load Scripts so globals are initialized every time DAS starts.
+Regardless of the method you choose, the timer script must be installed manually in DAS Trader under "Timer Event Scripts," and the chart script must be installed manually under the chart "Scripting" section (see details below). I also recommend adding `ExecHotKey("Set Global Variables");` to your Desktop Load Scripts so globals are initialized every time DAS starts.
 
 ## QUICK START
 
@@ -21,7 +21,7 @@ Regardless of the method you choose, the timer script must be installed manually
    - `dasHotkeyTools.outputPath` (required).
    - `dasHotkeyTools.liveAccount` and `dasHotkeyTools.simulatedAccount` for `%%LIVE%%` / `%%SIMULATED%%` substitution.
    - Optional: `dasHotkeyTools.placeholders.failOnMissing` to block builds when placeholders are unresolved.
-3) Ensure your montage is named `Primary_OE` and the timer script `other scripts/timer.das` is installed under Timer Event Scripts.
+3) Ensure your montage is named `Primary_OE`, the timer script `other scripts/timer.das` is installed under Timer Event Scripts, and the chart script `other scripts/chart_1m.das` is installed as a 1-minute Chart Script.
 4) Run `switch_to_sim.das` or `switch_to_live.das` to bind the session account.
 5) Run `set_global_variables.das` to initialize globals and the daily-loss baseline.
 6) Use `show_config.das` to confirm account mode, defaults, and guard states.
@@ -74,7 +74,7 @@ Risk and execution:
 - `$takeProfitSizeRehab`: TP fraction when rehab is active (LIVE; SIM when `$applyLiveGuardsToSim = 1`).
 
 Dynamic stop settings (buy_ib only):
-- `$stopMode`: selects stop logic ("STANDARD" or "DYNAMIC").
+- `$stopMode`: selects stop logic ("STANDARD", "DYNAMIC", or "STRUCTURED").
 - `$dynamicStop`: enables spread-based R for buy IB entries.
 - `$dynamicStopMult`: multiplier for the spread-based R.
 - `$dynamicStopActive`: runtime flag set when a dynamic trade is active.
@@ -231,6 +231,7 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Win+'` | `hotkeys/toggle_spread_check_feature.das` | Toggle spread safety guard. |
 | `Ctrl+Alt+Win+D` | `hotkeys/enable_dynamic_stop_mode.das` | Enable dynamic stop mode (Buy IB only). |
 | `Ctrl+Alt+Win+F` | `hotkeys/enable_standard_stop_mode.das` | Enable standard (fixed R) stop mode. |
+| `Alt+Ctrl+Win+S` | `hotkeys/enable_structured_stop_mode.das` | Enable structured stop mode (logic pending). |
 | `Alt+Ctrl+Win+G` | `hotkeys/toggle_apply_live_guards_to_sim.das` | Toggle live-only guards in SIM. |
 | `Alt+Ctrl+Win+M` | `hotkeys/toggle_single_position_guard.das` | Toggle single-symbol entry guard. |
 | `Alt+Ctrl+Win+T` | `hotkeys/toggle_test_mode.das` | Toggle test mode (no order sends). |
@@ -343,9 +344,11 @@ spread-based sizing, and they only activate when `$dynamicStop == 1`. They are
 intended for parabolic movers where spreads and intraday swings expand sharply
 as price accelerates.
 
-The stop engine now uses `$stopMode` ("STANDARD" or "DYNAMIC") as the selector;
-`enable_dynamic_stop_mode.das` and `enable_standard_stop_mode.das` keep
-`$stopMode` in sync with `$dynamicStop`.
+The stop engine now uses `$stopMode` ("STANDARD", "DYNAMIC", or "STRUCTURED") as
+the selector; `enable_dynamic_stop_mode.das` and
+`enable_standard_stop_mode.das` keep `$stopMode` in sync with `$dynamicStop`.
+`STRUCTURED` currently falls back to standard stop behavior until we wire in
+structured logic.
 
 - R is computed once at order send: `R = spread * $dynamicStopMult`.
 - R is fixed for the life of the trade and reused for scale-ins.
@@ -446,6 +449,16 @@ It is not installed automatically by the hotkey build. Ensure
 `hotkeys/timer_entry_handler.das` is included in your keymap because the timer
 calls it via `ExecHotkey`.
 
+## CHART SCRIPT (1-MINUTE)
+
+`other scripts/chart_1m.das` captures the current 1-minute candle's live values
+and exposes them as globals for other scripts. It is not installed automatically
+by the hotkey build.
+
+Installation: add this script to DAS Trader's chart "Scripting" section and bind
+it to a 1-minute chart that follows your active symbol (only one chart should
+run it at a time).
+
 ## UTILITIES & TOGGLES
 
 These scripts handle configuration, safety toggles, and convenience actions.
@@ -460,6 +473,7 @@ Safety toggles:
 - `toggle_spread_check_feature.das` enables/disables the spread safety guard.
 - `enable_dynamic_stop_mode.das` sets dynamic R for Buy IB entries (and disables standard mode).
 - `enable_standard_stop_mode.das` sets fixed R stops and disables dynamic mode.
+- `enable_structured_stop_mode.das` sets structured stop mode (logic pending).
 - `toggle_apply_live_guards_to_sim.das` toggles whether live-only guards also
   apply in SIM (`$applyLiveGuardsToSim`).
 - `toggle_single_position_guard.das` toggles the single-position guard

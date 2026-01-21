@@ -189,6 +189,10 @@
   key: Ctrl+Alt+Win+F
   label: Enable Standard Stop Mode
   scriptPath: hotkeys/enable_standard_stop_mode.das
+- id: enable_structured_stop_mode
+  key: Alt+Ctrl+Win+S
+  label: Enable Structured Stop Mode
+  scriptPath: hotkeys/enable_structured_stop_mode.das
 - id: toggle_apply_live_guards_to_sim
   key: Alt+Ctrl+Win+G
   label: Toggle Live Guards in SIM
