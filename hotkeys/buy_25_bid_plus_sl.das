@@ -24,6 +24,7 @@ if (IsObj($M)) {
 } else {
     $entrySymbol = Symbol;
 }
+$entrySymbol = StrTrim("" + $entrySymbol);
 $tpSymbol = "";
 
 // ---- Capture pre-entry position and avg cost (TP logic) ----

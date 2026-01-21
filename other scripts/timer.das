@@ -101,12 +101,13 @@ if ($liveGuardActive == 1) {
 // ---- Single-position guard tracking (script-tracked) ----
 $M = GetWindowObj("Primary_OE");
 if (IsObj($M)) {
-    $symNow = $M.Symb;
+    $symNow = StrTrim("" + $M.Symb);
     $posNow = $M.Pos;
-    if ($singlePositionSymbol == "" && $posNow > 0) {
+    $trackedSym = StrTrim("" + $singlePositionSymbol);
+    if ($trackedSym == "" && $posNow > 0) {
         $singlePositionSymbol = $symNow;
     } else {
-        if ($singlePositionSymbol != "" && $symNow == $singlePositionSymbol && $posNow <= 0) {
+        if ($trackedSym != "" && $symNow == $trackedSym && $posNow <= 0) {
             $singlePositionSymbol = "";
         }
     }

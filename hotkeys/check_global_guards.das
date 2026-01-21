@@ -40,22 +40,24 @@ if ($HIJACKED_LOCKED == 1 && ($isLive == 1 || $applyLiveGuardsToSim == 1)) {
 
 // ---- Single-position guard (script-tracked) ----
 if (IsObj($M)) {
-    $curSym = $M.Symb;
+    $curSym = StrTrim("" + $M.Symb);
     $curPos = $M.Pos;
 
-    if ($singlePositionSymbol != "" && $curSym == $singlePositionSymbol && $curPos <= 0) {
+    $trackedSym = StrTrim("" + $singlePositionSymbol);
+    if ($trackedSym != "" && $curSym == $trackedSym && $curPos <= 0) {
         $singlePositionSymbol = "";
     }
 
     // Always block cross-symbol entries while a buy is pending.
-    if ($entryPending == 1 && $entrySymbol != "" && $curSym != $entrySymbol) {
+    $pendingSym = StrTrim("" + $entrySymbol);
+    if ($entryPending == 1 && $pendingSym != "" && $curSym != $pendingSym) {
         MsgBox("Single-position mode: pending entry in " + $entrySymbol + ". New entries blocked.");
         $trade_ok = 0;
         return;
     }
 
     // Optional: block new entries on a different symbol while a position is tracked.
-    if ($singlePositionGuard == 1 && $singlePositionSymbol != "" && $curSym != $singlePositionSymbol) {
+    if ($singlePositionGuard == 1 && $trackedSym != "" && $curSym != $trackedSym) {
         MsgBox("Single-position mode: active symbol " + $singlePositionSymbol + ". New entries blocked.");
         $trade_ok = 0;
         return;

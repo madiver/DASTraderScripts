@@ -20,7 +20,7 @@ if (!IsObj($M)) {
 }
 
 // Snapshot symbol and position
-$mySym  = $M.Symb;
+$mySym  = StrTrim("" + $M.Symb);
 $posNow = $M.Pos;
 $mode = $stopMode;
 if ($mode == "") {
@@ -30,7 +30,8 @@ if ($mode == "") {
 // If no pending entry, optionally re-arm when size increases
 if ($entryPending != 1) {
     if ($entryWatch == 1) {
-        if ($entrySymbol != "" && $mySym != $entrySymbol) {
+        $entrySym = StrTrim("" + $entrySymbol);
+        if ($entrySym != "" && $mySym != $entrySym) {
             $entryWatch = 0;
             $entryLastPos = 0;
             $entryScaleIn = 0;
@@ -110,7 +111,8 @@ if ($entryWatch == 1) {
 }
 
 // Safety: bail if montage symbol doesn't match the entry
-if ($entrySymbol != "" && $mySym != $entrySymbol) {
+$entrySym = StrTrim("" + $entrySymbol);
+if ($entrySym != "" && $mySym != $entrySym) {
     $wasScaleIn = $entryScaleIn;
     $accObj = GetAccountObj($M.Account);
     $accObj.CancelOrder("BUY", $entrySymbol, 0);
@@ -172,7 +174,7 @@ if ($entryStage == 0) {
 
     if ($entryScaleIn == 1) {
         if ($posNow > $entryPosBefore) {
-            if ($singlePositionSymbol == "") { $singlePositionSymbol = $mySym; }
+            if (StrTrim("" + $singlePositionSymbol) == "") { $singlePositionSymbol = $mySym; }
             $entryStage = 1; // cancel stage
             $entryTicks = 0;
         } else {
@@ -190,7 +192,7 @@ if ($entryStage == 0) {
     }
 
         if ($posNow > 0) {
-            if ($singlePositionSymbol == "") { $singlePositionSymbol = $mySym; }
+            if (StrTrim("" + $singlePositionSymbol) == "") { $singlePositionSymbol = $mySym; }
             $mode = $stopMode;
             if ($mode == "") {
                 if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "STANDARD"; }
