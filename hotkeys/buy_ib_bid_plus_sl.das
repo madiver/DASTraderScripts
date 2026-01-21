@@ -132,23 +132,27 @@ if ($mode == "STRUCTURED") {
             return;
         }
         if ($structuredSymbol != "" && $structuredSymbol != $entrySymbol) {
+            MsgLog("Structured stop symbol mismatch for " + $entrySymbol + ".");
             MsgBox("Structured stop symbol mismatch for " + $entrySymbol + ".");
             return;
         }
         $structuredR = $pxEntry - $structuredStop;
     } else {
         if ($structuredR <= 0) {
+            MsgLog("Structured stop data missing. Use a structured IB entry first.");
             MsgBox("Structured stop data missing. Use a structured IB entry first.");
             return;
         }
     }
 
     if ($structuredSymbol != "" && $structuredSymbol != $entrySymbol) {
+        MsgLog("Structured stop symbol mismatch for " + $entrySymbol + ".");
         MsgBox("Structured stop symbol mismatch for " + $entrySymbol + ".");
         return;
     }
 
     if ($structuredStop <= 0 || $structuredR <= 0) {
+        MsgLog("Structured stop data missing. Aborting.");
         MsgBox("Structured stop data missing. Aborting.");
         return;
     }

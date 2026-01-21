@@ -370,12 +370,12 @@ invoked in timer mode (`$timerMode`) where cancels are skipped.
 When dynamic stops are inactive, the stop-limit offset uses `$exitOffset`. The
 order is snapped to valid tick sizes and sent as a STOP/SLP order.
 
-### Dynamic stop losses
+### Dynamic stop losses (experimental)
 
-Dynamic stops are only supported for Buy IB entries due to the added risk of
-spread-based sizing, and they only activate when `$dynamicStop == 1`. They are
-intended for parabolic movers where spreads and intraday swings expand sharply
-as price accelerates.
+Dynamic stops are only supported for Buy IB entries due to the
+added risk of spread-based sizing, and they only activate when
+`$dynamicStop == 1`. They are intended for parabolic movers where spreads and
+intraday swings expand sharply as price accelerates.
 
 The stop engine now uses `$stopMode` ("STANDARD", "DYNAMIC", or "STRUCTURED") as
 the selector; `enable_dynamic_stop_mode.das` and
@@ -393,17 +393,32 @@ the selector; `enable_dynamic_stop_mode.das` and
   `buy_50_*` only allow scale-ins.
 - Dynamic state is cleared when flat by the timer script.
 
-### Structured stop losses
+### Structured stop losses (experimental)
 
-Structured stops are enabled when `$stopMode = "STRUCTURED"` and require the
-`Chart_1m` window running `other scripts/chart_1m.das` so live candle values are
-available. The structured validator computes a stop price from a 1-minute
-impulse/pullback pattern and stores it in `$structuredStop`.
+Structured stops are enabled when `$stopMode = "STRUCTURED"`
+and require the `Chart_1m` window running `other scripts/chart_1m.das` so live
+candle values are available. The structured validator computes a stop price
+from a 1-minute impulse/pullback pattern and stores it in `$structuredStop`.
 
 - Only Buy IB entries can open a new position in structured mode.
 - Buy 25/50 hotkeys are allowed only for scale-ins (and require `$structuredR`).
 - If structured data is missing at entry time, the entry is aborted.
 - The stop engine uses `$structuredStop`, and TP distance uses `$structuredR`.
+Mechanics summary:
+- The validator first looks for a bullish impulse on the prior 1-minute bar
+  (bar -1), requiring a green candle with body >= `$structuredMinImpulse` and
+  dominance vs the previous bar (body > bar -2 body).
+- If a valid impulse is found, it attempts a MICRO pullback using live
+  `$CURR_*` values: price must not dip below the impulse high by more than the
+  bounded tolerance (`$structuredMicroTolPct` capped by `$structuredMicroTolMax`)
+  and must not extend above the impulse high by more than `$structuredMicroExt`.
+  The stop is anchored to the live rejection low minus `$structuredBuffer`.
+- If the micro conditions fail, the validator falls back to a PAUSE pullback:
+  it scans back up to `$structuredMaxLookback` bars for a bullish impulse that
+  dominates the next `$structuredMaxPullback` bars, then sets the stop below the
+  lowest pullback low (minus `$structuredBuffer`).
+- The candidate stop is rejected if price is already below it, clearance is
+  below `$structuredMinClearance`, or the stop distance exceeds `$structuredMaxStop`.
 
 ## TAKE PROFIT
 

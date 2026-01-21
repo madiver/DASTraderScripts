@@ -9,7 +9,7 @@ $val = Input("Enter Starting Equity", "Type your starting equity amount (e.g., 2
 
 // ---- Step 2: Validate input ----
 if ($val == "" ) {
-    MsgBox("Starting equity not set.");
+    MsgLog("Starting equity not set.");
     return;
 }
 
@@ -18,14 +18,14 @@ $eq = $val * 1;
 
 // Validate numeric range
 if ($eq <= 0) {
-    MsgBox("Invalid equity value: " + $val + ". Must be a positive number.");
+    MsgLog("Invalid equity value: " + $val + ". Must be a positive number.");
     return;
 }
 
 // ---- Step 3: Resolve current account ----
 $AccName = $DAY_ACC;
 if ($AccName == "") {
-    MsgBox("No session account set. Use Switch to SIM/LIVE first.");
+    MsgLog("No session account set. Use Switch to SIM/LIVE first.");
     return;
 }
 
@@ -40,6 +40,6 @@ SetVar($lockKey,        0);
 SetVar("TRADING_LOCKED", 0);
 
 // ---- Step 5: Inform user ----
-MsgBox("Manual starting equity set for " + $AccName +
+MsgLog("Manual starting equity set for " + $AccName +
        "\nStart equity: $" + $eq +
        "\nLock state reset to 0");

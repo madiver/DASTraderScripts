@@ -6,7 +6,8 @@
 
 if ($useTakeProfit == "Yes") {
    $useTakeProfit = "No";
-   MsgBox("WARNING: take profit trigger disabled.");
+   MsgLog("WARNING: take profit trigger disabled.");
 } else {
    $useTakeProfit = "Yes";
+   MsgLog("Take profit trigger enabled.");
 }

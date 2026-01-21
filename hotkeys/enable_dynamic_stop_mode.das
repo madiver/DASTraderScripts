@@ -15,4 +15,4 @@ $structuredStop = 0;
 $structuredR = 0;
 $structuredSymbol = "";
 
-MsgBox("Dynamic stop mode enabled (buy_ib only).");
+MsgLog("Dynamic stop mode enabled (IB only).");

@@ -7,7 +7,7 @@
 // ---- Step 1: Resolve active account ----
 $AccName = $DAY_ACC;
 if ($AccName == "") {
-    MsgBox("No session account set. Use Switch to SIM/LIVE first.");
+    MsgLog("No session account set. Use Switch to SIM/LIVE first.");
     return;
 }
 
@@ -16,7 +16,7 @@ $answer = Input("Confirm Reset",
                 "Type YES to reset PnL baseline for account " + $AccName + ":");
 
 if ($answer != "YES") {
-    MsgBox("Reset aborted. (You typed: '" + $answer + "')");
+    MsgLog("Reset aborted. (You typed: '" + $answer + "')");
     return;
 }
 
@@ -40,6 +40,6 @@ SetVar($lockKey,        0);
 SetVar("TRADING_LOCKED", 0);
 
 // ---- Step 8: Show result ----
-MsgBox("Risk baseline RESET for " + $AccName +
+MsgLog("Risk baseline RESET for " + $AccName +
        "\nStart equity is now: $" + $eqStart +
        "\nLock state reset to 0");

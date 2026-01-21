@@ -6,20 +6,20 @@
 
 if ($testMode == 1) {
    $testMode = 0;
-   MsgBox("Test mode disabled.");
+   MsgLog("Test mode disabled.");
    return;
 }
 
 $accName = $DAY_ACC;
 if ($accName == "") {
-   MsgBox("Set account mode first (Switch to Sim).");
+   MsgLog("Set account mode first (Switch to Sim).");
    return;
 }
 
 if ($accName != $TRSIM) {
-   MsgBox("Test mode is SIM-only.");
+   MsgLog("Test mode is SIM-only.");
    return;
 }
 
 $testMode = 1;
-MsgBox("Test mode enabled.");
+MsgLog("Test mode enabled.");

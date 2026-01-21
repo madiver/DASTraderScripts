@@ -5,7 +5,7 @@
 // Tests the max-position-size guard by setting max to current position (test mode only).
 
 if ($testMode != 1) {
-   MsgBox("Enable test mode first.");
+   MsgLog("Enable test mode first.");
    return;
 }
 
@@ -15,34 +15,34 @@ if ($active == 1) {
    if ($orig != "") { $maxPositionSize = $orig * 1; }
    SetVar("TEST_MAX_POSITION_ORIG", "");
    SetVar("TEST_MAX_POSITION_ACTIVE", "");
-   MsgBox("Test max-position guard disabled.");
+   MsgLog("Test max-position guard disabled.");
    return;
 }
 
 if ($DAY_ACC == "") {
-   MsgBox("Set account mode first (Switch to Sim).");
+   MsgLog("Set account mode first (Switch to Sim).");
    return;
 }
 
 if ($DAY_ACC != $TRSIM) {
-   MsgBox("Test max-position guard is SIM-only.");
+   MsgLog("Test max-position guard is SIM-only.");
    return;
 }
 
 if (GetVar("TEST_HIJACK_ACTIVE") * 1 == 1) {
-   MsgBox("Disable the hijack test first.");
+   MsgLog("Disable the hijack test first.");
    return;
 }
 
 $M = GetWindowObj("Primary_OE");
 if (!IsObj($M)) {
-   MsgBox("Primary_OE not found.");
+   MsgLog("Primary_OE not found.");
    return;
 }
 
 $posNow = $M.Pos;
 if ($posNow <= 0) {
-   MsgBox("Open a position to test the max-position guard.");
+   MsgLog("Open a position to test the max-position guard.");
    return;
 }
 
@@ -50,4 +50,4 @@ SetVar("TEST_MAX_POSITION_ORIG", $maxPositionSize);
 SetVar("TEST_MAX_POSITION_ACTIVE", 1);
 $maxPositionSize = $posNow;
 
-MsgBox("Test max-position guard enabled.\nMax set to " + $maxPositionSize + " shares.");
+MsgLog("Test max-position guard enabled.\nMax set to " + $maxPositionSize + " shares.");

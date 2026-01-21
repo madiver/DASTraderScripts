@@ -18,6 +18,7 @@ $structuredSymbol = "";
 // ---- Load chart ----
 $chart = GetWindowObj("Chart_1m");
 if (!IsObj($chart)) {
+    MsgLog("Structured stop failed: Chart_1m not found.");
     return;
 }
 
@@ -27,12 +28,14 @@ $structuredSymbol = $symbol;
 // ---- Load quote ----
 $quote = GetQuoteObj($symbol);
 if (!IsObj($quote)) {
+    MsgLog("Structured stop failed: quote missing for " + $symbol + ".");
     return;
 }
 $bid = $quote.BID;
 
 // ---- Live candle globals (from chart_1m.das) ----
 if ($CURR_LAST <= 0 || $CURR_LOW <= 0) {
+    MsgLog("Structured stop failed: live chart values missing for " + $symbol + ".");
     return;
 }
 
@@ -70,6 +73,7 @@ if ($microOk == 1) {
 
     if ($microOk == 1 && $CURR_LAST > ($impulseHigh + $structuredMicroExt)) {
         $structuredReason = 11;
+        MsgLog("Structured stop failed (11): micro price moved too far above impulse high [" + $symbol + "].");
         return;
     }
 
@@ -86,14 +90,17 @@ if ($microOk == 1) {
 
         if ($CURR_LAST <= $stop) {
             $structuredReason = 7;
+            MsgLog("Structured stop failed (7): price already below stop [" + $symbol + "].");
             return;
         }
         if ($dist < $structuredMinClearance) {
             $structuredReason = 8;
+            MsgLog("Structured stop failed (8): insufficient clearance above stop [" + $symbol + "].");
             return;
         }
         if ($dist > $structuredMaxStop) {
             $structuredReason = 6;
+            MsgLog("Structured stop failed (6): stop distance too large [" + $symbol + "].");
             return;
         }
 
@@ -102,6 +109,7 @@ if ($microOk == 1) {
         $structuredType = "MICRO";
         $structuredStop = $stop;
         $structuredR = $dist;
+        MsgLog("Structured stop OK (MICRO): stop $" + $structuredStop + " R $" + $structuredR + " [" + $symbol + "].");
         return;
     }
 }
@@ -154,6 +162,11 @@ while ($i <= $structuredMaxLookback) {
 if ($impulseIndex == 0) {
     if ($reason == 9) { $reason = 1; }
     $structuredReason = $reason;
+    $reasonText = "no impulse found";
+    if ($structuredReason == 2) { $reasonText = "impulse too small"; }
+    if ($structuredReason == 3) { $reasonText = "impulse not dominant"; }
+    if ($structuredReason == 9) { $reasonText = "micro impulse not valid (not bar -1)"; }
+    MsgLog("Structured stop failed (" + $structuredReason + "): " + $reasonText + " [" + $symbol + "].");
     return;
 }
 
@@ -176,10 +189,12 @@ while ($j >= 1 && $pullbackCount < $structuredMaxPullback) {
 
 if ($pullbackCount == 0) {
     $structuredReason = 4;
+    MsgLog("Structured stop failed (4): impulse found but no pullback yet [" + $symbol + "].");
     return;
 }
 if ($pullbackValid == 0) {
     $structuredReason = 5;
+    MsgLog("Structured stop failed (5): pullback broke impulse low [" + $symbol + "].");
     return;
 }
 
@@ -193,14 +208,17 @@ $dist = $bid - $stop;
 
 if ($bid <= $stop) {
     $structuredReason = 7;
+    MsgLog("Structured stop failed (7): price already below stop [" + $symbol + "].");
     return;
 }
 if ($dist < $structuredMinClearance) {
     $structuredReason = 8;
+    MsgLog("Structured stop failed (8): insufficient clearance above stop [" + $symbol + "].");
     return;
 }
 if ($dist > $structuredMaxStop) {
     $structuredReason = 6;
+    MsgLog("Structured stop failed (6): stop distance too large [" + $symbol + "].");
     return;
 }
 
@@ -209,3 +227,4 @@ $structuredReason = 0;
 $structuredType = "PAUSE";
 $structuredStop = $stop;
 $structuredR = $dist;
+MsgLog("Structured stop OK (PAUSE): stop $" + $structuredStop + " R $" + $structuredR + " [" + $symbol + "].");

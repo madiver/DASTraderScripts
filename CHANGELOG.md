@@ -10,6 +10,7 @@ All notable changes to this repository will be documented in this file.
 - Add a structured stop mode toggle script and binding (Alt+Ctrl+Win+S).
 - Implement structured stop validation and gating (IB-only for new entries), tied to Chart_1m live data.
 - Use structured stop distance for take-profit calculations and stop placement when structured mode is active.
+- Swap non-blocking status messages from MsgBox to MsgLog for toggles and stop presets.
 
 ### Bug Fixes
 - BE stop scripts no longer gate on `$useAutoStop`; BE adjustments still run when auto stops are disabled.

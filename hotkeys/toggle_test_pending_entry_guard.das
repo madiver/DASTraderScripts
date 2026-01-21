@@ -5,7 +5,7 @@
 // Simulates a pending entry state for the guard check (test mode only).
 
 if ($testMode != 1) {
-   MsgBox("Enable test mode first.");
+   MsgLog("Enable test mode first.");
    return;
 }
 
@@ -22,33 +22,33 @@ if ($active == 1) {
    SetVar("TEST_PENDING_ENTRY_ORIG_TICKS", "");
    SetVar("TEST_PENDING_ENTRY_ACTIVE", "");
 
-   MsgBox("Test pending-entry guard disabled.");
+   MsgLog("Test pending-entry guard disabled.");
    return;
 }
 
 if ($DAY_ACC == "") {
-   MsgBox("Set account mode first (Switch to Sim).");
+   MsgLog("Set account mode first (Switch to Sim).");
    return;
 }
 
 if ($DAY_ACC != $TRSIM) {
-   MsgBox("Test pending-entry guard is SIM-only.");
+   MsgLog("Test pending-entry guard is SIM-only.");
    return;
 }
 
 if ($entryPending == 1 || $entryStage > 0) {
-   MsgBox("Entry staging already active. Clear it before testing.");
+   MsgLog("Entry staging already active. Clear it before testing.");
    return;
 }
 
 $M = GetWindowObj("Primary_OE");
 if (!IsObj($M)) {
-   MsgBox("Primary_OE not found.");
+   MsgLog("Primary_OE not found.");
    return;
 }
 
 if ($M.Pos > 0) {
-   MsgBox("Flatten before testing the pending-entry guard.");
+   MsgLog("Flatten before testing the pending-entry guard.");
    return;
 }
 
@@ -69,4 +69,4 @@ $entryTicks = 0;
 $entryScaleIn = 0;
 $entryDynR = 0;
 
-MsgBox("Test pending-entry guard enabled.\nPending symbol set to " + $entrySymbol + ".");
+MsgLog("Test pending-entry guard enabled.\nPending symbol set to " + $entrySymbol + ".");

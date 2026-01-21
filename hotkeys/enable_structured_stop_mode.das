@@ -15,4 +15,4 @@ $structuredStop = 0;
 $structuredR = 0;
 $structuredSymbol = "";
 
-MsgBox("Structured stop mode enabled.");
+MsgLog("Structured stop mode enabled (IB only).");

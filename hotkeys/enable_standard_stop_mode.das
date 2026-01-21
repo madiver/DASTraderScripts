@@ -15,4 +15,4 @@ $structuredStop = 0;
 $structuredR = 0;
 $structuredSymbol = "";
 
-MsgBox("Standard stop mode enabled.");
+MsgLog("Standard stop mode enabled.");

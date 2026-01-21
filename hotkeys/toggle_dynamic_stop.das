@@ -12,6 +12,7 @@ if ($dynamicStop == 1) {
    $structuredStop = 0;
    $structuredR = 0;
    $structuredSymbol = "";
+   MsgLog("Dynamic stop mode disabled.");
 } else {
    $dynamicStop = 1;
    $stopMode = "DYNAMIC";
@@ -21,5 +22,5 @@ if ($dynamicStop == 1) {
    $structuredStop = 0;
    $structuredR = 0;
    $structuredSymbol = "";
-   MsgBox("WARNING: dynamic stops enabled (buy_ib only).");
+   MsgLog("Dynamic stop mode enabled (IB only).");
 }

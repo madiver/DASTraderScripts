@@ -7,12 +7,12 @@ if ($rehab == 1) {
    $answer = Input("Confirm Rehab Off",
                    "Type YES to confirm you are not emotionally hijacked and want to disable rehab mode:");
    if ($answer != "YES") {
-      MsgBox("Rehab mode remains enabled. (You typed: '" + $answer + "')");
+      MsgLog("Rehab mode remains enabled. (You typed: '" + $answer + "')");
       return;
    }
    $rehab = 0;
-   MsgBox("Rehab mode disabled.");
+   MsgLog("Rehab mode disabled.");
 } else {
    $rehab = 1;
-   MsgBox("Rehab mode enabled.");
+   MsgLog("Rehab mode enabled.");
 }

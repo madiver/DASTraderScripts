@@ -6,7 +6,8 @@
 
 if ($useAutoStop == "Yes") {
    $useAutoStop = "No";
-   MsgBox("WARNING: stop loss disabled.");
+   MsgLog("WARNING: stop loss disabled.");
 } else {
    $useAutoStop = "Yes";
+   MsgLog("Stop loss enabled.");
 }

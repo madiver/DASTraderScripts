@@ -46,14 +46,17 @@ if ($mode == "") {
 
 // ---- Stop mode entry guard ----
 if (($mode == "DYNAMIC" || $mode == "STRUCTURED") && $posBefore <= 0) {
+    MsgLog("Stop mode requires Buy IB for the initial position (" + $mode + ") on " + $entrySymbol + ".");
     MsgBox("Stop mode requires Buy IB for the initial position.");
     return;
 }
 if ($mode == "STRUCTURED" && $structuredR <= 0) {
+    MsgLog("Structured stop data missing. Use a structured IB entry first.");
     MsgBox("Structured stop data missing. Use a structured IB entry first.");
     return;
 }
 if ($mode == "STRUCTURED" && $structuredSymbol != "" && $structuredSymbol != $entrySymbol) {
+    MsgLog("Structured stop symbol mismatch for " + $entrySymbol + ".");
     MsgBox("Structured stop symbol mismatch for " + $entrySymbol + ".");
     return;
 }

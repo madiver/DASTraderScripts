@@ -5,4 +5,5 @@
 // Sets $stopLossTrigger (1R) in dollars per share.
 
 $stopLossTrigger = 0.15;
-MsgBox("WARNING: stop loss trigger set to $0.15.");
+MsgLog("WARNING: stop loss trigger set to $0.15.");
+
