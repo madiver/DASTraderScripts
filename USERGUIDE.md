@@ -310,6 +310,8 @@ remaining position stays protected.
 ### Break-even stop losses / sell orders
 
 Break-even (BE) scripts move protection to breakeven once a position is working.
+They do not check `$useAutoStop`, so BE hotkeys (and TP-driven BE adjustments)
+still work even when automatic stops are disabled.
 
 - For the standard BE scripts (1/1 and 1/2), if price has not reached the BE
   trigger (currently `$0.03` above avg cost), they place a BE limit sell.

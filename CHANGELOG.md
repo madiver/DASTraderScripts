@@ -9,7 +9,7 @@ All notable changes to this repository will be documented in this file.
 - Replace the dynamic-stop toggle with explicit standard/dynamic stop mode scripts and key bindings.
 
 ### Bug Fixes
-- None.
+- BE stop scripts no longer gate on `$useAutoStop`; BE adjustments still run when auto stops are disabled.
 
 ### Cleanup
 - None.

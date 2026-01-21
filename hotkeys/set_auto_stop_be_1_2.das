@@ -19,12 +19,7 @@ $portionDenominator = 2;    // 1 = full, 2 = half, 4 = quarter
 $beOffset           = 0.03; // BE trigger offset
 $cancelWaitMs       = 1000; // cancel throttle wait
 
-// ---- Step 1: Feature toggle ----
-if ($useAutoStop != "Yes") {
-    return;
-}
-
-// ---- Step 2: Load Primary_OE montage ----
+// ---- Step 1: Load Primary_OE montage ----
 $M = GetWindowObj("Primary_OE");
 if (!IsObj($M)) {
     MsgBox("Set Auto Stop BE: Primary_OE montage not found.");
