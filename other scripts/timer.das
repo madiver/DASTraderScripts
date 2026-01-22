@@ -10,6 +10,17 @@ ExecHotkey("Hijack Exit");
 
 // ---- Step 1: Load account and equity baseline ----
 $accName = $DAY_ACC;
+$eqStartVal = GetVar("DAY_EQUITY_START") * 1;
+if ($accName == "" || $eqStartVal <= 0) {
+    $dayEquityInitTicks = $dayEquityInitTicks + 1;
+    if ($dayEquityInitTicks >= 5) {
+        $dayEquityInitTicks = 0;
+        ExecHotKey("Initialize Session Equity");
+    }
+} else {
+    $dayEquityInitTicks = 0;
+}
+$accName = $DAY_ACC;
 $DAY_GUARD_OK = 0;
 if ($accName == "" ) {
     return;

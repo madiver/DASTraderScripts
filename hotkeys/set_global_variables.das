@@ -14,6 +14,7 @@
 // Counter for the 1-second timer script (see other scripts/timer.das)
 $oneSecondScriptCnt = 0;
 $dayLossFlatTicks = 0; // flat-only settle counter for daily loss guard
+$dayEquityInitTicks = 0; // retry counter for auto equity init
 $DAY_ACC = ""; // session account for daily loss guard (set by SIM/LIVE switch)
 
 // Rehab mode: limit entries to ice-breaker size (1/4 normal size)

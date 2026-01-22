@@ -8,7 +8,14 @@
 // Prefer explicit account set by SIM/LIVE switch hotkeys.
 $AccName = $DAY_ACC;
 if ($AccName == "") {
+    $M = GetWindowObj("Primary_OE");
+    if (IsObj($M)) {
+        $AccName = StrTrim("" + $M.Account);
+    }
+}
+if ($AccName == "") {
     $DAY_GUARD_OK = 0;
+    MsgLog("Session equity init failed: no account found.");
     return;
 }
 
@@ -26,10 +33,16 @@ $eqStart    = $eqStartStr * 1;
 // If no saved equity or invalid, snapshot from current Equity
 if ($eqStartStr == "" || $eqStart <= 0) {
     $eqStart = $acc.Equity;
+    if ($eqStart <= 0) {
+        $DAY_GUARD_OK = 0;
+        MsgLog("Session equity init deferred: equity not ready for " + $AccName + ".");
+        return;
+    }
     SetVar($eqKey, $eqStart);
 }
 
 // ---- Step 5: Set current-session globals ----
+$DAY_ACC = $AccName;
 SetVar("DAY_ACC",          $AccName);
 SetVar("DAY_EQUITY_START", $eqStart);
 

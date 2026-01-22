@@ -8,6 +8,11 @@ $trade_ok = 1;
 
 // ---- Daily loss lock guard ----
 $accName = $DAY_ACC;
+$eqStartVal = GetVar("DAY_EQUITY_START") * 1;
+if ($accName == "" || $eqStartVal <= 0) {
+    ExecHotKey("Initialize Session Equity");
+    $accName = $DAY_ACC;
+}
 if ($accName == "") {
     MsgBox("No session account set. Use Switch to SIM/LIVE first.");
     $trade_ok = 0;

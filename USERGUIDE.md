@@ -264,7 +264,7 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Win+'` | `hotkeys/toggle_spread_check_feature.das` | Toggle spread safety guard. |
 | `Ctrl+Alt+Win+D` | `hotkeys/enable_dynamic_stop_mode.das` | Enable dynamic stop mode (Buy IB only). |
 | `Ctrl+Alt+Win+F` | `hotkeys/enable_standard_stop_mode.das` | Enable standard (fixed R) stop mode. |
-| `Alt+Ctrl+Win+S` | `hotkeys/enable_structured_stop_mode.das` | Enable structured stop mode (logic pending). |
+| `Alt+Ctrl+Win+S` | `hotkeys/enable_structured_stop_mode.das` | Enable structured stop mode (IB only). |
 | `Alt+Ctrl+Win+G` | `hotkeys/toggle_apply_live_guards_to_sim.das` | Toggle live-only guards in SIM. |
 | `Alt+Ctrl+Win+M` | `hotkeys/toggle_single_position_guard.das` | Toggle single-symbol entry guard. |
 | `Alt+Ctrl+Win+T` | `hotkeys/toggle_test_mode.das` | Toggle test mode (no order sends). |
@@ -533,7 +533,7 @@ Safety toggles:
 - `toggle_spread_check_feature.das` enables/disables the spread safety guard.
 - `enable_dynamic_stop_mode.das` sets dynamic R for Buy IB entries (and disables standard mode).
 - `enable_standard_stop_mode.das` sets fixed R stops and disables dynamic mode.
-- `enable_structured_stop_mode.das` sets structured stop mode (logic pending).
+- `enable_structured_stop_mode.das` sets structured stop mode (IB only).
 - `toggle_apply_live_guards_to_sim.das` toggles whether live-only guards also
   apply in SIM (`$applyLiveGuardsToSim`).
 - `toggle_single_position_guard.das` toggles the single-position guard
