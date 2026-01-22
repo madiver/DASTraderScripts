@@ -11,6 +11,7 @@ All notable changes to this repository will be documented in this file.
 - Implement structured stop validation and gating (IB-only for new entries), tied to Chart_1m live data.
 - Use structured stop distance for take-profit calculations and stop placement when structured mode is active.
 - Normalize symbols in single-position guard tracking to avoid stale locks.
+- Auto-initialize daily loss starting equity when account/equity becomes available.
 - Swap non-blocking status messages from MsgBox to MsgLog for toggles and stop presets.
 
 ### Bug Fixes
