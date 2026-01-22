@@ -86,8 +86,8 @@ $takeProfitSizeRehab = 0.50;
 // ---- 2b) Dynamic Stop Settings (buy_ib only) ----
 // 1 = enable dynamic spread-based R for buy_ib entries, else fixed R.
 $dynamicStop = 0;
-// Stop mode selector: STANDARD, DYNAMIC, or STRUCTURED.
-$stopMode = "STANDARD";
+// Stop mode selector: FIXED, DYNAMIC, or STRUCTURED.
+$stopMode = "FIXED";
 // Multiplier for spread-based R when dynamicStop is enabled.
 $dynamicStopMult = 2;
 // Runtime state for active dynamic trades (do not edit manually).

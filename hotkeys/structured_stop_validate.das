@@ -119,7 +119,7 @@ if ($structuredReason == 1) {
 }
 
 // ============================================================
-// Branch B: STANDARD PULLBACK (completed bars)
+// Branch B: FIXED PULLBACK (completed bars)
 // ============================================================
 $reason = 9;
 $impulseIndex = 0;

@@ -43,7 +43,7 @@ if (IsObj($M)) {
 // ---- Resolve stop mode ----
 $mode = $stopMode;
 if ($mode == "") {
-    if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "STANDARD"; }
+    if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "FIXED"; }
 }
 
 // ---- Stop mode entry guard ----

@@ -1,10 +1,10 @@
 // =====================
-// ENABLE STANDARD STOP MODE
+// ENABLE FIXED STOP MODE
 // Group: Utilities & toggles
 // =====================
-// Sets stop mode to STANDARD and disables dynamic stops.
+// Sets stop mode to FIXED and disables dynamic stops.
 
-$stopMode = "STANDARD";
+$stopMode = "FIXED";
 $dynamicStop = 0;
 $dynamicStopActive = 0;
 $dynamicStopR = 0;
@@ -15,4 +15,4 @@ $structuredStop = 0;
 $structuredR = 0;
 $structuredSymbol = "";
 
-MsgLog("Standard stop mode enabled.");
+MsgLog("Fixed stop mode enabled.");

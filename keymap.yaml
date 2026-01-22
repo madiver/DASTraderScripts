@@ -1,4 +1,4 @@
-﻿# Global controls & config
+# Global controls & config
 - id: cancel_all
   key: Ctrl+Shift+Q
   label: Cancel All
@@ -191,7 +191,7 @@
   scriptPath: hotkeys/enable_dynamic_stop_mode.das
 - id: enable_standard_stop_mode
   key: Ctrl+Alt+Win+F
-  label: Enable Standard Stop Mode
+  label: Enable Fixed Stop Mode
   scriptPath: hotkeys/enable_standard_stop_mode.das
 - id: enable_structured_stop_mode
   key: Alt+Ctrl+Win+S

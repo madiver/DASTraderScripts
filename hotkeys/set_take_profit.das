@@ -33,7 +33,7 @@ if ($avgNow <= 0) { $avgNow = $M.Last; }
 // Effective TP distance in dollars per share
 $mode = $stopMode;
 if ($mode == "") {
-    if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "STANDARD"; }
+    if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "FIXED"; }
 }
 
 $effR = $stopLossTrigger;

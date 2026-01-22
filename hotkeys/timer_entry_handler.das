@@ -24,7 +24,7 @@ $mySym  = StrTrim("" + $M.Symb);
 $posNow = $M.Pos;
 $mode = $stopMode;
 if ($mode == "") {
-    if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "STANDARD"; }
+    if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "FIXED"; }
 }
 
 // If no pending entry, optionally re-arm when size increases
@@ -195,7 +195,7 @@ if ($entryStage == 0) {
             if (StrTrim("" + $singlePositionSymbol) == "") { $singlePositionSymbol = $mySym; }
             $mode = $stopMode;
             if ($mode == "") {
-                if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "STANDARD"; }
+                if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "FIXED"; }
             }
             if ($entryDynR > 0 && $mode == "DYNAMIC") {
                 $dynamicStopR = $entryDynR;

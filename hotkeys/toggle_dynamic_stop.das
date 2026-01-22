@@ -5,7 +5,7 @@
 // Toggles $dynamicStop (buy_ib only).
 if ($dynamicStop == 1) {
    $dynamicStop = 0;
-   $stopMode = "STANDARD";
+   $stopMode = "FIXED";
    $structuredOk = 0;
    $structuredReason = 0;
    $structuredType = "";

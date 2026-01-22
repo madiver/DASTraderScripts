@@ -35,7 +35,7 @@ if (IsObj($M)) {
 // ---- Resolve stop mode ----
 $mode = $stopMode;
 if ($mode == "") {
-    if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "STANDARD"; }
+    if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "FIXED"; }
 }
 
 // Rehab gate: block scaling in while rehab mode is enabled (LIVE; optional SIM).
