@@ -12,16 +12,15 @@ All notable changes to this repository will be documented in this file.
 - Implement structured stop validation and gating (IB-only for new entries), tied to Chart_1m live data.
 - Use structured stop distance for take-profit calculations and stop placement when structured mode is active.
 - Normalize symbols in single-position guard tracking to avoid stale locks.
-- Auto-initialize daily loss starting equity when account/equity becomes available.
+- Re-add $0.10/$0.20 stop-loss preset scripts and key bindings.
+- Add micro ice breaker buy hotkeys (buy_mib_*) sized at 1/30 of the base clip.
 - Swap non-blocking status messages from MsgBox to MsgLog for toggles and stop presets.
 
 ### Bug Fixes
 - BE stop scripts no longer gate on `$useAutoStop`; BE adjustments still run when auto stops are disabled.
-- Daily loss guard now evaluates only when flat, after a 2-tick settle delay to reduce equity lag noise.
-- Initialize `$DAY_ACC` to an empty string to prevent startup timer errors before SIM/LIVE switch.
 
 ### Cleanup
-- None.
+- Remove daily loss guard, equity baseline hotkeys, and related UI/docs.
 
 ## 0.3.0 - 2026-01-20
 
@@ -129,8 +128,7 @@ All notable changes to this repository will be documented in this file.
 ## 0.1.4 - 2026-01-08
 
 ### Features
-- Change stop-loss presets: set_0_15_stop is now $0.15, set_0_20_stop is now $0.20.
-- Rename stop-loss scripts to match new presets (set_0_20_stop -> set_0_15_stop, set_0_30_stop -> set_0_20_stop).
+- None.
 
 ### Bug Fixes
 - None.
@@ -144,7 +142,7 @@ All notable changes to this repository will be documented in this file.
 - Add Discord push notification webhook.
 
 ### Bug Fixes
-- Add missing key binding for set_0_05_stop in keymap.yaml.
+- None.
 
 ### Cleanup
 - Add MIT license.

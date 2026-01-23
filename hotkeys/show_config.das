@@ -16,11 +16,6 @@ if (IsObj($M)) {
 }
 
 // ---- Test guard status ----
-$testDayActive = 0;
-if ($DAY_ACC != "") {
-    $testDayKey = "TEST_DAY_EQUITY_START_" + $DAY_ACC;
-    if (GetVar($testDayKey) != "") { $testDayActive = 1; }
-}
 $testHijackActive = GetVar("TEST_HIJACK_ACTIVE") * 1;
 $testSingleActive = GetVar("TEST_SINGLE_POSITION_ACTIVE") * 1;
 $testPendingActive = GetVar("TEST_PENDING_ENTRY_ACTIVE") * 1;
@@ -108,22 +103,15 @@ $msg =
 
 "LIMITS\n" +
 "-----------------\n" +
-"maxRisk (per trade): $" + $riskCapDollars + "\n" +
-"maxDailyLoss: $" + $maxDailyLoss + "\n\n" +
+"maxRisk (per trade): $" + $riskCapDollars + "\n\n" +
 
 "POLLING\n" +
 "-----------------\n" +
 "pollMs: " + $pollMs + "\n" +
 "maxPolls: " + $maxPolls + "\n\n" +
 
-"GUARD / SESSION\n" +
+"GUARD / TEST\n" +
 "-----------------\n" +
-"DAY_ACC: " + $DAY_ACC + "\n" +
-"DAY_EQUITY_START: $" + GetVar("DAY_EQUITY_START") + "\n" +
-"TRADING_LOCKED: " + GetVar("TRADING_LOCKED") + "\n" +
-"DAY_FLAT_TICKS: " + $dayLossFlatTicks + "\n" +
-"DAY_GUARD_OK: " + $DAY_GUARD_OK + "\n" +
-"TEST_DAILY_LOSS_OVERRIDE: " + $testDayActive + "\n" +
 "TEST_HIJACK_OVERRIDE: " + $testHijackActive + "\n" +
 "TEST_SINGLE_POSITION_OVERRIDE: " + $testSingleActive + "\n" +
 "TEST_PENDING_ENTRY_OVERRIDE: " + $testPendingActive + "\n" +

@@ -13,9 +13,6 @@
 // ---- 0) Runtime Counters & Modes ----
 // Counter for the 1-second timer script (see other scripts/timer.das)
 $oneSecondScriptCnt = 0;
-$dayLossFlatTicks = 0; // flat-only settle counter for daily loss guard
-$dayEquityInitTicks = 0; // retry counter for auto equity init
-$DAY_ACC = ""; // session account for daily loss guard (set by SIM/LIVE switch)
 
 // Rehab mode: limit entries to ice-breaker size (1/4 normal size)
 $rehab = 0;
@@ -52,7 +49,7 @@ $usePerTradeRiskCap       = 1;     // 1=abort if projected risk exceeds cap
 $useSpreadCheck           = 1;     // 1=check spreads before allowing buy order
 $pegToBid                 = 0;     // 1=use bid for BE limit sells when applicable
 $hijackProtection       = 1;     // 1=enable position-size hijack protection
-$applyLiveGuardsToSim     = 1;     // 1=apply live-only guards (daily loss, hijack, rehab) in SIM
+$applyLiveGuardsToSim     = 1;     // 1=apply live-only guards (hijack, rehab) in SIM
 $singlePositionGuard      = 1;     // 1=block new entries on a different symbol (script-tracked)
 
 $useAutoStop = "Yes";
@@ -132,16 +129,6 @@ $maxPositionSize = 500;
 // Useful for guarding against oversized positions or bad spreads
 $riskCapDollars = 100.00;
 
-// Maximum allowed daily loss tracked by comparing
-// start-of-session equity vs current equity
-$maxDailyLoss = 100.00;
-
 // Order entry fill wait parameters
 $pollMs           = 100;             // polling cadence (ms)
 $maxPolls       = 20;              // 20*100ms ~= 2s
-
-// Daily loss guard health (0=inactive/invalid, 1=ok)
-$DAY_GUARD_OK = 0;
-
-// Initialize session equity baseline for daily-loss guard
-ExecHotKey("Initialize Session Equity");

@@ -22,11 +22,11 @@ Regardless of the method you choose, the timer script must be installed manually
    - `dasHotkeyTools.liveAccount` and `dasHotkeyTools.simulatedAccount` for `%%LIVE%%` / `%%SIMULATED%%` substitution.
    - Optional: `dasHotkeyTools.placeholders.failOnMissing` to block builds when placeholders are unresolved.
 3) Ensure your montage is named `Primary_OE`, the timer script `other scripts/timer.das` is installed under Timer Event Scripts, and the chart script `other scripts/chart_1m.das` is installed as a 1-minute Chart Script.
-4) Run `switch_to_sim.das` or `switch_to_live.das` to bind the session account.
-5) Run `set_global_variables.das` to initialize globals and the daily-loss baseline.
+4) Run `switch_to_sim.das` or `switch_to_live.das` to set the montage account and filters.
+5) Run `set_global_variables.das` to initialize globals.
 6) Use `show_config.das` to confirm account mode, defaults, and guard states.
 
-Important: update `$TRSIM` and `$LIVEACT` in `hotkeys/set_global_variables.das` with your actual account identifiers if they are not already populated. `$LIVEACT` is used by the timer for guard rails and `$TRSIM` is shown in the config display. `$applyLiveGuardsToSim` controls whether the live-only guards (daily loss, hijack, rehab) also apply in SIM; it defaults to `1`. Set it to `0` if you want those guards to run only in LIVE. Also verify that any `%%SIMULATED%%` and `%%LIVE%%` placeholders have been replaced in the SIM/LIVE switch and session scripts (the VS Code extension handles this during build; if you copy scripts manually, you must replace them yourself).
+Important: update `$TRSIM` and `$LIVEACT` in `hotkeys/set_global_variables.das` with your actual account identifiers if they are not already populated (they are shown in the config display for reference). `$applyLiveGuardsToSim` controls whether the live-only guards (hijack, rehab) also apply in SIM; it defaults to `1`. Set it to `0` if you want those guards to run only in LIVE. Also verify that any `%%SIMULATED%%` and `%%LIVE%%` placeholders have been replaced in the SIM/LIVE switch scripts (the VS Code extension handles this during build; if you copy scripts manually, you must replace them yourself).
 
 By default (`$useTimerArming = 1`), a buy hotkey sends the limit order, records entry context, and returns immediately. A timer-driven handler then waits for a fill and arms stop loss / take profit on subsequent 1-second ticks. If position size increases on later ticks, the handler cancels existing sell orders, re-arms the stop, and only re-arms TP when the TP reset conditions are met. If no fill appears within `$entryMaxTicks`, the handler cancels the working buy order and clears the pending state. If `$useTimerArming = 0`, the buy hotkey polls for a fill up to `$maxPolls * $pollMs`; if nothing fills, the order is canceled and the script exits without arming any protection. If a partial fill meets `$minFillShares`, the remainder is canceled (when enabled) and the scripts proceed as if the trade is active, using the average entry price for subsequent calculations.
 
@@ -58,7 +58,7 @@ Feature toggles and entry guards:
 - `$useSpreadCheck`: enables spread-vs-R safety checks before entries.
 - `$pegToBid`: when enabled, BE limit sells can peg to bid instead of AvgCost.
 - `$hijackProtection`: enables the position-size hijack backstop (LIVE, and SIM when `$applyLiveGuardsToSim = 1`).
-- `$applyLiveGuardsToSim`: when set to 1 (default), apply daily loss, hijack, and rehab guards in SIM.
+- `$applyLiveGuardsToSim`: when set to 1 (default), apply hijack and rehab guards in SIM.
 - `$singlePositionGuard`: when set to 1 (default), block new entries on a different symbol (script-tracked).
 - `$useAutoStop`: toggles auto stop placement.
 - `$useTakeProfit`: toggles take-profit alerts/executor behavior.
@@ -105,7 +105,6 @@ Sizing and risk limits:
 - `$qtyMult`: position size multiplier.
 - `$maxPositionSize`: maximum total position size in shares.
 - `$riskCapDollars`: maximum projected net risk per trade in dollars.
-- `$maxDailyLoss`: daily loss lock threshold (equity drawdown; auto-unlocks when drawdown falls back below the limit).
 
 Order fill polling:
 - `$pollMs`: polling interval in milliseconds.
@@ -192,15 +191,8 @@ baseline values when you run "Set Global Variables."
 | Sizing | `$qtyMult` | `6` |
 | Sizing | `$maxPositionSize` | `500` |
 | Limits | `$riskCapDollars` | `100.00` |
-| Limits | `$maxDailyLoss` | `100.00` |
 | Polling | `$pollMs` | `100` |
 | Polling | `$maxPolls` | `20` |
-| Guard | `$DAY_GUARD_OK` | `0` |
-
-`Set Global Variables` also runs `Initialize Session Equity` to seed the daily
-loss baseline used by the timer script. The session account (`$DAY_ACC`) is set
-by the SIM/LIVE switch hotkeys, so run those at the start of a session to bind
-the guard rails to the correct account.
 
 Test mode: set `$testMode = 1` to run buy hotkeys through non-market guard
 checks only (no order is sent). Use this for off-hours validation of lock
@@ -222,21 +214,25 @@ scripts rather than direct invocation.
 | --- | --- | --- |
 | `Ctrl+Shift+Q` | `hotkeys/cancel_all.das` | Cancel orders, clear TP alerts, re-arm stops. |
 | `Alt+Ctrl+Q` | `hotkeys/gtfo.das` | Emergency exit: cancel orders, sell full at bid-0.50. |
-| `Ctrl+,` | `hotkeys/set_global_variables.das` | Load defaults and initialize session equity. |
+| `Ctrl+,` | `hotkeys/set_global_variables.das` | Load default globals. |
 | `Alt+Ctrl+S` | `hotkeys/switch_to_sim.das` | Switch montage and filters to SIM. |
 | `Alt+Ctrl+L` | `hotkeys/switch_to_live.das` | Switch montage and filters to LIVE. |
 | `Alt+Ctrl+.` | `hotkeys/show_config.das` | Show current globals, account mode, guard states. |
 | Unbound | `hotkeys/check_global_guards.das` | Run guard checks and set `$trade_ok`. |
 | Unbound | `hotkeys/cancel_all_no_stops.das` | Cancel orders and TP alerts without re-arming stops. |
+| `Alt+Ctrl+Shift+Win+0` | `hotkeys/buy_mib_bid_plus_sl.das` | Micro ice breaker buy at bid + offset with auto stop/TP. |
 | `Ctrl+Shift+1` | `hotkeys/buy_ib_bid_plus_sl.das` | Ice breaker buy at bid + offset with auto stop/TP. |
 | `Ctrl+Shift+2` | `hotkeys/buy_25_bid_plus_sl.das` | Half-clip buy at bid + offset with auto stop/TP. |
 | `Ctrl+Shift+3` | `hotkeys/buy_50_bid_plus_sl.das` | Full-clip buy at bid + offset with auto stop/TP. |
+| `Alt+Ctrl+0` | `hotkeys/buy_mib_bid_sl.das` | Micro ice breaker buy at bid with auto stop/TP. |
 | `Alt+Ctrl+1` | `hotkeys/buy_ib_bid_sl.das` | Ice breaker buy at bid with auto stop/TP. |
 | `Alt+Ctrl+2` | `hotkeys/buy_25_bid_sl.das` | Half-clip buy at bid with auto stop/TP. |
 | `Alt+Ctrl+3` | `hotkeys/buy_50_bid_sl.das` | Full-clip buy at bid with auto stop/TP. |
+| `Alt+Shift+0` | `hotkeys/buy_mib_ask_sl.das` | Micro ice breaker buy at ask with auto stop/TP. |
 | `Alt+Shift+1` | `hotkeys/buy_ib_ask_sl.das` | Ice breaker buy at ask with auto stop/TP. |
 | `Alt+Shift+2` | `hotkeys/buy_25_ask_sl.das` | Half-clip buy at ask with auto stop/TP. |
 | `Alt+Shift+3` | `hotkeys/buy_50_ask_sl.das` | Full-clip buy at ask with auto stop/TP. |
+| `Alt+Ctrl+Shift+0` | `hotkeys/buy_mib_ask_plus_sl.das` | Micro ice breaker buy at ask + offset with auto stop/TP. |
 | `Alt+Ctrl+Shift+1` | `hotkeys/buy_ib_ask_plus_sl.das` | Ice breaker buy at ask + offset with auto stop/TP. |
 | `Alt+Ctrl+Shift+2` | `hotkeys/buy_25_ask_plus_sl.das` | Half-clip buy at ask + offset with auto stop/TP. |
 | `Alt+Ctrl+Shift+3` | `hotkeys/buy_50_ask_plus_sl.das` | Full-clip buy at ask + offset with auto stop/TP. |
@@ -249,11 +245,9 @@ scripts rather than direct invocation.
 | `Ctrl+Shift+S` | `hotkeys/set_auto_stop.das` | Place 1R stop-limit for full position. |
 | `Ctrl+Shift+B` | `hotkeys/set_auto_stop_be_1_1.das` | Breakeven stop/limit for full position. |
 | Unbound | `hotkeys/set_auto_stop_be_scale_1_1.das` | Scale-in BE stop/limit for full position. |
-| Unbound | `hotkeys/structured_stop_validate.das` | Structured stop validation (internal). |
 | `Alt+Ctrl+Win+-` | `hotkeys/set_0_10_stop.das` | Set 1R stop-loss trigger to $0.10. |
-| `Alt+Ctrl+Win+=` | `hotkeys/set_0_15_stop.das` | Set 1R stop-loss trigger to $0.15. |
 | `Alt+Ctrl+Win+[` | `hotkeys/set_0_20_stop.das` | Set 1R stop-loss trigger to $0.20. |
-| `Alt+Ctrl+Win+0` | `hotkeys/set_0_05_stop.das` | Set 1R stop-loss trigger to $0.05. |
+| Unbound | `hotkeys/structured_stop_validate.das` | Structured stop validation (internal). |
 | `Alt+Ctrl+B` | `hotkeys/set_auto_stop_be_1_2.das` | Breakeven stop/limit for half position. |
 | `Ctrl+Shift+T` | `hotkeys/set_take_profit.das` | Create R-based take-profit alert. |
 | Unbound | `hotkeys/take_profit_executor.das` | Execute TP partial when alert fires. |
@@ -262,13 +256,12 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Win+]` | `hotkeys/toggle_stp_feature.das` | Toggle auto stop-loss feature. |
 | `Alt+Ctrl+Win+/` | `hotkeys/toggle_tp_feature.das` | Toggle take-profit alerts. |
 | `Alt+Ctrl+Win+'` | `hotkeys/toggle_spread_check_feature.das` | Toggle spread safety guard. |
-| `Ctrl+Alt+Win+D` | `hotkeys/enable_dynamic_stop_mode.das` | Enable dynamic stop mode (Buy IB only). |
+| `Ctrl+Alt+Win+D` | `hotkeys/enable_dynamic_stop_mode.das` | Enable dynamic stop mode (Buy IB/MIB only). |
 | `Ctrl+Alt+Win+F` | `hotkeys/enable_standard_stop_mode.das` | Enable fixed stop mode. |
-| `Alt+Ctrl+Win+S` | `hotkeys/enable_structured_stop_mode.das` | Enable structured stop mode (IB only). |
+| `Alt+Ctrl+Win+S` | `hotkeys/enable_structured_stop_mode.das` | Enable structured stop mode (IB/MIB only). |
 | `Alt+Ctrl+Win+G` | `hotkeys/toggle_apply_live_guards_to_sim.das` | Toggle live-only guards in SIM. |
 | `Alt+Ctrl+Win+M` | `hotkeys/toggle_single_position_guard.das` | Toggle single-symbol entry guard. |
 | `Alt+Ctrl+Win+T` | `hotkeys/toggle_test_mode.das` | Toggle test mode (no order sends). |
-| `Alt+Ctrl+Shift+Win+1` | `hotkeys/toggle_test_daily_loss_guard.das` | Toggle daily loss guard test. |
 | `Alt+Ctrl+Shift+Win+2` | `hotkeys/toggle_test_hijack_guard.das` | Toggle hijack guard test. |
 | `Alt+Ctrl+Shift+Win+3` | `hotkeys/toggle_test_single_position_guard.das` | Toggle single-position guard test. |
 | `Alt+Ctrl+Shift+Win+4` | `hotkeys/toggle_test_pending_entry_guard.das` | Toggle pending-entry guard test. |
@@ -276,19 +269,20 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Win+H` | `hotkeys/enable_rehab_mode.das` | Toggle rehab mode (YES to disable). |
 | Unbound | `hotkeys/hijack_exit.das` | Hijack guard exit/lock enforcement (timer-only). |
 | Unbound | `hotkeys/timer_entry_handler.das` | Timer-driven stop/TP arming for entries. |
-| Unbound | `hotkeys/initialize_session_equity.das` | Initialize daily-loss baseline for account. |
-| `Alt+Ctrl+E` | `hotkeys/session_max_loss_check.das` | Set manual starting equity baseline. |
-| `Alt+Ctrl+P` | `hotkeys/check_pnl.das` | Show session equity, PnL, and lock state. |
-| `Alt+Ctrl+U` | `hotkeys/reset_starting_equity.das` | Reset starting equity baseline (confirm YES). |
 
 ## BUY ORDERS
 
-Sizing philosophy: start small to probe the trade, add only when it is working, and cap exposure with hard limits. Base sizing is a 50-share clip multiplied by `$qtyMult`. Buy 25 uses half of that clip, Buy 50 uses the full clip, and Buy IB (ice breaker) uses roughly one quarter of the 50-share clip (rounded to 5-share lots). This keeps the sizing deterministic and proportional to your 1R risk. In rehab mode (`$rehab = 1`), trading is restricted to ice breaker entries and scale-ins are blocked in LIVE and SIM when `$applyLiveGuardsToSim = 1`.
+Sizing philosophy: start small to probe the trade, add only when it is working, and cap exposure with hard limits. Base sizing is a 50-share clip multiplied by `$qtyMult`. Buy 25 uses half of that clip, Buy 50 uses the full clip, Buy IB (ice breaker) uses roughly one quarter of the 50-share clip, and Buy MIB (micro ice breaker) uses roughly one thirtieth of the 50-share clip (all rounded to 5-share lots). This keeps the sizing deterministic and proportional to your 1R risk. In rehab mode (`$rehab = 1`), trading is restricted to ice breaker entries and scale-ins are blocked in LIVE and SIM when `$applyLiveGuardsToSim = 1`.
 
 Rehab mode is a safety throttle for live trading. When enabled (`$rehab = 1`), the scripts block scale-ins and prevent larger clip entries in live accounts, forcing you to trade only ice breaker size while you reset discipline or reduce risk after a drawdown. The same restrictions apply in SIM when `$applyLiveGuardsToSim = 1` (default). You can set the default by changing `$rehab` in `hotkeys/set_global_variables.das` and re-running "Set Global Variables" (or restarting DAS), or toggle it for the current session using the `Toggle Rehab Mode` hotkey. Disabling rehab requires typing `YES` to confirm.
 
 ### Ice breaker, half, and full size
 
+- Buy MIB scripts are the micro ice breaker entries. They size at roughly one
+  thirtieth of the 50-share base clip after applying `$qtyMult` and then round
+  to 5-share lots with a 5-share minimum. In formula form:
+  `mibShares = round5(50 * $qtyMult / 30)`. MIB entries are treated like IB for
+  dynamic/structured gating.
 - Buy IB scripts are the ice breaker entries. They size at roughly one quarter
   of the 50-share base clip after applying `$qtyMult` and then round to 5-share
   lots with a 5-share minimum. In formula form: `ibShares = round5(50 * $qtyMult * 0.25)`.
@@ -372,7 +366,7 @@ order is snapped to valid tick sizes and sent as a STOP/SLP order.
 
 ### Dynamic stop losses (experimental)
 
-Dynamic stops are only supported for Buy IB entries due to the
+Dynamic stops are only supported for Buy IB/MIB entries due to the
 added risk of spread-based sizing, and they only activate when
 `$dynamicStop == 1`. They are intended for parabolic movers where spreads and
 intraday swings expand sharply as price accelerates.
@@ -400,7 +394,7 @@ and require the `Chart_1m` window running `other scripts/chart_1m.das` so live
 candle values are available. The structured validator computes a stop price
 from a 1-minute impulse/pullback pattern and stores it in `$structuredStop`.
 
-- Only Buy IB entries can open a new position in structured mode.
+- Only Buy IB/MIB entries can open a new position in structured mode.
 - Buy 25/50 hotkeys are allowed only for scale-ins (and require `$structuredR`).
 - If structured data is missing at entry time, the entry is aborted.
 - The stop engine uses `$structuredStop`, and TP distance uses `$structuredR`.
@@ -446,17 +440,6 @@ These controls help prevent low-quality fills and oversized risk.
   (`$useSpreadCheck`).
 - Slippage margin: requires the planned stop to sit below bid by a minimum
   tick/spread buffer (`$useSlippageMargin`, `$slipTicksMin`, `$slipSpreadFrac`).
-- Max daily loss: a daily lock prevents new entries while equity drawdown is at
-  or above the threshold (`$maxDailyLoss`) and auto-unlocks when drawdown drops
-  back below the limit. The lock is enforced by the timer script and is only
-  evaluated when Primary_OE is flat, after a 2-tick settle delay to allow equity
-  to update.
-  Limitations: the guard uses a stored starting equity snapshot and compares it
-  to the account's current Equity value. If DAS restarts or crashes mid-session,
-  the baseline may be stale until you run `Reset Starting Equity` or `Set Start Equity`.
-  Equity can include unrealized PnL and may lag the account window briefly, so
-  the guard is a best-effort safety backstop rather than an exact match to your
-  realized PnL at every moment.
 - Hijack protection: if the position size exceeds `$maxPositionSize` (LIVE, and
   SIM when `$applyLiveGuardsToSim = 1`), the timer triggers GTFO, locks all
   montage order buttons, and sets `$HIJACKED_LOCKED` to block new buys. The lock
@@ -471,10 +454,9 @@ These controls help prevent low-quality fills and oversized risk.
 - Per-trade risk cap: blocks entries when projected risk exceeds
   `$riskCapDollars` (`$usePerTradeRiskCap`).
 
-SIM vs LIVE: daily loss lock, hijack protection, and rehab gating apply in LIVE
-and SIM when `$applyLiveGuardsToSim = 1` (default). Set
-`$applyLiveGuardsToSim = 0` to keep those three guards live-only. All other
-guard rails apply in both SIM and LIVE.
+SIM vs LIVE: hijack protection and rehab gating apply in LIVE and SIM when
+`$applyLiveGuardsToSim = 1` (default). Set `$applyLiveGuardsToSim = 0` to keep
+those guards live-only. All other guard rails apply in both SIM and LIVE.
 
 ### Hijack protection (position-size backstop)
 
@@ -495,14 +477,12 @@ Reset behavior:
 
 ## TIMER SCRIPT
 
-`other scripts/timer.das` does four things:
+`other scripts/timer.das` does three things:
 
-1) Enforces the daily loss lock for LIVE and SIM when `$applyLiveGuardsToSim = 1`
-   (default) using the session equity baseline.
-2) Enforces hijack protection on position size (same scope as above).
-3) Runs `Timer Entry Handler` each tick to arm stops/TP after fills when
+1) Enforces hijack protection on position size (LIVE, and SIM when `$applyLiveGuardsToSim = 1`).
+2) Runs `Timer Entry Handler` each tick to arm stops/TP after fills when
    `$useTimerArming = 1`.
-4) Clears take-profit alerts and dynamic stop state when flat.
+3) Clears take-profit alerts and dynamic/structured stop state when flat.
 
 Installation: add this script to DAS Trader's timer so it runs every second.
 It is not installed automatically by the hotkey build. Ensure
@@ -531,16 +511,14 @@ Safety toggles:
 - `toggle_stp_feature.das` and `toggle_tp_feature.das` enable/disable auto stops
   and take-profit alerts.
 - `toggle_spread_check_feature.das` enables/disables the spread safety guard.
-- `enable_dynamic_stop_mode.das` sets dynamic R for Buy IB entries (and disables fixed mode).
+- `enable_dynamic_stop_mode.das` sets dynamic R for Buy IB/MIB entries (and disables fixed mode).
 - `enable_standard_stop_mode.das` sets fixed R stops and disables dynamic mode.
-- `enable_structured_stop_mode.das` sets structured stop mode (IB only).
+- `enable_structured_stop_mode.das` sets structured stop mode (IB/MIB only).
 - `toggle_apply_live_guards_to_sim.das` toggles whether live-only guards also
   apply in SIM (`$applyLiveGuardsToSim`).
 - `toggle_single_position_guard.das` toggles the single-position guard
   (`$singlePositionGuard`).
 - `toggle_test_mode.das` toggles test mode (`$testMode`) for off-hours guard checks.
-- `toggle_test_daily_loss_guard.das` toggles a daily loss guard test using
-  `DAY_EQUITY_START` (requires `$testMode = 1`).
 - `toggle_test_hijack_guard.das` toggles a hijack-guard test by lowering
   `maxPositionSize` (requires `$testMode = 1` and an open position).
 - `toggle_test_single_position_guard.das` toggles a simulated active symbol for
@@ -553,12 +531,8 @@ Safety toggles:
 - `enable_rehab_mode.das` toggles rehab mode on/off; disabling requires typing `YES`.
 
 Account and session:
-- `set_global_variables.das` refreshes all global settings and initializes the
-  session equity baseline.
+- `set_global_variables.das` refreshes all global settings.
 - `switch_to_sim.das` and `switch_to_live.das` set the Primary_OE account.
-- `initialize_session_equity.das` and `reset_starting_equity.das` manage the
-  daily-loss baseline.
-- `session_max_loss_check.das` and `check_pnl.das` report session status.
 
 Order control:
 - `cancel_all.das` cancels working orders and re-arms stops; 

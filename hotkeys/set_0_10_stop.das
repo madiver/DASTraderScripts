@@ -6,4 +6,3 @@
 
 $stopLossTrigger = 0.10;
 MsgLog("Stop loss trigger set to $0.10.");
-

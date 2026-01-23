@@ -66,9 +66,4 @@ if (StrFind($account, "TR") == -1)
         }
     }
 
-    // Bind session account for guard rails
-    $DAY_ACC = "%%SIMULATED%%";
-
-    // Reinitialize equity/session state
-    ExecHotKey("Initialize Session Equity");
 }

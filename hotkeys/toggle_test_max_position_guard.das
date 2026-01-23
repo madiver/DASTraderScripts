@@ -19,24 +19,25 @@ if ($active == 1) {
    return;
 }
 
-if ($DAY_ACC == "") {
+$M = GetWindowObj("Primary_OE");
+if (!IsObj($M)) {
+   MsgLog("Primary_OE not found.");
+   return;
+}
+
+$acct = StrTrim("" + $M.Account);
+if (StrLen($acct) == 0) {
    MsgLog("Set account mode first (Switch to Sim).");
    return;
 }
 
-if ($DAY_ACC != $TRSIM) {
+if (StrFind($acct, "TR") != 0) {
    MsgLog("Test max-position guard is SIM-only.");
    return;
 }
 
 if (GetVar("TEST_HIJACK_ACTIVE") * 1 == 1) {
    MsgLog("Disable the hijack test first.");
-   return;
-}
-
-$M = GetWindowObj("Primary_OE");
-if (!IsObj($M)) {
-   MsgLog("Primary_OE not found.");
    return;
 }
 

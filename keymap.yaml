@@ -33,6 +33,10 @@
   scriptPath: hotkeys/cancel_all_no_stops.das
 
 # Buy orders: Bid+ SL
+- id: buy_mib_bid_plus_sl
+  key: Alt+Ctrl+Shift+Win+0
+  label: Buy MIB Bid+ SL
+  scriptPath: hotkeys/buy_mib_bid_plus_sl.das
 - id: buy_ib_bid_plus_sl
   key: Ctrl+Shift+1
   label: Buy IB Bid+ SL
@@ -47,6 +51,10 @@
   scriptPath: hotkeys/buy_50_bid_plus_sl.das
 
 # Buy orders: Bid SL
+- id: buy_mib_bid_sl
+  key: Alt+Ctrl+0
+  label: Buy MIB Bid SL
+  scriptPath: hotkeys/buy_mib_bid_sl.das
 - id: buy_ib_bid_sl
   key: Alt+Ctrl+1
   label: Buy IB Bid SL
@@ -61,6 +69,10 @@
   scriptPath: hotkeys/buy_50_bid_sl.das
 
 # Buy orders: Ask SL
+- id: buy_mib_ask_sl
+  key: Alt+Shift+0
+  label: Buy MIB Ask SL
+  scriptPath: hotkeys/buy_mib_ask_sl.das
 - id: buy_ib_ask_sl
   key: Alt+Shift+1
   label: Buy IB Ask SL
@@ -75,6 +87,10 @@
   scriptPath: hotkeys/buy_50_ask_sl.das
 
 # Buy orders: Ask+ SL
+- id: buy_mib_ask_plus_sl
+  key: Alt+Ctrl+Shift+0
+  label: Buy MIB Ask+ SL
+  scriptPath: hotkeys/buy_mib_ask_plus_sl.das
 - id: buy_ib_ask_plus_sl
   key: Alt+Ctrl+Shift+1
   label: Buy IB Ask+ SL
@@ -133,18 +149,10 @@
   key: Alt+Ctrl+Win+-
   label: Set 0.10 Stop
   scriptPath: hotkeys/set_0_10_stop.das
-- id: set_0_15_stop
-  key: Alt+Ctrl+Win+=
-  label: Set 0.15 Stop
-  scriptPath: hotkeys/set_0_15_stop.das
 - id: set_0_20_stop
   key: Alt+Ctrl+Win+[
   label: Set 0.20 Stop
   scriptPath: hotkeys/set_0_20_stop.das
-- id: set_0_05_stop
-  key: Alt+Ctrl+Win+0
-  label: Set 0.05 Stop
-  scriptPath: hotkeys/set_0_05_stop.das
 - id: set_auto_stop_be_1_2
   key: Alt+Ctrl+B
   label: Set Auto Stop BE 1/2
@@ -209,10 +217,6 @@
   key: Alt+Ctrl+Win+T
   label: Toggle Test Mode
   scriptPath: hotkeys/toggle_test_mode.das
-- id: toggle_test_daily_loss_guard
-  key: Alt+Ctrl+Shift+Win+1
-  label: Toggle Test Daily Loss Guard
-  scriptPath: hotkeys/toggle_test_daily_loss_guard.das
 - id: toggle_test_hijack_guard
   key: Alt+Ctrl+Shift+Win+2
   label: Toggle Test Hijack Guard
@@ -241,21 +245,3 @@
   key:
   label: Timer Entry Handler
   scriptPath: hotkeys/timer_entry_handler.das
-
-# Session equity & PnL
-- id: initialize_session_equity
-  key: 
-  label: Initialize Session Equity
-  scriptPath: hotkeys/initialize_session_equity.das
-- id: session_max_loss_check
-  key: Alt+Ctrl+E
-  label: Session Max Loss Check
-  scriptPath: hotkeys/session_max_loss_check.das
-- id: check_pnl
-  key: Alt+Ctrl+P
-  label: Check PnL
-  scriptPath: hotkeys/check_pnl.das
-- id: reset_starting_equity
-  key: Alt+Ctrl+U
-  label: Reset Starting Equity
-  scriptPath: hotkeys/reset_starting_equity.das

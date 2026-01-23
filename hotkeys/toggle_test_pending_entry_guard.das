@@ -26,24 +26,25 @@ if ($active == 1) {
    return;
 }
 
-if ($DAY_ACC == "") {
+$M = GetWindowObj("Primary_OE");
+if (!IsObj($M)) {
+   MsgLog("Primary_OE not found.");
+   return;
+}
+
+$acct = StrTrim("" + $M.Account);
+if (StrLen($acct) == 0) {
    MsgLog("Set account mode first (Switch to Sim).");
    return;
 }
 
-if ($DAY_ACC != $TRSIM) {
+if (StrFind($acct, "TR") != 0) {
    MsgLog("Test pending-entry guard is SIM-only.");
    return;
 }
 
 if ($entryPending == 1 || $entryStage > 0) {
    MsgLog("Entry staging already active. Clear it before testing.");
-   return;
-}
-
-$M = GetWindowObj("Primary_OE");
-if (!IsObj($M)) {
-   MsgLog("Primary_OE not found.");
    return;
 }
 
