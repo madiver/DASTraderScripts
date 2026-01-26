@@ -48,8 +48,8 @@ if ($rehab == 1 && $posBefore > 0 && ($isLive == 1 || $applyLiveGuardsToSim == 1
     return;
 }
 
-// Micro ice breaker size: 1/30 of normal shares, rounded to 5s.
-$micro = 50 * $qtyMult / 30;
+// Micro ice breaker size: 1/20 of normal shares, rounded to 5s.
+$micro = 50 * $qtyMult / 20;
 $scaled = $micro + 2.5;
 $addShares = $scaled - ($scaled % 5);
 if ($addShares < 5) { $addShares = 5; }

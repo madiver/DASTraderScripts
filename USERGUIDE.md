@@ -272,16 +272,16 @@ scripts rather than direct invocation.
 
 ## BUY ORDERS
 
-Sizing philosophy: start small to probe the trade, add only when it is working, and cap exposure with hard limits. Base sizing is a 50-share clip multiplied by `$qtyMult`. Buy 25 uses half of that clip, Buy 50 uses the full clip, Buy IB (ice breaker) uses roughly one quarter of the 50-share clip, and Buy MIB (micro ice breaker) uses roughly one thirtieth of the 50-share clip (all rounded to 5-share lots). This keeps the sizing deterministic and proportional to your 1R risk. In rehab mode (`$rehab = 1`), trading is restricted to ice breaker entries and scale-ins are blocked in LIVE and SIM when `$applyLiveGuardsToSim = 1`.
+Sizing philosophy: start small to probe the trade, add only when it is working, and cap exposure with hard limits. Base sizing is a 50-share clip multiplied by `$qtyMult`. Buy 25 uses half of that clip, Buy 50 uses the full clip, Buy IB (ice breaker) uses roughly one quarter of the 50-share clip, and Buy MIB (micro ice breaker) uses roughly one twentieth of the 50-share clip (all rounded to 5-share lots). This keeps the sizing deterministic and proportional to your 1R risk. In rehab mode (`$rehab = 1`), trading is restricted to ice breaker entries and scale-ins are blocked in LIVE and SIM when `$applyLiveGuardsToSim = 1`.
 
 Rehab mode is a safety throttle for live trading. When enabled (`$rehab = 1`), the scripts block scale-ins and prevent larger clip entries in live accounts, forcing you to trade only ice breaker size while you reset discipline or reduce risk after a drawdown. The same restrictions apply in SIM when `$applyLiveGuardsToSim = 1` (default). You can set the default by changing `$rehab` in `hotkeys/set_global_variables.das` and re-running "Set Global Variables" (or restarting DAS), or toggle it for the current session using the `Toggle Rehab Mode` hotkey. Disabling rehab requires typing `YES` to confirm.
 
 ### Ice breaker, half, and full size
 
 - Buy MIB scripts are the micro ice breaker entries. They size at roughly one
-  thirtieth of the 50-share base clip after applying `$qtyMult` and then round
+  twentieth of the 50-share base clip after applying `$qtyMult` and then round
   to 5-share lots with a 5-share minimum. In formula form:
-  `mibShares = round5(50 * $qtyMult / 30)`. MIB entries are treated like IB for
+  `mibShares = round5(50 * $qtyMult / 20)`. MIB entries are treated like IB for
   dynamic/structured gating.
 - Buy IB scripts are the ice breaker entries. They size at roughly one quarter
   of the 50-share base clip after applying `$qtyMult` and then round to 5-share
