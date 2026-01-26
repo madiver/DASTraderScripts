@@ -93,6 +93,7 @@ Structured stop settings (buy_ib only):
 - `$structuredMicroExt`: max extension above impulse high before abort.
 - `$structuredOk`: last structured validation result (1=pass, 0=fail).
 - `$structuredReason`: last structured failure code.
+- `$structuredReasonText`: last structured failure reason string.
 - `$structuredType`: `"MICROPB"` or `"STDPB"` on pass.
 - `$structuredStop`: last structured stop price.
 - `$structuredR`: last structured R distance.
@@ -175,7 +176,7 @@ baseline values when you run "Set Global Variables."
 | Dynamic stop | `$dynamicStopR` | `0` |
 | Structured stop | `$structuredMaxLookback` | `5` |
 | Structured stop | `$structuredMaxPullback` | `3` |
-| Structured stop | `$structuredBuffer` | `0.05` |
+| Structured stop | `$structuredBuffer` | `0.01` |
 | Structured stop | `$structuredMaxStop` | `0.40` |
 | Structured stop | `$structuredMinImpulse` | `0.15` |
 | Structured stop | `$structuredMinClearance` | `0.05` |
@@ -184,6 +185,7 @@ baseline values when you run "Set Global Variables."
 | Structured stop | `$structuredMicroExt` | `0.10` |
 | Structured stop | `$structuredOk` | `0` |
 | Structured stop | `$structuredReason` | `0` |
+| Structured stop | `$structuredReasonText` | `""` |
 | Structured stop | `$structuredType` | `""` |
 | Structured stop | `$structuredStop` | `0` |
 | Structured stop | `$structuredR` | `0` |

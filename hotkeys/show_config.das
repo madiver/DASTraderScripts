@@ -85,6 +85,7 @@ $msg =
 "-----------------\n" +
 "structuredOk: " + $structuredOk + "\n" +
 "structuredReason: " + $structuredReason + "\n" +
+"structuredReasonText: " + $structuredReasonText + "\n" +
 "structuredType: " + $structuredType + "\n" +
 "structuredStop: $" + $structuredStop + "\n" +
 "structuredR: $" + $structuredR + "\n" +

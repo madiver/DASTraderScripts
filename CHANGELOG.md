@@ -2,7 +2,7 @@
 
 All notable changes to this repository will be documented in this file.
 
-## 0.3.1 - Unreleased
+## 0.3.1 - 2026-01-26
 
 ### Features
 - Add `$stopMode` ("FIXED", "DYNAMIC", or "STRUCTURED") to modularize stop logic.
@@ -17,6 +17,8 @@ All notable changes to this repository will be documented in this file.
 - Update micro ice breaker sizing to 1/20 of the base clip.
 - Add `$orderRoute` global to configure limit order routing (default ARCAL).
 - Add hotkeys to switch `$orderRoute` between ARCAL and FREEL.
+- Show structured stop failure reason text in entry rejection popups.
+- Lower default structured stop buffer to $0.01.
 - Swap non-blocking status messages from MsgBox to MsgLog for toggles and stop presets.
 
 ### Bug Fixes

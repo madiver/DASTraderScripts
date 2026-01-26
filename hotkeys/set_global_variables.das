@@ -97,7 +97,7 @@ $dynamicStopR = 0;
 // ---- 2c) Structured Stop Settings (1-minute, buy_ib only) ----
 $structuredMaxLookback = 5;
 $structuredMaxPullback = 3;
-$structuredBuffer = 0.05;
+$structuredBuffer = 0.01;
 $structuredMaxStop = 0.40;
 $structuredMinImpulse = 0.15;
 $structuredMinClearance = 0.05;
@@ -108,6 +108,7 @@ $structuredMicroExt = 0.10;
 // Runtime state for structured stops (do not edit manually).
 $structuredOk = 0;
 $structuredReason = 0;
+$structuredReasonText = "";
 $structuredType = "";
 $structuredStop = 0;
 $structuredR = 0;

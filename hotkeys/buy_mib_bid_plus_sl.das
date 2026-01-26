@@ -129,7 +129,9 @@ if ($mode == "STRUCTURED") {
     if ($posBefore <= 0) {
         ExecHotkey("Structured Stop Validate");
         if ($structuredOk != 1) {
-            MsgBox("Structured stop check failed (reason " + $structuredReason + ").");
+            $reasonText = $structuredReasonText;
+            if ($reasonText == "") { $reasonText = "code " + $structuredReason; }
+            MsgBox("Structured stop check failed: " + $reasonText + ".");
             return;
         }
         if ($structuredSymbol != "" && $structuredSymbol != $entrySymbol) {
