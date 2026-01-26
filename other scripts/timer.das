@@ -69,13 +69,16 @@ if ($oneSecondScriptCnt >= 5) {
         }
 
         // ---- Clear structured stop state when flat ----
-        if ($structuredStop != 0 || $structuredR != 0 || $structuredType != "" || $structuredSymbol != "") {
-            $structuredOk = 0;
-            $structuredReason = 0;
-            $structuredType = "";
-            $structuredStop = 0;
-            $structuredR = 0;
-            $structuredSymbol = "";
+        // Avoid clearing during pending entry staging to prevent races with structured fills.
+        if ($entryPending != 1 && $entryStage == 0) {
+            if ($structuredStop != 0 || $structuredR != 0 || $structuredType != "" || $structuredSymbol != "") {
+                $structuredOk = 0;
+                $structuredReason = 0;
+                $structuredType = "";
+                $structuredStop = 0;
+                $structuredR = 0;
+                $structuredSymbol = "";
+            }
         }
 
         // ---- Clear entry reference when flat ----

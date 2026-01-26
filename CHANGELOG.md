@@ -2,6 +2,11 @@
 
 All notable changes to this repository will be documented in this file.
 
+## 0.3.2 - Unreleased
+
+### Bug Fixes
+- Prevent structured stop state from clearing during pending entry staging.
+
 ## 0.3.1 - 2026-01-26
 
 ### Features
