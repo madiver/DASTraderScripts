@@ -27,6 +27,9 @@ $mySym  = $M.Symb;
 $posNow = $M.Pos;
 $avgNow = $M.AvgCost;
 
+// TEMP: debug manual reset behavior
+MsgLog("Set Auto Stop: sym=" + $mySym + " pos=" + $posNow + " avg=" + $avgNow + " mode=" + $stopMode);
+
 // LONG-ONLY: if no long position, nothing to protect
 if ($posNow <= 0) {
     return;
@@ -85,14 +88,17 @@ $effR = $stopLossTrigger;
 $stop = 0;
 if ($mode == "STRUCTURED") {
     if ($structuredStop <= 0) {
+        MsgLog("Set Auto Stop: structuredStop missing (stop=" + $structuredStop + ", sym=" + $structuredSymbol + ").");
         return;
     }
     if ($structuredSymbol != "" && $structuredSymbol != $mySym) {
+        MsgLog("Set Auto Stop: structuredSymbol mismatch (have=" + $structuredSymbol + ", cur=" + $mySym + ").");
         return;
     }
     $stop = $structuredStop;
     $effR = $avgNow - $stop;
     if ($effR <= 0) {
+        MsgLog("Set Auto Stop: structuredR invalid (avg=" + $avgNow + ", stop=" + $stop + ").");
         return;
     }
     $structuredR = $effR;
