@@ -11,7 +11,7 @@ $posNow = $M.Pos;
 if ($posNow <= 0) { return; }
 
 CXL ALL;
-ROUTE="ARCAL";
+ROUTE=$orderRoute;
 TIF=DAY+;
 $refPx = $M.Bid;
 if ($refPx <= 0) { $refPx = $M.Last; }

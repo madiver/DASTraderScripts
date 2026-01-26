@@ -264,7 +264,7 @@ $acc.CancelOrder("BUY", Symbol, 0);
 $order = NewOrderObj();
 $order.Account = Account;
 $order.Symbol  = Symbol;
-$order.Route   = "ARCA";
+$order.Route   = $orderRoute;
 $order.Tif     = "DAY+";
 $order.Side    = "B";      // Buy
 $order.Type    = "L";      // Limit

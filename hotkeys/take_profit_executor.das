@@ -102,7 +102,7 @@ $order.Side    = "S";
 $order.Type  = "L";
 $order.Price = $px;
 $order.Share = $takeQty;
-$order.Route = "ARCAL";     
+$order.Route = $orderRoute;     
 $order.Tif   = "DAY+";
 $order.Send();
 

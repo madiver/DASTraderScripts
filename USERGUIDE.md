@@ -68,6 +68,7 @@ Feature toggles and entry guards:
 Risk and execution:
 - `$entryOffset`: bid/ask offset for the "plus" entry scripts.
 - `$exitOffset`: bid offset for Bid- sells and non-dynamic stop-limit offsets.
+- `$orderRoute`: limit order route for entries/exits (buys/sells/TP/BE). Default is `ARCAL`. `FREEL` is the free route for ST Global Market/Open Ocean.
 - `$stopLossTrigger`: fixed 1R risk per share (used when dynamic stops are off).
 - `$takeProfitFactor`: R multiple for take-profit alerts.
 - `$takeProfitSize`: fraction of the position to sell on a TP trigger.
@@ -162,6 +163,7 @@ baseline values when you run "Set Global Variables."
 | Toggles | `$resetStopOnCancel` | `"Yes"` |
 | Risk | `$entryOffset` | `0.03` |
 | Risk | `$exitOffset` | `0.10` |
+| Risk | `$orderRoute` | `"ARCAL"` |
 | Risk | `$stopLossTrigger` | `0.10` |
 | Risk | `$takeProfitFactor` | `1.0` |
 | Risk | `$takeProfitSize` | `0.25` |
@@ -260,6 +262,8 @@ scripts rather than direct invocation.
 | `Ctrl+Alt+Win+F` | `hotkeys/enable_standard_stop_mode.das` | Enable fixed stop mode. |
 | `Alt+Ctrl+Win+S` | `hotkeys/enable_structured_stop_mode.das` | Enable structured stop mode (IB/MIB only). |
 | `Alt+Ctrl+Win+G` | `hotkeys/toggle_apply_live_guards_to_sim.das` | Toggle live-only guards in SIM. |
+| `Alt+Ctrl+Win+2` | `hotkeys/set_order_route_arcal.das` | Set limit order route to ARCAL. |
+| `Alt+Ctrl+Win+3` | `hotkeys/set_order_route_freel.das` | Set limit order route to FREEL (free route for ST Global Market/Open Ocean). |
 | `Alt+Ctrl+Win+M` | `hotkeys/toggle_single_position_guard.das` | Toggle single-symbol entry guard. |
 | `Alt+Ctrl+Win+T` | `hotkeys/toggle_test_mode.das` | Toggle test mode (no order sends). |
 | `Alt+Ctrl+Shift+Win+2` | `hotkeys/toggle_test_hijack_guard.das` | Toggle hijack guard test. |
@@ -516,6 +520,8 @@ Safety toggles:
 - `enable_structured_stop_mode.das` sets structured stop mode (IB/MIB only).
 - `toggle_apply_live_guards_to_sim.das` toggles whether live-only guards also
   apply in SIM (`$applyLiveGuardsToSim`).
+- `set_order_route_arcal.das` sets `$orderRoute` to `ARCAL`.
+- `set_order_route_freel.das` sets `$orderRoute` to `FREEL` (free route for ST Global Market/Open Ocean).
 - `toggle_single_position_guard.das` toggles the single-position guard
   (`$singlePositionGuard`).
 - `toggle_test_mode.das` toggles test mode (`$testMode`) for off-hours guard checks.

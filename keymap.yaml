@@ -209,6 +209,14 @@
   key: Alt+Ctrl+Win+G
   label: Toggle Live Guards in SIM
   scriptPath: hotkeys/toggle_apply_live_guards_to_sim.das
+- id: set_order_route_arcal
+  key: Alt+Ctrl+Win+2
+  label: Set Order Route ARCAL
+  scriptPath: hotkeys/set_order_route_arcal.das
+- id: set_order_route_freel
+  key: Alt+Ctrl+Win+3
+  label: Set Order Route FREEL
+  scriptPath: hotkeys/set_order_route_freel.das
 - id: toggle_single_position_guard
   key: Alt+Ctrl+Win+M
   label: Toggle Single-Position Guard

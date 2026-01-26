@@ -15,6 +15,8 @@ All notable changes to this repository will be documented in this file.
 - Re-add $0.10/$0.20 stop-loss preset scripts and key bindings.
 - Add micro ice breaker buy hotkeys (buy_mib_*) sized at 1/30 of the base clip.
 - Update micro ice breaker sizing to 1/20 of the base clip.
+- Add `$orderRoute` global to configure limit order routing (default ARCAL).
+- Add hotkeys to switch `$orderRoute` between ARCAL and FREEL.
 - Swap non-blocking status messages from MsgBox to MsgLog for toggles and stop presets.
 
 ### Bug Fixes

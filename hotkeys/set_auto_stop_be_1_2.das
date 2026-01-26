@@ -91,7 +91,7 @@ Wait($cancelWaitMs);
 
 // ---- Step 9: If not yet in profit, place BE limit sell ----
 if ($bid < $beStopTrigger) {
-    // ARCAL uses penny ticks
+    // Default ARCAL uses penny ticks
     $incBE = 0.01;
 
     $px = Round($avgSnap, 102, $incBE);
@@ -103,7 +103,7 @@ if ($bid < $beStopTrigger) {
     $o = NewOrderObj();
     $o.Account = $myAcc;
     $o.Symbol  = $mySym;
-    $o.Route   = "ARCAL";
+    $o.Route   = $orderRoute;
     $o.Tif     = "DAY+";
     $o.Side    = "S";
     $o.Type    = "L";

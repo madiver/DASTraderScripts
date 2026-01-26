@@ -8,7 +8,7 @@ FocusWindow Primary_OE;
 if (Pos <= 0) { return; }
 CXL ALLSYMB;
 Wait(100);
-ROUTE="ARCAL";
+ROUTE=$orderRoute;
 Price=Ask;
 Share=Pos;
 TIF=DAY+;

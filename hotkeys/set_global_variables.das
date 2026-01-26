@@ -66,6 +66,9 @@ $entryOffset = 0.03;
 // Example: 0.01 = exit 1 cent(s) below BID (or above ASK)
 $exitOffset = 0.10;
 
+// Limit order route for entries/exits (buys/sells/TP/BE). Default: ARCAL.
+$orderRoute = "ARCAL";
+
 // Stop distance from entry, per share, in dollars (your "1R")
 // Example: 0.10 = 10 cents risk per share
 $stopLossTrigger = 0.10;

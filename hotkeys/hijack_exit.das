@@ -62,7 +62,7 @@ if ($needExit == 1 && $posNow > 0) {
     $o = NewOrderObj();
     $o.Account = $myAcc;
     $o.Symbol  = $mySym;
-    $o.Route   = "ARCAL";
+    $o.Route   = $orderRoute;
     $o.Tif     = "DAY+";
     $o.Side    = "S";
     $o.Type    = "L";

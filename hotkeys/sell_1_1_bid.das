@@ -8,7 +8,7 @@ FocusWindow Primary_OE;
 if (Pos <= 0) { return; }
 CXL ALLSYMB;
 Wait(100);
-ROUTE="ARCAL";
+ROUTE=$orderRoute;
 // Clamp bid offset to valid tick size and positive price
 $px = Bid - $exitOffset;
 $inc = 0.01;

@@ -68,6 +68,7 @@ $msg =
 "-----------------\n" +
 "entryOffset: $" + $entryOffset + "\n" +
 "exitOffset: $" + $exitOffset + "\n" +
+"orderRoute: " + $orderRoute + "\n" +
 "stopLossTrigger (1R): $" + $stopLossTrigger + "\n" +
 "takeProfitFactor: " + $takeProfitFactor + "R\n" +
 "takeProfitSize: " + ($takeProfitSize * 100) + "% (rehab: " + ($takeProfitSizeRehab * 100) + "%)\n\n" +

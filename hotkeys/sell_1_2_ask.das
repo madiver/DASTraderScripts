@@ -28,7 +28,7 @@ Wait(100);
 $order = NewOrderObj();
 $order.Account = $myAcc;
 $order.Symbol  = $mySym;
-$order.Route   = "ARCAL";
+$order.Route   = $orderRoute;
 $order.Tif     = "DAY+";
 $order.Side    = "S";
 $order.Type    = "L";
