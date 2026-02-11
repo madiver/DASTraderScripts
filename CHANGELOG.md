@@ -2,7 +2,7 @@
 
 All notable changes to this repository will be documented in this file.
 
-## 0.3.2 - Unreleased
+## 0.3.2 - 2026-02-11
 
 ### Features
 - Add manual backstop alert to trigger aggressive limit exits on fast flushes.
