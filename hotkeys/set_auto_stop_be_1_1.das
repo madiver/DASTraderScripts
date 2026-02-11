@@ -109,6 +109,9 @@ if ($bid < $beStopTrigger) {
     $o.Share   = $qtyProtect;
     $o.Send();
 
+    $lastStop = $avgSnap;
+    $lastStopSymbol = $mySym;
+
     return;
 }
 
@@ -120,6 +123,9 @@ $px   = Round($avgSnap, 102, $inc);
 if ($px >= $stop) {
     $px = Round($stop - $inc, 102, $inc);
 }
+
+$lastStop = $stop;
+$lastStopSymbol = $mySym;
 
 $s = NewOrderObj();
 $s.Account   = $myAcc;

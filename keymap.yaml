@@ -137,6 +137,14 @@
   key: Ctrl+Shift+S
   label: Set Auto Stop
   scriptPath: hotkeys/set_auto_stop.das
+- id: set_backstop_trigger
+  key: Alt+Ctrl+Win+8
+  label: Set Backstop Trigger
+  scriptPath: hotkeys/set_backstop_trigger.das
+- id: backstop_exit_executor
+  key:
+  label: Backstop Exit Executor
+  scriptPath: hotkeys/backstop_exit_executor.das
 - id: set_auto_stop_be_1_1
   key: Ctrl+Shift+B
   label: Set Auto Stop BE 1/1

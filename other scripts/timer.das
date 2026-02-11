@@ -44,23 +44,42 @@ if ($oneSecondScriptCnt >= 5) {
     $posNow = $M.Pos;
 
     // Only act if FLAT
-    if ($mySym != "" && $posNow == 0) {
+    if ($posNow == 0) {
 
         // ---- TP alert cleanup loop ----
-        $i = 1;
-        // i=1..20  -> factors: 0.5, 1.0, 1.5, ..., 10.0
-        while ($i <= 20) {
-            $f = ($i * 0.5);   // 0.5, 1, 1.5, 2, ...
+        if ($mySym != "") {
+            $i = 1;
+            // i=1..20  -> factors: 0.5, 1.0, 1.5, ..., 10.0
+            while ($i <= 20) {
+                $f = ($i * 0.5);   // 0.5, 1, 1.5, 2, ...
 
-            $name = "TP " + $f + "R Partial " + $mySym;
+                $name = "TP " + $f + "R Partial " + $mySym;
 
-            $al = GetAlertObj($name);
-            if (IsObj($al)) {
-                $al.Delete();
+                $al = GetAlertObj($name);
+                if (IsObj($al)) {
+                    $al.Delete();
+                }
+
+                $i = $i + 1;
             }
-
-            $i = $i + 1;
         }
+
+        // ---- Backstop alert cleanup ----
+        $bsSym = StrTrim("" + $backstopSymbol);
+        if ($bsSym == "") { $bsSym = $mySym; }
+        if ($bsSym != "") {
+            $bsName = "Backstop " + $bsSym;
+            $bsAlert = GetAlertObj($bsName);
+            if (IsObj($bsAlert)) {
+                $bsAlert.Delete();
+            }
+        }
+        $backstopArmed = 0;
+        $backstopRetries = 0;
+        $backstopStop = 0;
+        $backstopSymbol = "";
+        $lastStop = 0;
+        $lastStopSymbol = "";
 
         // ---- Clear dynamic stop state when flat ----
         if ($dynamicStopActive == 1) {

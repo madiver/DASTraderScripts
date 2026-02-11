@@ -4,6 +4,10 @@ All notable changes to this repository will be documented in this file.
 
 ## 0.3.2 - Unreleased
 
+### Features
+- Add manual backstop alert to trigger aggressive limit exits on fast flushes.
+- Add `$gtfoRoute` defaulting to `FLASHL` for emergency exits (GTFO/backstop).
+
 ### Bug Fixes
 - Prevent structured stop state from clearing during pending entry staging.
 

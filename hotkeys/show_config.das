@@ -69,6 +69,7 @@ $msg =
 "entryOffset: $" + $entryOffset + "\n" +
 "exitOffset: $" + $exitOffset + "\n" +
 "orderRoute: " + $orderRoute + "\n" +
+"gtfoRoute: " + $gtfoRoute + "\n" +
 "stopLossTrigger (1R): $" + $stopLossTrigger + "\n" +
 "takeProfitFactor: " + $takeProfitFactor + "R\n" +
 "takeProfitSize: " + ($takeProfitSize * 100) + "% (rehab: " + ($takeProfitSizeRehab * 100) + "%)\n\n" +
@@ -90,6 +91,18 @@ $msg =
 "structuredStop: $" + $structuredStop + "\n" +
 "structuredR: $" + $structuredR + "\n" +
 "structuredSymbol: " + $structuredSymbol + "\n\n" +
+
+"BACKSTOP\n" +
+"-----------------\n" +
+"backstopBuffer: $" + $backstopBuffer + "\n" +
+"backstopBidOffset: $" + $backstopBidOffset + "\n" +
+"backstopMaxRetries: " + $backstopMaxRetries + "\n" +
+"backstopArmed: " + $backstopArmed + "\n" +
+"backstopRetries: " + $backstopRetries + "\n" +
+"backstopStop: $" + $backstopStop + "\n" +
+"backstopSymbol: " + $backstopSymbol + "\n" +
+"lastStop: $" + $lastStop + "\n" +
+"lastStopSymbol: " + $lastStopSymbol + "\n\n" +
 
 "ACCOUNTS\n" +
 "-----------------\n" +

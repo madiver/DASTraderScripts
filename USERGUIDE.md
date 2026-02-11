@@ -69,7 +69,11 @@ Risk and execution:
 - `$entryOffset`: bid/ask offset for the "plus" entry scripts.
 - `$exitOffset`: bid offset for Bid- sells and non-dynamic stop-limit offsets.
 - `$orderRoute`: limit order route for entries/exits (buys/sells/TP/BE). Default is `ARCAL`. `FREEL` is the free route for ST Global Market/Open Ocean.
+- `$gtfoRoute`: emergency exit route for GTFO/backstop/hijack exits. Default is `FLASHL` (Open Ocean broadcast route).
 - `$stopLossTrigger`: fixed 1R risk per share (used when dynamic stops are off).
+- `$backstopBuffer`: trigger buffer below the stop for the manual backstop alert.
+- `$backstopBidOffset`: limit offset from Bid for backstop exits.
+- `$backstopMaxRetries`: max retry attempts for backstop exits when still not flat.
 - `$takeProfitFactor`: R multiple for take-profit alerts.
 - `$takeProfitSize`: fraction of the position to sell on a TP trigger.
 - `$takeProfitSizeRehab`: TP fraction when rehab is active (LIVE; SIM when `$applyLiveGuardsToSim = 1`).
@@ -118,6 +122,8 @@ Timer-based entry arming (runtime):
 - `$entrySymbol`, `$entryPosBefore`, `$entryAvgBefore`, `$entryScaleIn`, `$entryDynR`: captured entry context used by the timer handler.
 - `$entryRefPx`: entry reference price used as a fallback for stop placement when AvgCost lags.
 - `$entryWatch`, `$entryLastPos`: track position size changes so the handler can re-arm stops/TP when size increases.
+- `$lastStop`, `$lastStopSymbol`: last stop price/symbol set by auto-stop scripts (used by backstop triggers).
+- `$backstopArmed`, `$backstopRetries`, `$backstopStop`, `$backstopSymbol`: runtime backstop state.
 
 ### Defaults table
 
@@ -141,12 +147,18 @@ baseline values when you run "Set Global Variables."
 | Runtime | `$entrySymbol` | `""` |
 | Runtime | `$tpSymbol` | `""` |
 | Runtime | `$entryRefPx` | `0` |
+| Runtime | `$lastStop` | `0` |
+| Runtime | `$lastStopSymbol` | `""` |
 | Runtime | `$HIJACKED_LOCKED` | `0` |
 | Runtime | `$singlePositionSymbol` | `""` |
 | Runtime | `$trade_ok` | `1` |
 | Runtime | `$testMode` | `0` |
 | Runtime | `$entryWatch` | `0` |
 | Runtime | `$entryLastPos` | `0` |
+| Runtime | `$backstopArmed` | `0` |
+| Runtime | `$backstopRetries` | `0` |
+| Runtime | `$backstopStop` | `0` |
+| Runtime | `$backstopSymbol` | `""` |
 | Toggles | `$useSlippageMargin` | `1` |
 | Toggles | `$slipTicksMin` | `2` |
 | Toggles | `$slipSpreadFrac` | `0.25` |
@@ -165,10 +177,14 @@ baseline values when you run "Set Global Variables."
 | Risk | `$entryOffset` | `0.03` |
 | Risk | `$exitOffset` | `0.10` |
 | Risk | `$orderRoute` | `"ARCAL"` |
+| Risk | `$gtfoRoute` | `"FLASHL"` |
 | Risk | `$stopLossTrigger` | `0.10` |
 | Risk | `$takeProfitFactor` | `1.0` |
 | Risk | `$takeProfitSize` | `0.25` |
 | Risk | `$takeProfitSizeRehab` | `0.50` |
+| Backstop | `$backstopBuffer` | `0.03` |
+| Backstop | `$backstopBidOffset` | `0.10` |
+| Backstop | `$backstopMaxRetries` | `3` |
 | Dynamic stop | `$dynamicStop` | `0` |
 | Dynamic stop | `$stopMode` | `"FIXED"` |
 | Dynamic stop | `$dynamicStopMult` | `2` |
@@ -247,6 +263,8 @@ scripts rather than direct invocation.
 | `Ctrl+X` | `hotkeys/sell_1_2_bid.das` | Sell half position at bid minus offset. |
 | `Ctrl+C` | `hotkeys/sell_1_4_bid.das` | Sell quarter position at bid minus offset. |
 | `Ctrl+Shift+S` | `hotkeys/set_auto_stop.das` | Place 1R stop-limit for full position. |
+| Unbound | `hotkeys/set_backstop_trigger.das` | Arm an L1 Bid-based backstop alert for catastrophic exits. |
+| Unbound | `hotkeys/backstop_exit_executor.das` | Backstop exit executor (alert-driven). |
 | `Ctrl+Shift+B` | `hotkeys/set_auto_stop_be_1_1.das` | Breakeven stop/limit for full position. |
 | Unbound | `hotkeys/set_auto_stop_be_scale_1_1.das` | Scale-in BE stop/limit for full position. |
 | `Alt+Ctrl+Win+-` | `hotkeys/set_0_10_stop.das` | Set 1R stop-loss trigger to $0.10. |
@@ -419,6 +437,23 @@ Mechanics summary:
   lowest pullback low (minus `$structuredBuffer`).
 - The candidate stop is rejected if price is already below it, clearance is
   below `$structuredMinClearance`, or the stop distance exceeds `$structuredMaxStop`.
+
+### Backstop trigger (manual, limit-only)
+
+The backstop is a manual alert-driven exit you can arm on specific positions
+when you are worried about a fast flush. It uses L1 Bid alerts (client-side)
+and sends aggressive LIMIT exits for pre-market compatibility.
+
+- `Set Backstop Trigger` builds an L1 Bid alert at `stop - $backstopBuffer`.
+- When the alert fires, `Backstop Exit Executor` cancels existing sell orders
+  and sends a limit sell at `Bid - $backstopBidOffset` using `$gtfoRoute`.
+- If you are still not flat, it retries up to `$backstopMaxRetries` times.
+- The backstop alert is automatically deleted when you go flat (timer cleanup).
+
+The backstop uses `$lastStop` as its stop reference, so run `Set Auto Stop`
+before arming the backstop.
+`FLASHL` (the default `$gtfoRoute`) is the Open Ocean broadcast route; it costs
+more but prioritizes exit speed.
 
 ## TAKE PROFIT
 

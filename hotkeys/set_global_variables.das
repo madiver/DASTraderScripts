@@ -31,12 +31,18 @@ $entryDynR = 0;
 $entrySymbol = "";
 $tpSymbol = "";
 $entryRefPx = 0;
+$lastStop = 0;
+$lastStopSymbol = "";
 $HIJACKED_LOCKED = 0;
 $singlePositionSymbol = "";  // runtime symbol for single-position guard
 $trade_ok = 1;               // runtime flag set by Check Global Guards
 $testMode = 0;               // 1=skip market-dependent checks and order send
 $entryWatch = 0;
 $entryLastPos = 0;
+$backstopArmed = 0;
+$backstopRetries = 0;
+$backstopStop = 0;
+$backstopSymbol = "";
 
 // ---- 1) Feature Toggles ----
 $useSlippageMargin        = 1;     // 1=guard stop vs bid with margin
@@ -68,10 +74,17 @@ $exitOffset = 0.10;
 
 // Limit order route for entries/exits (buys/sells/TP/BE). Default: ARCAL.
 $orderRoute = "ARCAL";
+// Emergency exit route (GTFO/backstop). Default: FLASHL.
+$gtfoRoute = "FLASHL";
 
 // Stop distance from entry, per share, in dollars (your "1R")
 // Example: 0.10 = 10 cents risk per share
 $stopLossTrigger = 0.10;
+
+// Backstop trigger settings (manual catastrophic exit helper)
+$backstopBuffer = 0.03;      // trigger when Bid < stop - buffer
+$backstopBidOffset = 0.10;   // limit price at Bid - offset
+$backstopMaxRetries = 3;     // retries if still not flat
 
 // How many Rs ahead to place the take-profit alert
 // Example: 1.0 = take profit at +1R

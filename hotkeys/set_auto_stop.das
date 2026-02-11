@@ -116,6 +116,10 @@ if ($avgNow < 0.25 || $stop < 0.25)  { $inc = 0.0005; }
 
 $stop = Round($stop, 102, $inc);
 
+// Track the last stop used (for backstop triggers)
+$lastStop = $stop;
+$lastStopSymbol = $mySym;
+
 // ---- Step 6: Compute stop-limit offset ----
 $effLimitOff = $exitOffset;
 if ($useAdaptiveLimitOff == 1) {

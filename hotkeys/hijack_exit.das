@@ -59,10 +59,13 @@ if ($needExit == 1 && $posNow > 0) {
     $qty = Round($posNow, 0);
     if ($qty <= 0) { return; }
 
+    $route = $gtfoRoute;
+    if ($route == "") { $route = $orderRoute; }
+
     $o = NewOrderObj();
     $o.Account = $myAcc;
     $o.Symbol  = $mySym;
-    $o.Route   = $orderRoute;
+    $o.Route   = $route;
     $o.Tif     = "DAY+";
     $o.Side    = "S";
     $o.Type    = "L";

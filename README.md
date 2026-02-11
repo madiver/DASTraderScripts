@@ -61,6 +61,8 @@ Serious about day trading? You can find me on Discord here:  https://discord.gg/
   buy order. Install `other scripts/timer.das` in DAS Trader's Timer Event Scripts and keep
   `hotkeys/timer_entry_handler.das` in your keymap; set `$useTimerArming = 0` to
   revert to inline polling.
+- A manual backstop alert can be armed for fast flushes; it uses L1 Bid
+  triggers and sends aggressive limit exits via `$gtfoRoute` (see USERGUIDE).
 
 ## Script metadata
 
