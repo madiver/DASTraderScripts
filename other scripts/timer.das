@@ -70,7 +70,7 @@ if ($oneSecondScriptCnt >= 5) {
 
         // ---- Clear structured stop state when flat ----
         // Avoid clearing during pending entry staging to prevent races with structured fills.
-        if ($entryPending != 1 && $entryStage == 0) {
+        if ($entryPending != 1 && $entryStage == 0 && StrTrim("" + $entrySymbol) == "") {
             if ($structuredStop != 0 || $structuredR != 0 || $structuredType != "" || $structuredSymbol != "") {
                 $structuredOk = 0;
                 $structuredReason = 0;
