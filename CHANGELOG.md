@@ -4,6 +4,9 @@ All notable changes to this repository will be documented in this file.
 
 ## 0.3.3 - Unreleased
 
+### Features
+- Replace multiplier-derived buy sizing with explicit configurable defaults: MIB 25, IB 50, `buy_25_*` 75, and `buy_50_*` 100 shares.
+
 ## 0.3.2 - 2026-02-11
 
 ### Features

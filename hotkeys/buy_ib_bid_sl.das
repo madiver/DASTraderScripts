@@ -48,11 +48,9 @@ if ($rehab == 1 && $posBefore > 0 && ($isLive == 1 || $applyLiveGuardsToSim == 1
     return;
 }
 
-// Ice breaker size: 1/4 of normal shares, rounded to 5s.
-$quarter = 50 * $qtyMult * 0.25;
-$scaled = $quarter + 2.5;
-$addShares = $scaled - ($scaled % 5);
-if ($addShares < 5) { $addShares = 5; }
+// Configured ice breaker size.
+$addShares = $ibShareSize;
+if ($addShares < 1) { MsgBox("ABORTED: Invalid IB share size."); return; }
 
 // ---- Entry sizing and pacing ----
 $refPx             = BID;             // BID or ASK

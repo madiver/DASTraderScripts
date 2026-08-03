@@ -43,11 +43,11 @@
   scriptPath: hotkeys/buy_ib_bid_plus_sl.das
 - id: buy_25_bid_plus_sl
   key: Ctrl+Shift+2
-  label: Buy 25 Bid+ SL
+  label: Buy 75 Bid+ SL
   scriptPath: hotkeys/buy_25_bid_plus_sl.das
 - id: buy_50_bid_plus_sl
   key: Ctrl+Shift+3
-  label: Buy 50 Bid+ SL
+  label: Buy 100 Bid+ SL
   scriptPath: hotkeys/buy_50_bid_plus_sl.das
 
 # Buy orders: Bid SL
@@ -61,11 +61,11 @@
   scriptPath: hotkeys/buy_ib_bid_sl.das
 - id: buy_25_bid_sl
   key: Alt+Ctrl+2
-  label: Buy 25 Bid SL
+  label: Buy 75 Bid SL
   scriptPath: hotkeys/buy_25_bid_sl.das
 - id: buy_50_bid_sl
   key: Alt+Ctrl+3
-  label: Buy 50 Bid SL
+  label: Buy 100 Bid SL
   scriptPath: hotkeys/buy_50_bid_sl.das
 
 # Buy orders: Ask SL
@@ -79,11 +79,11 @@
   scriptPath: hotkeys/buy_ib_ask_sl.das
 - id: buy_25_ask_sl
   key: Alt+Shift+2
-  label: Buy 25 Ask SL
+  label: Buy 75 Ask SL
   scriptPath: hotkeys/buy_25_ask_sl.das
 - id: buy_50_ask_sl
   key: Alt+Shift+3
-  label: Buy 50 Ask SL
+  label: Buy 100 Ask SL
   scriptPath: hotkeys/buy_50_ask_sl.das
 
 # Buy orders: Ask+ SL
@@ -97,11 +97,11 @@
   scriptPath: hotkeys/buy_ib_ask_plus_sl.das
 - id: buy_25_ask_plus_sl
   key: Alt+Ctrl+Shift+2
-  label: Buy 25 Ask+ SL
+  label: Buy 75 Ask+ SL
   scriptPath: hotkeys/buy_25_ask_plus_sl.das
 - id: buy_50_ask_plus_sl
   key: Alt+Ctrl+Shift+3
-  label: Buy 50 Ask+ SL
+  label: Buy 100 Ask+ SL
   scriptPath: hotkeys/buy_50_ask_plus_sl.das
 
 # Sell orders: Ask

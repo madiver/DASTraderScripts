@@ -86,16 +86,16 @@ PnL, Stops, Take profit, Utilities & toggles.
 
 - Scale-ins are allowed only when the existing position is at least 1R in profit (dynamic R when active, otherwise `stopLossTrigger`).
 - When adding to an existing long, the scripts use the scale-in-specific BE stop hotkey (`Set Auto Stop BE Scale 1/1`).
-- Buy_IB scripts use an ice-breaker size that rounds to 5-share lots with a minimum of 5 shares.
+- Buy tiers use explicit configurable share counts: MIB uses `$mibShareSize` (25), IB uses `$ibShareSize` (50), the legacy `buy_25_*` family uses `$buy25ShareSize` (75), and the legacy `buy_50_*` family uses `$buy50ShareSize` (100) by default.
 - Projected risk caps are evaluated against net risk to the planned stop on total size after the add (current position + new shares).
 
-## Dynamic Stops (Buy_IB Only)
+## Dynamic Stops (Buy IB/MIB Only)
 
 - Controlled by `dynamicStop` and `dynamicStopMult` in `hotkeys/set_global_variables.das`.
 - Dynamic R is based on spread at order send and is fixed for the life of the trade.
 - Dynamic R is cleared when flat by the timer script (see `other scripts/timer.das`).
 - Adaptive stop-limit offsets are used only when a dynamic stop is active; otherwise `$exitOffset` is used.
-- When `dynamicStop = 1`, initial entries must use `buy_ib_*`; `buy_25_*` and `buy_50_*` are scale-in only.
+- When `dynamicStop = 1`, initial entries must use `buy_mib_*` or `buy_ib_*`; `buy_25_*` and `buy_50_*` are scale-in only.
 
 ## Risk Disclaimer
 

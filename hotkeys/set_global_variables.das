@@ -14,7 +14,7 @@
 // Counter for the 1-second timer script (see other scripts/timer.das)
 $oneSecondScriptCnt = 0;
 
-// Rehab mode: limit entries to ice-breaker size (1/4 normal size)
+// Rehab mode: limit entries to MIB/IB size
 $rehab = 0;
 
 // Timer-based arming (entry hotkeys return early; timer places stop/TP)
@@ -135,9 +135,11 @@ $LIVEACT = "%%LIVE%%";      // your LIVE trading account
 
 // ---- 4) Sizing & Risk Limits ----
 
-// Multiplier for position sizing
-// Example: if base clip is 50 shares, qtyMult=4 -> 200 shares per entry
-$qtyMult = 6;
+// Explicit share sizes for each buy tier.
+$mibShareSize = 25;
+$ibShareSize = 50;
+$buy25ShareSize = 75;   // Legacy buy_25_* script family
+$buy50ShareSize = 100;  // Legacy buy_50_* script family
 
 // Maximum allowed position size (shares)
 $maxPositionSize = 500;

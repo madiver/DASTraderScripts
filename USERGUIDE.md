@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-These scripts are the hotkeys I use in DAS Trader for active, discretionary day trading. They focus on fast, repeatable order entry with guard rails and are designed around a single active symbol at a time. I treat the ice breaker (Buy IB) entries as the first test of a trade thesis; while DAS allows multiple positions, these hotkeys assume one symbol and may behave unpredictably otherwise.
+These scripts are the hotkeys I use in DAS Trader for active, discretionary day trading. They focus on fast, repeatable order entry with guard rails and are designed around a single active symbol at a time. I treat the micro ice breaker and ice breaker (Buy MIB/IB) entries as the first tests of a trade thesis; while DAS allows multiple positions, these hotkeys assume one symbol and may behave unpredictably otherwise.
 
 These scripts are designed for LONG positions only. Shorting is not supported.
 
@@ -108,7 +108,10 @@ Account tokens:
 - `$LIVEACT`: LIVE account identifier.
 
 Sizing and risk limits:
-- `$qtyMult`: position size multiplier.
+- `$mibShareSize`: micro ice breaker entry size.
+- `$ibShareSize`: ice breaker entry size.
+- `$buy25ShareSize`: entry size for the legacy `buy_25_*` script family.
+- `$buy50ShareSize`: entry size for the legacy `buy_50_*` script family.
 - `$maxPositionSize`: maximum total position size in shares.
 - `$riskCapDollars`: maximum projected net risk per trade in dollars.
 
@@ -208,7 +211,10 @@ baseline values when you run "Set Global Variables."
 | Structured stop | `$structuredSymbol` | `""` |
 | Accounts | `$TRSIM` | `"%%SIMULATED%%"` |
 | Accounts | `$LIVEACT` | `"%%LIVE%%"` |
-| Sizing | `$qtyMult` | `6` |
+| Sizing | `$mibShareSize` | `25` |
+| Sizing | `$ibShareSize` | `50` |
+| Sizing | `$buy25ShareSize` | `75` |
+| Sizing | `$buy50ShareSize` | `100` |
 | Sizing | `$maxPositionSize` | `500` |
 | Limits | `$riskCapDollars` | `100.00` |
 | Polling | `$pollMs` | `100` |
@@ -242,20 +248,20 @@ scripts rather than direct invocation.
 | Unbound | `hotkeys/cancel_all_no_stops.das` | Cancel orders and TP alerts without re-arming stops. |
 | `Alt+Ctrl+Shift+Win+0` | `hotkeys/buy_mib_bid_plus_sl.das` | Micro ice breaker buy at bid + offset with auto stop/TP. |
 | `Ctrl+Shift+1` | `hotkeys/buy_ib_bid_plus_sl.das` | Ice breaker buy at bid + offset with auto stop/TP. |
-| `Ctrl+Shift+2` | `hotkeys/buy_25_bid_plus_sl.das` | Half-clip buy at bid + offset with auto stop/TP. |
-| `Ctrl+Shift+3` | `hotkeys/buy_50_bid_plus_sl.das` | Full-clip buy at bid + offset with auto stop/TP. |
+| `Ctrl+Shift+2` | `hotkeys/buy_25_bid_plus_sl.das` | 75-share tier buy at bid + offset with auto stop/TP. |
+| `Ctrl+Shift+3` | `hotkeys/buy_50_bid_plus_sl.das` | 100-share tier buy at bid + offset with auto stop/TP. |
 | `Alt+Ctrl+0` | `hotkeys/buy_mib_bid_sl.das` | Micro ice breaker buy at bid with auto stop/TP. |
 | `Alt+Ctrl+1` | `hotkeys/buy_ib_bid_sl.das` | Ice breaker buy at bid with auto stop/TP. |
-| `Alt+Ctrl+2` | `hotkeys/buy_25_bid_sl.das` | Half-clip buy at bid with auto stop/TP. |
-| `Alt+Ctrl+3` | `hotkeys/buy_50_bid_sl.das` | Full-clip buy at bid with auto stop/TP. |
+| `Alt+Ctrl+2` | `hotkeys/buy_25_bid_sl.das` | 75-share tier buy at bid with auto stop/TP. |
+| `Alt+Ctrl+3` | `hotkeys/buy_50_bid_sl.das` | 100-share tier buy at bid with auto stop/TP. |
 | `Alt+Shift+0` | `hotkeys/buy_mib_ask_sl.das` | Micro ice breaker buy at ask with auto stop/TP. |
 | `Alt+Shift+1` | `hotkeys/buy_ib_ask_sl.das` | Ice breaker buy at ask with auto stop/TP. |
-| `Alt+Shift+2` | `hotkeys/buy_25_ask_sl.das` | Half-clip buy at ask with auto stop/TP. |
-| `Alt+Shift+3` | `hotkeys/buy_50_ask_sl.das` | Full-clip buy at ask with auto stop/TP. |
+| `Alt+Shift+2` | `hotkeys/buy_25_ask_sl.das` | 75-share tier buy at ask with auto stop/TP. |
+| `Alt+Shift+3` | `hotkeys/buy_50_ask_sl.das` | 100-share tier buy at ask with auto stop/TP. |
 | `Alt+Ctrl+Shift+0` | `hotkeys/buy_mib_ask_plus_sl.das` | Micro ice breaker buy at ask + offset with auto stop/TP. |
 | `Alt+Ctrl+Shift+1` | `hotkeys/buy_ib_ask_plus_sl.das` | Ice breaker buy at ask + offset with auto stop/TP. |
-| `Alt+Ctrl+Shift+2` | `hotkeys/buy_25_ask_plus_sl.das` | Half-clip buy at ask + offset with auto stop/TP. |
-| `Alt+Ctrl+Shift+3` | `hotkeys/buy_50_ask_plus_sl.das` | Full-clip buy at ask + offset with auto stop/TP. |
+| `Alt+Ctrl+Shift+2` | `hotkeys/buy_25_ask_plus_sl.das` | 75-share tier buy at ask + offset with auto stop/TP. |
+| `Alt+Ctrl+Shift+3` | `hotkeys/buy_50_ask_plus_sl.das` | 100-share tier buy at ask + offset with auto stop/TP. |
 | `Ctrl+A` | `hotkeys/sell_1_1_ask.das` | Sell full position at ask. |
 | `Ctrl+S` | `hotkeys/sell_1_2_ask.das` | Sell half position at ask. |
 | `Ctrl+D` | `hotkeys/sell_1_4_ask.das` | Sell quarter position at ask. |
@@ -263,7 +269,7 @@ scripts rather than direct invocation.
 | `Ctrl+X` | `hotkeys/sell_1_2_bid.das` | Sell half position at bid minus offset. |
 | `Ctrl+C` | `hotkeys/sell_1_4_bid.das` | Sell quarter position at bid minus offset. |
 | `Ctrl+Shift+S` | `hotkeys/set_auto_stop.das` | Place 1R stop-limit for full position. |
-| Unbound | `hotkeys/set_backstop_trigger.das` | Arm an L1 Bid-based backstop alert for catastrophic exits. |
+| `Alt+Ctrl+Win+8` | `hotkeys/set_backstop_trigger.das` | Arm an L1 Bid-based backstop alert for catastrophic exits. |
 | Unbound | `hotkeys/backstop_exit_executor.das` | Backstop exit executor (alert-driven). |
 | `Ctrl+Shift+B` | `hotkeys/set_auto_stop_be_1_1.das` | Breakeven stop/limit for full position. |
 | Unbound | `hotkeys/set_auto_stop_be_scale_1_1.das` | Scale-in BE stop/limit for full position. |
@@ -296,22 +302,18 @@ scripts rather than direct invocation.
 
 ## BUY ORDERS
 
-Sizing philosophy: start small to probe the trade, add only when it is working, and cap exposure with hard limits. Base sizing is a 50-share clip multiplied by `$qtyMult`. Buy 25 uses half of that clip, Buy 50 uses the full clip, Buy IB (ice breaker) uses roughly one quarter of the 50-share clip, and Buy MIB (micro ice breaker) uses roughly one twentieth of the 50-share clip (all rounded to 5-share lots). This keeps the sizing deterministic and proportional to your 1R risk. In rehab mode (`$rehab = 1`), trading is restricted to ice breaker entries and scale-ins are blocked in LIVE and SIM when `$applyLiveGuardsToSim = 1`.
+Sizing philosophy: start small to probe the trade, add only when it is working, and cap exposure with hard limits. The four entry tiers have explicit configurable defaults of 25 shares for MIB, 50 for IB, 75 for the legacy `buy_25_*` family, and 100 for the legacy `buy_50_*` family. In rehab mode (`$rehab = 1`), trading is restricted to MIB/IB entries and scale-ins are blocked in LIVE and SIM when `$applyLiveGuardsToSim = 1`.
 
-Rehab mode is a safety throttle for live trading. When enabled (`$rehab = 1`), the scripts block scale-ins and prevent larger clip entries in live accounts, forcing you to trade only ice breaker size while you reset discipline or reduce risk after a drawdown. The same restrictions apply in SIM when `$applyLiveGuardsToSim = 1` (default). You can set the default by changing `$rehab` in `hotkeys/set_global_variables.das` and re-running "Set Global Variables" (or restarting DAS), or toggle it for the current session using the `Toggle Rehab Mode` hotkey. Disabling rehab requires typing `YES` to confirm.
+Rehab mode is a safety throttle for live trading. When enabled (`$rehab = 1`), the scripts block scale-ins and prevent larger tier entries in live accounts, forcing you to trade only MIB/IB size while you reset discipline or reduce risk after a drawdown. The same restrictions apply in SIM when `$applyLiveGuardsToSim = 1` (default). You can set the default by changing `$rehab` in `hotkeys/set_global_variables.das` and re-running "Set Global Variables" (or restarting DAS), or toggle it for the current session using the `Toggle Rehab Mode` hotkey. Disabling rehab requires typing `YES` to confirm.
 
-### Ice breaker, half, and full size
+### Configurable entry tiers
 
-- Buy MIB scripts are the micro ice breaker entries. They size at roughly one
-  twentieth of the 50-share base clip after applying `$qtyMult` and then round
-  to 5-share lots with a 5-share minimum. In formula form:
-  `mibShares = round5(50 * $qtyMult / 20)`. MIB entries are treated like IB for
-  dynamic/structured gating.
-- Buy IB scripts are the ice breaker entries. They size at roughly one quarter
-  of the 50-share base clip after applying `$qtyMult` and then round to 5-share
-  lots with a 5-share minimum. In formula form: `ibShares = round5(50 * $qtyMult * 0.25)`.
-- Buy 25 uses `25 * $qtyMult` shares; Buy 50 uses `50 * $qtyMult` shares. These
-  are the base clip sizes for normal entries and adds.
+- Buy MIB scripts use `$mibShareSize` (default 25 shares). MIB entries are
+  treated like IB for dynamic/structured gating.
+- Buy IB scripts use `$ibShareSize` (default 50 shares).
+- The `buy_25_*` scripts use `$buy25ShareSize` (default 75 shares), and the
+  `buy_50_*` scripts use `$buy50ShareSize` (default 100 shares). Their legacy
+  filenames and IDs are retained to avoid breaking existing integrations.
 - All buy scripts enforce `$maxPositionSize` and `$riskCapDollars` before
   sending an order.
 - "Plus" versions use `$entryOffset` to price above bid or ask.
@@ -323,7 +325,10 @@ and risk is reduced. These scripts only allow scale-ins when the existing
 position has moved at least 1R in your favor.
 
 - The profit gate is measured as `BID - AvgCost >= R` for longs. R is
-  `$stopLossTrigger` for normal trades. Buy IB uses dynamic R when enabled; buy_25/buy_50 use dynamic R only when `dynamicStop = 1` and `dynamicStopActive = 1`, otherwise `$stopLossTrigger`.
+  `$stopLossTrigger` for normal trades. Buy MIB/IB entries use dynamic R when
+  enabled; `buy_25_*`/`buy_50_*` entries use dynamic R only when
+  `dynamicStop = 1` and
+  `dynamicStopActive = 1`, otherwise `$stopLossTrigger`.
 - When adding to a position, the scripts arm the scale-in BE stop
   (`Set Auto Stop BE Scale 1/1`) so the combined position is protected.
 - Rehab mode (`$rehab = 1`) blocks scale-ins entirely in LIVE and SIM when `$applyLiveGuardsToSim = 1`.
@@ -407,7 +412,7 @@ the selector; `enable_dynamic_stop_mode.das` and
 - Adaptive stop-limit offsets are used only when a dynamic stop is active; the
   offset is derived from the live spread at stop placement and capped by an
   internal maximum.
-- When `$dynamicStop = 1`, initial entries must use Buy IB; `buy_25_*` and
+- When `$dynamicStop = 1`, initial entries must use Buy MIB/IB; `buy_25_*` and
   `buy_50_*` only allow scale-ins.
 - Dynamic state is cleared when flat by the timer script.
 
@@ -419,7 +424,8 @@ candle values are available. The structured validator computes a stop price
 from a 1-minute impulse/pullback pattern and stores it in `$structuredStop`.
 
 - Only Buy IB/MIB entries can open a new position in structured mode.
-- Buy 25/50 hotkeys are allowed only for scale-ins (and require `$structuredR`).
+- The 75/100-share tiers (`buy_25_*`/`buy_50_*`) are allowed only for scale-ins
+  (and require `$structuredR`).
 - If structured data is missing at entry time, the entry is aborted.
 - The stop engine uses `$structuredStop`, and TP distance uses `$structuredR`.
 Mechanics summary:
