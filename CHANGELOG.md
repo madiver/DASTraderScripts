@@ -6,6 +6,8 @@ All notable changes to this repository will be documented in this file.
 
 ### Features
 - Replace multiplier-derived buy sizing with explicit configurable defaults: MIB 25, IB 50, `buy_25_*` 75, and `buy_50_*` 100 shares.
+- Add a `$0.30` fixed stop-loss preset bound to `Alt+Ctrl+Win+=`.
+- Add a `$0.50` fixed stop-loss preset bound to `Alt+Ctrl+Win+5`.
 
 ## 0.3.2 - 2026-02-11
 

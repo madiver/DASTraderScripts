@@ -275,6 +275,8 @@ scripts rather than direct invocation.
 | Unbound | `hotkeys/set_auto_stop_be_scale_1_1.das` | Scale-in BE stop/limit for full position. |
 | `Alt+Ctrl+Win+-` | `hotkeys/set_0_10_stop.das` | Set 1R stop-loss trigger to $0.10. |
 | `Alt+Ctrl+Win+[` | `hotkeys/set_0_20_stop.das` | Set 1R stop-loss trigger to $0.20. |
+| `Alt+Ctrl+Win+=` | `hotkeys/set_0_30_stop.das` | Set 1R stop-loss trigger to $0.30. |
+| `Alt+Ctrl+Win+5` | `hotkeys/set_0_50_stop.das` | Set 1R stop-loss trigger to $0.50. |
 | Unbound | `hotkeys/structured_stop_validate.das` | Structured stop validation (internal). |
 | `Alt+Ctrl+B` | `hotkeys/set_auto_stop_be_1_2.das` | Breakeven stop/limit for half position. |
 | `Ctrl+Shift+T` | `hotkeys/set_take_profit.das` | Create R-based take-profit alert. |
@@ -392,6 +394,9 @@ invoked in timer mode (`$timerMode`) where cancels are skipped.
 
 When dynamic stops are inactive, the stop-limit offset uses `$exitOffset`. The
 order is snapped to valid tick sizes and sent as a STOP/SLP order.
+Use the fixed-stop preset hotkeys to set `$stopLossTrigger` to `$0.10`, `$0.20`,
+`$0.30`, or `$0.50`; each preset writes the selected value to the DAS message
+log.
 
 ### Dynamic stop losses (experimental)
 
