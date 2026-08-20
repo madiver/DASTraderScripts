@@ -49,7 +49,9 @@ if ($rehab == 1 && $posBefore > 0 && ($isLive == 1 || $applyLiveGuardsToSim == 1
 }
 
 // Configured micro ice breaker size.
-$addShares = $mibShareSize;
+$rawShares = $tier1ShareSize * $qtyMult;
+$roundedShares = $rawShares + 0.5;
+$addShares = $roundedShares - ($roundedShares % 1);
 if ($addShares < 1) { MsgBox("ABORTED: Invalid MIB share size."); return; }
 
 // ---- Entry sizing and pacing ----

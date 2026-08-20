@@ -11,6 +11,22 @@
   key: Ctrl+,
   label: Set Global Variables
   scriptPath: hotkeys/set_global_variables.das
+- id: set_qty_mult_0_5
+  key: Alt+Ctrl+Shift+5
+  label: Set Qty Mult 0.5x
+  scriptPath: hotkeys/set_qty_mult_0_5.das
+- id: set_qty_mult_1_0
+  key: Alt+Ctrl+Shift+6
+  label: Set Qty Mult 1.0x
+  scriptPath: hotkeys/set_qty_mult_1_0.das
+- id: set_qty_mult_2_0
+  key: Alt+Ctrl+Shift+7
+  label: Set Qty Mult 2.0x
+  scriptPath: hotkeys/set_qty_mult_2_0.das
+- id: set_qty_mult_3_0
+  key: Alt+Ctrl+Shift+8
+  label: Set Qty Mult 3.0x
+  scriptPath: hotkeys/set_qty_mult_3_0.das
 - id: switch_to_sim
   key: Alt+Ctrl+S
   label: Switch to Sim
@@ -43,11 +59,11 @@
   scriptPath: hotkeys/buy_ib_bid_plus_sl.das
 - id: buy_25_bid_plus_sl
   key: Ctrl+Shift+2
-  label: Buy 75 Bid+ SL
+  label: Buy T3 Bid+ SL
   scriptPath: hotkeys/buy_25_bid_plus_sl.das
 - id: buy_50_bid_plus_sl
   key: Ctrl+Shift+3
-  label: Buy 100 Bid+ SL
+  label: Buy T4 Bid+ SL
   scriptPath: hotkeys/buy_50_bid_plus_sl.das
 
 # Buy orders: Bid SL
@@ -61,11 +77,11 @@
   scriptPath: hotkeys/buy_ib_bid_sl.das
 - id: buy_25_bid_sl
   key: Alt+Ctrl+2
-  label: Buy 75 Bid SL
+  label: Buy T3 Bid SL
   scriptPath: hotkeys/buy_25_bid_sl.das
 - id: buy_50_bid_sl
   key: Alt+Ctrl+3
-  label: Buy 100 Bid SL
+  label: Buy T4 Bid SL
   scriptPath: hotkeys/buy_50_bid_sl.das
 
 # Buy orders: Ask SL
@@ -79,11 +95,11 @@
   scriptPath: hotkeys/buy_ib_ask_sl.das
 - id: buy_25_ask_sl
   key: Alt+Shift+2
-  label: Buy 75 Ask SL
+  label: Buy T3 Ask SL
   scriptPath: hotkeys/buy_25_ask_sl.das
 - id: buy_50_ask_sl
   key: Alt+Shift+3
-  label: Buy 100 Ask SL
+  label: Buy T4 Ask SL
   scriptPath: hotkeys/buy_50_ask_sl.das
 
 # Buy orders: Ask+ SL
@@ -97,12 +113,24 @@
   scriptPath: hotkeys/buy_ib_ask_plus_sl.das
 - id: buy_25_ask_plus_sl
   key: Alt+Ctrl+Shift+2
-  label: Buy 75 Ask+ SL
+  label: Buy T3 Ask+ SL
   scriptPath: hotkeys/buy_25_ask_plus_sl.das
 - id: buy_50_ask_plus_sl
   key: Alt+Ctrl+Shift+3
-  label: Buy 100 Ask+ SL
+  label: Buy T4 Ask+ SL
   scriptPath: hotkeys/buy_50_ask_plus_sl.das
+
+# Short orders: Ask
+- id: short_tier1_ask
+  key: Alt+Ctrl+Shift+S
+  label: Short T1 Ask
+  scriptPath: hotkeys/short_tier1_ask.das
+
+# Cover orders: Ask+
+- id: cover_1_1_ask
+  key: Alt+Ctrl+Shift+C
+  label: Cover 1/1 Ask+
+  scriptPath: hotkeys/cover_1_1_ask.das
 
 # Sell orders: Ask
 - id: sell_1_1_ask

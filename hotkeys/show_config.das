@@ -113,10 +113,11 @@ $msg =
 
 "SIZING\n" +
 "-----------------\n" +
-"mibShareSize: " + $mibShareSize + " shares\n" +
-"ibShareSize: " + $ibShareSize + " shares\n" +
-"buy25ShareSize: " + $buy25ShareSize + " shares\n" +
-"buy50ShareSize: " + $buy50ShareSize + " shares\n" +
+"qtyMult: " + $qtyMult + "x\n" +
+"tier1ShareSize (MIB base): " + $tier1ShareSize + " shares\n" +
+"tier2ShareSize (IB base): " + $tier2ShareSize + " shares\n" +
+"tier3ShareSize (buy_25 base): " + $tier3ShareSize + " shares\n" +
+"tier4ShareSize (buy_50 base): " + $tier4ShareSize + " shares\n" +
 "maxPositionSize: " + $maxPositionSize + " shares\n\n" +
 
 "LIMITS\n" +

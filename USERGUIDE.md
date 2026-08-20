@@ -4,7 +4,7 @@
 
 These scripts are the hotkeys I use in DAS Trader for active, discretionary day trading. They focus on fast, repeatable order entry with guard rails and are designed around a single active symbol at a time. I treat the micro ice breaker and ice breaker (Buy MIB/IB) entries as the first tests of a trade thesis; while DAS allows multiple positions, these hotkeys assume one symbol and may behave unpredictably otherwise.
 
-These scripts are designed for LONG positions only. Shorting is not supported.
+The automated entry-protection workflow is designed for LONG positions only. Two isolated manual hotkeys support a Tier 1 short at Ask and a 100% cover at Ask; they do not arm stop loss, take profit, structured-stop state, or timer handling.
 
 Repository structure: the `hotkeys/` folder contains the `.das` hotkey scripts, `keymap.yaml` defines the key bindings and metadata, and `other scripts/` contains support scripts like the timer. A `.das` file is plain text you can paste into the DAS Trader Script Editor. The `keymap.yaml` can be compiled into a `Hotkey.htk` using the DAS Hotkey Tools VS Code extension, or you can skip the compiler and copy the scripts manually.
 
@@ -67,7 +67,7 @@ Feature toggles and entry guards:
 
 Risk and execution:
 - `$entryOffset`: bid/ask offset for the "plus" entry scripts.
-- `$exitOffset`: bid offset for Bid- sells and non-dynamic stop-limit offsets.
+- `$exitOffset`: aggression offset for Bid- long exits and Ask+ short covers, and the limit offset for non-dynamic stops.
 - `$orderRoute`: limit order route for entries/exits (buys/sells/TP/BE). Default is `ARCAL`. `FREEL` is the free route for ST Global Market/Open Ocean.
 - `$gtfoRoute`: emergency exit route for GTFO/backstop/hijack exits. Default is `FLASHL` (Open Ocean broadcast route).
 - `$stopLossTrigger`: fixed 1R risk per share (used when dynamic stops are off).
@@ -108,10 +108,11 @@ Account tokens:
 - `$LIVEACT`: LIVE account identifier.
 
 Sizing and risk limits:
-- `$mibShareSize`: micro ice breaker entry size.
-- `$ibShareSize`: ice breaker entry size.
-- `$buy25ShareSize`: entry size for the legacy `buy_25_*` script family.
-- `$buy50ShareSize`: entry size for the legacy `buy_50_*` script family.
+- `$qtyMult`: shared multiplier applied to all four tier base sizes.
+- `$tier1ShareSize`: micro ice breaker entry size.
+- `$tier2ShareSize`: ice breaker entry size.
+- `$tier3ShareSize`: entry size for the legacy `buy_25_*` script family.
+- `$tier4ShareSize`: entry size for the legacy `buy_50_*` script family.
 - `$maxPositionSize`: maximum total position size in shares.
 - `$riskCapDollars`: maximum projected net risk per trade in dollars.
 
@@ -211,10 +212,11 @@ baseline values when you run "Set Global Variables."
 | Structured stop | `$structuredSymbol` | `""` |
 | Accounts | `$TRSIM` | `"%%SIMULATED%%"` |
 | Accounts | `$LIVEACT` | `"%%LIVE%%"` |
-| Sizing | `$mibShareSize` | `25` |
-| Sizing | `$ibShareSize` | `50` |
-| Sizing | `$buy25ShareSize` | `75` |
-| Sizing | `$buy50ShareSize` | `100` |
+| Sizing | `$qtyMult` | `1.0` |
+| Sizing | `$tier1ShareSize` | `50` |
+| Sizing | `$tier2ShareSize` | `100` |
+| Sizing | `$tier3ShareSize` | `200` |
+| Sizing | `$tier4ShareSize` | `300` |
 | Sizing | `$maxPositionSize` | `500` |
 | Limits | `$riskCapDollars` | `100.00` |
 | Polling | `$pollMs` | `100` |
@@ -241,6 +243,10 @@ scripts rather than direct invocation.
 | `Ctrl+Shift+Q` | `hotkeys/cancel_all.das` | Cancel orders, clear TP alerts, re-arm stops. |
 | `Alt+Ctrl+Q` | `hotkeys/gtfo.das` | Emergency exit: cancel orders, sell full at bid-0.50. |
 | `Ctrl+,` | `hotkeys/set_global_variables.das` | Load default globals. |
+| `Alt+Ctrl+Shift+5` | `hotkeys/set_qty_mult_0_5.das` | Set the shared tier-size multiplier to 0.5x. |
+| `Alt+Ctrl+Shift+6` | `hotkeys/set_qty_mult_1_0.das` | Set the shared tier-size multiplier to 1.0x. |
+| `Alt+Ctrl+Shift+7` | `hotkeys/set_qty_mult_2_0.das` | Set the shared tier-size multiplier to 2.0x. |
+| `Alt+Ctrl+Shift+8` | `hotkeys/set_qty_mult_3_0.das` | Set the shared tier-size multiplier to 3.0x. |
 | `Alt+Ctrl+S` | `hotkeys/switch_to_sim.das` | Switch montage and filters to SIM. |
 | `Alt+Ctrl+L` | `hotkeys/switch_to_live.das` | Switch montage and filters to LIVE. |
 | `Alt+Ctrl+.` | `hotkeys/show_config.das` | Show current globals, account mode, guard states. |
@@ -248,20 +254,22 @@ scripts rather than direct invocation.
 | Unbound | `hotkeys/cancel_all_no_stops.das` | Cancel orders and TP alerts without re-arming stops. |
 | `Alt+Ctrl+Shift+Win+0` | `hotkeys/buy_mib_bid_plus_sl.das` | Micro ice breaker buy at bid + offset with auto stop/TP. |
 | `Ctrl+Shift+1` | `hotkeys/buy_ib_bid_plus_sl.das` | Ice breaker buy at bid + offset with auto stop/TP. |
-| `Ctrl+Shift+2` | `hotkeys/buy_25_bid_plus_sl.das` | 75-share tier buy at bid + offset with auto stop/TP. |
-| `Ctrl+Shift+3` | `hotkeys/buy_50_bid_plus_sl.das` | 100-share tier buy at bid + offset with auto stop/TP. |
+| `Ctrl+Shift+2` | `hotkeys/buy_25_bid_plus_sl.das` | Tier 3 buy at bid + offset with auto stop/TP (200 base shares). |
+| `Ctrl+Shift+3` | `hotkeys/buy_50_bid_plus_sl.das` | Tier 4 buy at bid + offset with auto stop/TP (300 base shares). |
 | `Alt+Ctrl+0` | `hotkeys/buy_mib_bid_sl.das` | Micro ice breaker buy at bid with auto stop/TP. |
 | `Alt+Ctrl+1` | `hotkeys/buy_ib_bid_sl.das` | Ice breaker buy at bid with auto stop/TP. |
-| `Alt+Ctrl+2` | `hotkeys/buy_25_bid_sl.das` | 75-share tier buy at bid with auto stop/TP. |
-| `Alt+Ctrl+3` | `hotkeys/buy_50_bid_sl.das` | 100-share tier buy at bid with auto stop/TP. |
+| `Alt+Ctrl+2` | `hotkeys/buy_25_bid_sl.das` | Tier 3 buy at bid with auto stop/TP (200 base shares). |
+| `Alt+Ctrl+3` | `hotkeys/buy_50_bid_sl.das` | Tier 4 buy at bid with auto stop/TP (300 base shares). |
 | `Alt+Shift+0` | `hotkeys/buy_mib_ask_sl.das` | Micro ice breaker buy at ask with auto stop/TP. |
 | `Alt+Shift+1` | `hotkeys/buy_ib_ask_sl.das` | Ice breaker buy at ask with auto stop/TP. |
-| `Alt+Shift+2` | `hotkeys/buy_25_ask_sl.das` | 75-share tier buy at ask with auto stop/TP. |
-| `Alt+Shift+3` | `hotkeys/buy_50_ask_sl.das` | 100-share tier buy at ask with auto stop/TP. |
+| `Alt+Shift+2` | `hotkeys/buy_25_ask_sl.das` | Tier 3 buy at ask with auto stop/TP (200 base shares). |
+| `Alt+Shift+3` | `hotkeys/buy_50_ask_sl.das` | Tier 4 buy at ask with auto stop/TP (300 base shares). |
 | `Alt+Ctrl+Shift+0` | `hotkeys/buy_mib_ask_plus_sl.das` | Micro ice breaker buy at ask + offset with auto stop/TP. |
 | `Alt+Ctrl+Shift+1` | `hotkeys/buy_ib_ask_plus_sl.das` | Ice breaker buy at ask + offset with auto stop/TP. |
-| `Alt+Ctrl+Shift+2` | `hotkeys/buy_25_ask_plus_sl.das` | 75-share tier buy at ask + offset with auto stop/TP. |
-| `Alt+Ctrl+Shift+3` | `hotkeys/buy_50_ask_plus_sl.das` | 100-share tier buy at ask + offset with auto stop/TP. |
+| `Alt+Ctrl+Shift+2` | `hotkeys/buy_25_ask_plus_sl.das` | Tier 3 buy at ask + offset with auto stop/TP (200 base shares). |
+| `Alt+Ctrl+Shift+3` | `hotkeys/buy_50_ask_plus_sl.das` | Tier 4 buy at ask + offset with auto stop/TP (300 base shares). |
+| `Alt+Ctrl+Shift+S` | `hotkeys/short_tier1_ask.das` | Sell short Tier 1 at ask without automatic protection. |
+| `Alt+Ctrl+Shift+C` | `hotkeys/cover_1_1_ask.das` | Cover the full short position at ask plus `$exitOffset` using DAS Reverse. |
 | `Ctrl+A` | `hotkeys/sell_1_1_ask.das` | Sell full position at ask. |
 | `Ctrl+S` | `hotkeys/sell_1_2_ask.das` | Sell half position at ask. |
 | `Ctrl+D` | `hotkeys/sell_1_4_ask.das` | Sell quarter position at ask. |
@@ -304,17 +312,21 @@ scripts rather than direct invocation.
 
 ## BUY ORDERS
 
-Sizing philosophy: start small to probe the trade, add only when it is working, and cap exposure with hard limits. The four entry tiers have explicit configurable defaults of 25 shares for MIB, 50 for IB, 75 for the legacy `buy_25_*` family, and 100 for the legacy `buy_50_*` family. In rehab mode (`$rehab = 1`), trading is restricted to MIB/IB entries and scale-ins are blocked in LIVE and SIM when `$applyLiveGuardsToSim = 1`.
+Sizing philosophy: start small to probe the trade, add only when it is working, and cap exposure with hard limits. The four entry tiers have configurable base sizes of 50 shares for MIB, 100 for IB, 200 for the legacy `buy_25_*` family, and 300 for the legacy `buy_50_*` family. Every entry uses `round(base tier size * $qtyMult)`, where `$qtyMult` defaults to `1.0`. In rehab mode (`$rehab = 1`), trading is restricted to MIB/IB entries and scale-ins are blocked in LIVE and SIM when `$applyLiveGuardsToSim = 1`.
 
 Rehab mode is a safety throttle for live trading. When enabled (`$rehab = 1`), the scripts block scale-ins and prevent larger tier entries in live accounts, forcing you to trade only MIB/IB size while you reset discipline or reduce risk after a drawdown. The same restrictions apply in SIM when `$applyLiveGuardsToSim = 1` (default). You can set the default by changing `$rehab` in `hotkeys/set_global_variables.das` and re-running "Set Global Variables" (or restarting DAS), or toggle it for the current session using the `Toggle Rehab Mode` hotkey. Disabling rehab requires typing `YES` to confirm.
 
 ### Configurable entry tiers
 
-- Buy MIB scripts use `$mibShareSize` (default 25 shares). MIB entries are
+- `$qtyMult` scales all four base sizes together. Results are rounded to the
+  nearest whole share before position-size and risk-cap checks run.
+  Use the multiplier preset hotkeys to switch the current session between
+  `0.5x`, `1.0x`, `2.0x`, and `3.0x` without reloading all globals.
+- Buy MIB scripts use `$tier1ShareSize` (default 50 shares). MIB entries are
   treated like IB for dynamic/structured gating.
-- Buy IB scripts use `$ibShareSize` (default 50 shares).
-- The `buy_25_*` scripts use `$buy25ShareSize` (default 75 shares), and the
-  `buy_50_*` scripts use `$buy50ShareSize` (default 100 shares). Their legacy
+- Buy IB scripts use `$tier2ShareSize` (default 100 shares).
+- The `buy_25_*` scripts use `$tier3ShareSize` (default 200 shares), and the
+  `buy_50_*` scripts use `$tier4ShareSize` (default 300 shares). Their legacy
   filenames and IDs are retained to avoid breaking existing integrations.
 - All buy scripts enforce `$maxPositionSize` and `$riskCapDollars` before
   sending an order.
@@ -350,6 +362,27 @@ out/cancels, or when the original symbol is back in Primary_OE and the position
 is flat. If you switch the montage to a different symbol while an entry is
 pending, the timer cancels the working buy and clears the pending state to
 avoid unprotected fills.
+
+## MANUAL SHORT ORDERS
+
+The initial short workflow is intentionally separate from the automated long
+workflow. It uses `$orderRoute` and `DAY+`, but it does not run the long entry
+guards or create stop-loss, take-profit, structured-stop, or timer-arming
+state. Treat the position as manually managed and verify locate availability,
+route behavior, and applicable short-sale restrictions with the broker.
+
+- `Short T1 Ask` cancels working orders for the montage symbol, then sends an
+  explicit sell-short limit order at Ask for
+  `round($tier1ShareSize * $qtyMult)` shares. It can open a short while flat or
+  add Tier 1 to an existing short, but aborts if the current position is long.
+- `Cover 1/1 Ask+` cancels working orders for the montage symbol, then uses the
+  native `Share=Pos; SEND=Reverse` command at `Ask + $exitOffset`. DAS resolves the position
+  quantity and direction internally; for a short it sends a buy for the full
+  short without adding past flat. If invoked while long, `SEND=Reverse` closes
+  the long with a sell, so treat this as a full-position close hotkey.
+- Ask orders are limit orders. A short entry can remain unfilled if Ask moves
+  away, and an Ask+ cover can remain unfilled if Ask rises beyond its limit before execution. Monitor
+  working orders and the resulting position directly in DAS.
 
 ## SELL ORDERS
 
@@ -429,7 +462,7 @@ candle values are available. The structured validator computes a stop price
 from a 1-minute impulse/pullback pattern and stores it in `$structuredStop`.
 
 - Only Buy IB/MIB entries can open a new position in structured mode.
-- The 75/100-share tiers (`buy_25_*`/`buy_50_*`) are allowed only for scale-ins
+- The 200/300-share tiers (`buy_25_*`/`buy_50_*`) are allowed only for scale-ins
   (and require `$structuredR`).
 - If structured data is missing at entry time, the entry is aborted.
 - The stop engine uses `$structuredStop`, and TP distance uses `$structuredR`.

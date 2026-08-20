@@ -65,7 +65,9 @@ if ($mode == "STRUCTURED" && $structuredSymbol != "" && $structuredSymbol != $en
 
 
 // ---- Entry sizing and pacing ----
-$addShares = $buy50ShareSize;
+$rawShares = $tier4ShareSize * $qtyMult;
+$roundedShares = $rawShares + 0.5;
+$addShares = $roundedShares - ($roundedShares % 1);
 if ($addShares < 1) { MsgBox("ABORTED: Invalid buy_50 share size."); return; }
 $refPx             = BID;             // BID or ASK
 $minDelayMs  = 1000;           // throttle between order sends (ms)

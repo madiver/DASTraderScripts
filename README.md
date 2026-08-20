@@ -9,7 +9,7 @@ This repository contains human-readable DAS Trader hotkey scripts plus a keymap 
 These are the scripts I trade with on a daily basis. If you choose to use them, start by reading the user guide and then review the global settings in `hotkeys/set_global_variables.das` and the bindings in `keymap.yaml` (mine are tailored to my setup). I primarily use a Stream Deck.
 
 Important constraints:
-- Long-only.
+- Automated entry protection (stops, take profit, structured modes, and timer arming) is long-only. The manual Tier 1 short and full-cover hotkeys are intentionally isolated from that workflow.
 - Assumes a single active symbol (multi-symbol trading is not supported).
 - Requires a montage named `Primary_OE`.
 - Requires installing `other scripts/timer.das` in DAS Trader's Timer Event Scripts.
@@ -79,15 +79,22 @@ Example:
 
 Current groups used in `hotkeys/`:
 Buy orders: Ask SL, Buy orders: Ask+ SL, Buy orders: Bid SL, Buy orders: Bid+ SL,
-Global controls & config, Sell orders: Ask, Sell orders: Bid-, Session equity &
-PnL, Stops, Take profit, Utilities & toggles.
+Cover orders: Ask+, Global controls & config, Sell orders: Ask, Sell orders: Bid-,
+Short orders: Ask, Stops, Take profit, Utilities & toggles.
 
 ## Scaling Behavior
 
 - Scale-ins are allowed only when the existing position is at least 1R in profit (dynamic R when active, otherwise `stopLossTrigger`).
 - When adding to an existing long, the scripts use the scale-in-specific BE stop hotkey (`Set Auto Stop BE Scale 1/1`).
-- Buy tiers use explicit configurable share counts: MIB uses `$mibShareSize` (25), IB uses `$ibShareSize` (50), the legacy `buy_25_*` family uses `$buy25ShareSize` (75), and the legacy `buy_50_*` family uses `$buy50ShareSize` (100) by default.
+- Buy tiers use configurable base share counts: MIB uses `$tier1ShareSize` (50), IB uses `$tier2ShareSize` (100), the legacy `buy_25_*` family uses `$tier3ShareSize` (200), and the legacy `buy_50_*` family uses `$tier4ShareSize` (300). Each base size is multiplied by `$qtyMult` (default `1.0`) and rounded to the nearest whole share.
+- Multiplier preset hotkeys switch `$qtyMult` between `0.5x`, `1.0x`, `2.0x`, and `3.0x` for the current session.
 - Projected risk caps are evaluated against net risk to the planned stop on total size after the add (current position + new shares).
+
+## Manual Shorting
+
+- `Short T1 Ask` sends `round($tier1ShareSize * $qtyMult)` shares as an explicit sell-short limit order at Ask.
+- `Cover 1/1 Ask+` cancels current-symbol orders and uses DAS `Share=Pos; SEND=Reverse` at `Ask + $exitOffset`. For a short position, DAS resolves the full quantity and sends a buy without adding past flat.
+- These scripts use `$orderRoute` and `DAY+`, but deliberately do not use the long-side entry guards, stop loss, take profit, structured-stop state, or timer arming. Confirm locate availability, broker routing, and short-sale restrictions before use.
 
 ## Dynamic Stops (Buy IB/MIB Only)
 

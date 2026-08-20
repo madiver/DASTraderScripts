@@ -135,11 +135,12 @@ $LIVEACT = "%%LIVE%%";      // your LIVE trading account
 
 // ---- 4) Sizing & Risk Limits ----
 
-// Explicit share sizes for each buy tier.
-$mibShareSize = 25;
-$ibShareSize = 50;
-$buy25ShareSize = 75;   // Legacy buy_25_* script family
-$buy50ShareSize = 100;  // Legacy buy_50_* script family
+// Shared multiplier and base share sizes for each buy tier.
+$qtyMult = 1.0;
+$tier1ShareSize = 50;   // MIB script family
+$tier2ShareSize = 100;  // IB script family
+$tier3ShareSize = 200;  // Legacy buy_25_* script family
+$tier4ShareSize = 300;  // Legacy buy_50_* script family
 
 // Maximum allowed position size (shares)
 $maxPositionSize = 500;
