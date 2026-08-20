@@ -95,6 +95,7 @@ Short orders: Ask, Stops, Take profit, Utilities & toggles.
 - `Short T1 Ask` sends `round($tier1ShareSize * $qtyMult)` shares as an explicit sell-short limit order at Ask.
 - `Cover 1/1 Ask+` cancels current-symbol orders and uses DAS `Share=Pos; SEND=Reverse` at `Ask + $exitOffset`. For a short position, DAS resolves the full quantity and sends a buy without adding past flat.
 - These scripts use `$orderRoute` and `DAY+`, but deliberately do not use the long-side entry guards, stop loss, take profit, structured-stop state, or timer arming. Confirm locate availability, broker routing, and short-sale restrictions before use.
+- `Cancel All` cancels short-side working orders without invoking the long stop engine. `GTFO` uses signed position direction to sell longs at Bid minus $0.50 or cover shorts at Ask plus $0.50 through `$gtfoRoute`.
 
 ## Dynamic Stops (Buy IB/MIB Only)
 

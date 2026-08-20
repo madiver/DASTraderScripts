@@ -15,13 +15,26 @@ if (!IsObj($M)) {
     return;
 }
 
-// Snapshot symbol and position after cancels
-$mySym   = $M.Symb;
-$posNow  = $M.Pos;
+// Snapshot symbol and signed position after cancels. GetCurrPos() preserves
+// direction, while montage .Pos and built-in Pos are absolute quantities.
+$mySym = $M.Symb;
+$posNow = GetCurrPos();
+$i = 0;
+while ($posNow == 0 && $M.Pos != 0 && $i < 10) {
+    Wait(50);
+    $posNow = GetCurrPos();
+    $i = $i + 1;
+}
 
 // ---- Step 3: Re-arm stop if long (optional) ----
 if ($posNow > 0 && $useAutoStop == "Yes" && $resetStopOnCancel == "Yes") {
     ExecHotkey("Set Auto Stop");
+}
+if ($posNow < 0) {
+    MsgLog("Cancel All: short position detected for " + $mySym + "; long stop was not re-armed.");
+}
+if ($posNow == 0 && $M.Pos != 0) {
+    MsgLog("Cancel All: unable to resolve signed position for " + $mySym + "; stop was not re-armed.");
 }
 
 // ---- Step 4: Delete TP alerts for this symbol ----

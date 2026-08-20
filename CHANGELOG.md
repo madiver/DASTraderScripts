@@ -14,6 +14,9 @@ All notable changes to this repository will be documented in this file.
 ### Bug Fixes
 - Use DAS native `Share=Pos; SEND=Reverse` for full-position covers so short quantities are resolved correctly instead of relying on the advanced montage `Pos` sign.
 - Price the full-position cover at `Ask + $exitOffset` to improve execution probability during fast upward moves.
+- Make GTFO direction-aware: long positions exit at Bid minus $0.50 and short positions cover at Ask plus $0.50 using `$gtfoRoute` and native `SEND=Reverse`.
+- Use signed `GetCurrPos()` in Cancel All so automatic long stops are never re-armed for short positions.
+- Snap Cover and direction-aware GTFO prices to valid route tick increments so aggressive exits are not rejected for sub-penny prices.
 
 ## 0.3.2 - 2026-02-11
 

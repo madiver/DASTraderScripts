@@ -43,13 +43,13 @@ if ($px <= 0) {
     MsgBox("Cover 1/1 aborted: Ask is unavailable.");
     return;
 }
-$inc = 0.01;
-if ($px < 1)    { $inc = 0.001; }
-if ($px < 0.25) { $inc = 0.0005; }
-$px = Round($px, 102, $inc);
-
 ROUTE=$orderRoute;
 Price=$px;
+// Use DAS's montage-native price rounding. Function-based Round() did not
+// alter calculated prices reliably in the Open Ocean DAS build.
+if ($px >= 1) { Price=Round2; }
+if ($px < 1)  { Price=Round3; }
+if ($px < 0.25) { Price=Round4; }
 Share=Pos;
 TIF=DAY+;
 SEND=Reverse;

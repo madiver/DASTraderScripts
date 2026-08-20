@@ -7,12 +7,22 @@
 // ---- Account Mode (derived from Primary_OE) ----
 $acct = "";
 $acctMode = "UNKNOWN";
+$diagSym = "";
+$diagMontagePos = "UNAVAILABLE";
+$diagBuiltInPos = "UNAVAILABLE";
+$diagCurrPos = "UNAVAILABLE";
 $M = GetWindowObj("Primary_OE");
 if (IsObj($M)) {
+    FocusWindow Primary_OE;
     $acct = StrTrim("" + $M.Account);
+    $diagSym = StrTrim("" + $M.Symb);
+    $diagMontagePos = $M.Pos;
+    $diagBuiltInPos = Pos;
+    $diagCurrPos = GetCurrPos();
     if (StrLen($acct) > 0) {
         if (StrFind($acct, "TR") == 0) { $acctMode = "SIM"; } else { $acctMode = "LIVE"; }
     }
+    MsgLog("Position Diagnostics: account=" + $acct + " sym=" + $diagSym + " montagePos=" + $diagMontagePos + " builtInPos=" + $diagBuiltInPos + " currPos=" + $diagCurrPos + ".");
 }
 
 // ---- Test guard status ----
@@ -103,6 +113,13 @@ $msg =
 "backstopSymbol: " + $backstopSymbol + "\n" +
 "lastStop: $" + $lastStop + "\n" +
 "lastStopSymbol: " + $lastStopSymbol + "\n\n" +
+
+"POSITION DIAGNOSTICS\n" +
+"-----------------\n" +
+"Symbol: " + $diagSym + "\n" +
+"Montage .Pos: " + $diagMontagePos + "\n" +
+"Built-in Pos: " + $diagBuiltInPos + "\n" +
+"GetCurrPos(): " + $diagCurrPos + "\n\n" +
 
 "ACCOUNTS\n" +
 "-----------------\n" +

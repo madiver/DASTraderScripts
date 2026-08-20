@@ -240,8 +240,8 @@ scripts rather than direct invocation.
 
 | Key binding | Script | Description |
 | --- | --- | --- |
-| `Ctrl+Shift+Q` | `hotkeys/cancel_all.das` | Cancel orders, clear TP alerts, re-arm stops. |
-| `Alt+Ctrl+Q` | `hotkeys/gtfo.das` | Emergency exit: cancel orders, sell full at bid-0.50. |
+| `Ctrl+Shift+Q` | `hotkeys/cancel_all.das` | Cancel orders and clear TP alerts; re-arm stops only for longs. |
+| `Alt+Ctrl+Q` | `hotkeys/gtfo.das` | Emergency exit: long at bid-$0.50 or short at ask+$0.50. |
 | `Ctrl+,` | `hotkeys/set_global_variables.das` | Load default globals. |
 | `Alt+Ctrl+Shift+5` | `hotkeys/set_qty_mult_0_5.das` | Set the shared tier-size multiplier to 0.5x. |
 | `Alt+Ctrl+Shift+6` | `hotkeys/set_qty_mult_1_0.das` | Set the shared tier-size multiplier to 1.0x. |
@@ -249,7 +249,7 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Shift+8` | `hotkeys/set_qty_mult_3_0.das` | Set the shared tier-size multiplier to 3.0x. |
 | `Alt+Ctrl+S` | `hotkeys/switch_to_sim.das` | Switch montage and filters to SIM. |
 | `Alt+Ctrl+L` | `hotkeys/switch_to_live.das` | Switch montage and filters to LIVE. |
-| `Alt+Ctrl+.` | `hotkeys/show_config.das` | Show current globals, account mode, guard states. |
+| `Alt+Ctrl+.` | `hotkeys/show_config.das` | Show current globals, account mode, guard states, and position diagnostics. |
 | Unbound | `hotkeys/check_global_guards.das` | Run guard checks and set `$trade_ok`. |
 | Unbound | `hotkeys/cancel_all_no_stops.das` | Cancel orders and TP alerts without re-arming stops. |
 | `Alt+Ctrl+Shift+Win+0` | `hotkeys/buy_mib_bid_plus_sl.das` | Micro ice breaker buy at bid + offset with auto stop/TP. |
@@ -383,6 +383,12 @@ route behavior, and applicable short-sale restrictions with the broker.
 - Ask orders are limit orders. A short entry can remain unfilled if Ask moves
   away, and an Ask+ cover can remain unfilled if Ask rises beyond its limit before execution. Monitor
   working orders and the resulting position directly in DAS.
+- `Cancel All` uses signed `GetCurrPos()` after cancelling orders. It re-arms
+  the automatic stop only for a confirmed long and deliberately skips the
+  long stop engine for shorts.
+- `GTFO` cancels orders and uses `$gtfoRoute` with native `SEND=Reverse`. It
+  prices long exits at Bid minus `$0.50` and short covers at Ask plus `$0.50`.
+  These are aggressive limit orders, not guaranteed executions.
 
 ## SELL ORDERS
 
@@ -622,12 +628,17 @@ Account and session:
 - `switch_to_sim.das` and `switch_to_live.das` set the Primary_OE account.
 
 Order control:
-- `cancel_all.das` cancels working orders and re-arms stops; 
+- `cancel_all.das` cancels working orders and re-arms stops only for confirmed
+  long positions; it skips long-stop re-arming for shorts.
   `cancel_all_no_stops.das` cancels without re-arming.
-- `gtfo.das` attempts an aggressive limit exit for the full position.
+- `gtfo.das` attempts a direction-aware aggressive limit exit for the full
+  position: Bid minus `$0.50` for longs or Ask plus `$0.50` for shorts.
 
 UI and convenience:
-- `show_config.das` displays current globals and account mode.
+- `show_config.das` displays current globals and account mode. It also logs
+  `Primary_OE` values for montage `.Pos`, built-in `Pos`, and `GetCurrPos()`;
+  these read-only diagnostics help verify how DAS represents flat, long, and
+  short positions before direction-aware emergency logic is enabled.
 - `select_primary_order_entry.das` focuses the Primary_OE montage.
 - `toggle_position_window.das` toggles AlwaysOnTop for the DAS Position windows.
 
