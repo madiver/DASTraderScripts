@@ -184,7 +184,7 @@ baseline values when you run "Set Global Variables."
 | Risk | `$gtfoRoute` | `"FLASHL"` |
 | Risk | `$stopLossTrigger` | `0.10` |
 | Risk | `$takeProfitFactor` | `1.0` |
-| Risk | `$takeProfitSize` | `0.25` |
+| Risk | `$takeProfitSize` | `0.50` |
 | Risk | `$takeProfitSizeRehab` | `0.50` |
 | Backstop | `$backstopBuffer` | `0.03` |
 | Backstop | `$backstopBidOffset` | `0.10` |
@@ -517,7 +517,9 @@ hotkey. It is not a resting broker-side order.
 
 When the alert fires, `Take Profit Executor`:
 - Cancels existing sell orders for the symbol.
-- Sells a partial position sized by `$takeProfitSize` (or `$takeProfitSizeRehab` when rehab is active in LIVE, and in SIM when `$applyLiveGuardsToSim = 1`).
+- Sells a partial position sized by `$takeProfitSize` (default 50%), or
+  `$takeProfitSizeRehab` (also default 50%) when rehab is active in LIVE and in
+  SIM when `$applyLiveGuardsToSim = 1`.
 - Re-arms stops and (if needed) re-establishes the TP alert after the fill.
 
 Stale take-profit alerts are cleaned up by the timer script a few seconds after

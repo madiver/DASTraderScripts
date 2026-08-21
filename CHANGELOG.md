@@ -10,6 +10,7 @@ All notable changes to this repository will be documented in this file.
 - Add isolated manual hotkeys to sell short Tier 1 at Ask and cover 100% at Ask without arming long-side stops, take profit, or entry state.
 - Add a `$0.30` fixed stop-loss preset bound to `Alt+Ctrl+Win+=`.
 - Add a `$0.50` fixed stop-loss preset bound to `Alt+Ctrl+Win+5`.
+- Increase the default take-profit partial from 25% to 50% of the position.
 
 ### Bug Fixes
 - Use DAS native `Share=Pos; SEND=Reverse` for full-position covers so short quantities are resolved correctly instead of relying on the advanced montage `Pos` sign.
