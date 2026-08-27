@@ -6,11 +6,12 @@ All notable changes to this repository will be documented in this file.
 
 ### Features
 - Add configurable tier base sizes—`$tier1ShareSize` 50 (MIB), `$tier2ShareSize` 100 (IB), `$tier3ShareSize` 200 (`buy_25_*`), and `$tier4ShareSize` 300 (`buy_50_*`)—scaled together by `$qtyMult` (default `1.0`).
-- Add hotkey presets for setting `$qtyMult` to `0.5x`, `1.0x`, `2.0x`, or `3.0x`.
-- Add isolated manual hotkeys to sell short Tier 1 at Ask and cover 100% at Ask without arming long-side stops, take profit, or entry state.
+- Add hotkey presets for setting `$qtyMult` to `0.5x`, `1.0x`, `1.5x`, `2.0x`, or `3.0x`.
+- Add isolated manual hotkeys to sell short Tiers 1–4 at Ask and cover 100% at Ask without arming long-side stops, take profit, or entry state.
 - Add a `$0.30` fixed stop-loss preset bound to `Alt+Ctrl+Win+=`.
 - Add a `$0.50` fixed stop-loss preset bound to `Alt+Ctrl+Win+5`.
 - Increase the default take-profit partial from 25% to 50% of the position.
+- Increase the default per-trade risk cap from `$100` to `$1,000`.
 
 ### Bug Fixes
 - Use DAS native `Share=Pos; SEND=Reverse` for full-position covers so short quantities are resolved correctly instead of relying on the advanced montage `Pos` sign.
@@ -18,6 +19,7 @@ All notable changes to this repository will be documented in this file.
 - Make GTFO direction-aware: long positions exit at Bid minus $0.50 and short positions cover at Ask plus $0.50 using `$gtfoRoute` and native `SEND=Reverse`.
 - Use signed `GetCurrPos()` in Cancel All so automatic long stops are never re-armed for short positions.
 - Snap Cover and direction-aware GTFO prices to valid route tick increments so aggressive exits are not rejected for sub-penny prices.
+- Use signed `GetCurrPos()` in the Tier 1 short hotkey so it can add to an existing short while continuing to reject long positions.
 
 ## 0.3.2 - 2026-02-11
 

@@ -9,7 +9,7 @@ This repository contains human-readable DAS Trader hotkey scripts plus a keymap 
 These are the scripts I trade with on a daily basis. If you choose to use them, start by reading the user guide and then review the global settings in `hotkeys/set_global_variables.das` and the bindings in `keymap.yaml` (mine are tailored to my setup). I primarily use a Stream Deck.
 
 Important constraints:
-- Automated entry protection (stops, take profit, structured modes, and timer arming) is long-only. The manual Tier 1 short and full-cover hotkeys are intentionally isolated from that workflow.
+- Automated entry protection (stops, take profit, structured modes, and timer arming) is long-only. The manual Tier 1–4 short-entry and full-cover hotkeys are intentionally isolated from that workflow.
 - Assumes a single active symbol (multi-symbol trading is not supported).
 - Requires a montage named `Primary_OE`.
 - Requires installing `other scripts/timer.das` in DAS Trader's Timer Event Scripts.
@@ -87,12 +87,12 @@ Short orders: Ask, Stops, Take profit, Utilities & toggles.
 - Scale-ins are allowed only when the existing position is at least 1R in profit (dynamic R when active, otherwise `stopLossTrigger`).
 - When adding to an existing long, the scripts use the scale-in-specific BE stop hotkey (`Set Auto Stop BE Scale 1/1`).
 - Buy tiers use configurable base share counts: MIB uses `$tier1ShareSize` (50), IB uses `$tier2ShareSize` (100), the legacy `buy_25_*` family uses `$tier3ShareSize` (200), and the legacy `buy_50_*` family uses `$tier4ShareSize` (300). Each base size is multiplied by `$qtyMult` (default `1.0`) and rounded to the nearest whole share.
-- Multiplier preset hotkeys switch `$qtyMult` between `0.5x`, `1.0x`, `2.0x`, and `3.0x` for the current session.
+- Multiplier preset hotkeys switch `$qtyMult` between `0.5x`, `1.0x`, `1.5x`, `2.0x`, and `3.0x` for the current session.
 - Projected risk caps are evaluated against net risk to the planned stop on total size after the add (current position + new shares).
 
 ## Manual Shorting
 
-- `Short T1 Ask` sends `round($tier1ShareSize * $qtyMult)` shares as an explicit sell-short limit order at Ask.
+- `Short T1/T2/T3/T4 Ask` sends `round($tierNShareSize * $qtyMult)` shares as an explicit sell-short limit order at Ask. These hotkeys can open a short or add to an existing short, but reject long positions.
 - `Cover 1/1 Ask+` cancels current-symbol orders and uses DAS `Share=Pos; SEND=Reverse` at `Ask + $exitOffset`. For a short position, DAS resolves the full quantity and sends a buy without adding past flat.
 - These scripts use `$orderRoute` and `DAY+`, but deliberately do not use the long-side entry guards, stop loss, take profit, structured-stop state, or timer arming. Confirm locate availability, broker routing, and short-sale restrictions before use.
 - `Cancel All` cancels short-side working orders without invoking the long stop engine. `GTFO` uses signed position direction to sell longs at Bid minus $0.50 or cover shorts at Ask plus $0.50 through `$gtfoRoute`.

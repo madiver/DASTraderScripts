@@ -147,7 +147,7 @@ $maxPositionSize = 500;
 
 // Maximum allowed $ risk *per trade*
 // Useful for guarding against oversized positions or bad spreads
-$riskCapDollars = 100.00;
+$riskCapDollars = 1000.00;
 
 // Order entry fill wait parameters
 $pollMs           = 100;             // polling cadence (ms)

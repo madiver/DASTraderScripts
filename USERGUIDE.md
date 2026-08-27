@@ -4,7 +4,7 @@
 
 These scripts are the hotkeys I use in DAS Trader for active, discretionary day trading. They focus on fast, repeatable order entry with guard rails and are designed around a single active symbol at a time. I treat the micro ice breaker and ice breaker (Buy MIB/IB) entries as the first tests of a trade thesis; while DAS allows multiple positions, these hotkeys assume one symbol and may behave unpredictably otherwise.
 
-The automated entry-protection workflow is designed for LONG positions only. Two isolated manual hotkeys support a Tier 1 short at Ask and a 100% cover at Ask; they do not arm stop loss, take profit, structured-stop state, or timer handling.
+The automated entry-protection workflow is designed for LONG positions only. Five isolated manual hotkeys support Tier 1–4 shorts at Ask and a 100% cover at Ask; they do not arm stop loss, take profit, structured-stop state, or timer handling.
 
 Repository structure: the `hotkeys/` folder contains the `.das` hotkey scripts, `keymap.yaml` defines the key bindings and metadata, and `other scripts/` contains support scripts like the timer. A `.das` file is plain text you can paste into the DAS Trader Script Editor. The `keymap.yaml` can be compiled into a `Hotkey.htk` using the DAS Hotkey Tools VS Code extension, or you can skip the compiler and copy the scripts manually.
 
@@ -218,7 +218,7 @@ baseline values when you run "Set Global Variables."
 | Sizing | `$tier3ShareSize` | `200` |
 | Sizing | `$tier4ShareSize` | `300` |
 | Sizing | `$maxPositionSize` | `500` |
-| Limits | `$riskCapDollars` | `100.00` |
+| Limits | `$riskCapDollars` | `1000.00` |
 | Polling | `$pollMs` | `100` |
 | Polling | `$maxPolls` | `20` |
 
@@ -247,6 +247,7 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Shift+6` | `hotkeys/set_qty_mult_1_0.das` | Set the shared tier-size multiplier to 1.0x. |
 | `Alt+Ctrl+Shift+7` | `hotkeys/set_qty_mult_2_0.das` | Set the shared tier-size multiplier to 2.0x. |
 | `Alt+Ctrl+Shift+8` | `hotkeys/set_qty_mult_3_0.das` | Set the shared tier-size multiplier to 3.0x. |
+| `Alt+Ctrl+Shift+9` | `hotkeys/set_qty_mult_1_5.das` | Set the shared tier-size multiplier to 1.5x. |
 | `Alt+Ctrl+S` | `hotkeys/switch_to_sim.das` | Switch montage and filters to SIM. |
 | `Alt+Ctrl+L` | `hotkeys/switch_to_live.das` | Switch montage and filters to LIVE. |
 | `Alt+Ctrl+.` | `hotkeys/show_config.das` | Show current globals, account mode, guard states, and position diagnostics. |
@@ -269,6 +270,9 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Shift+2` | `hotkeys/buy_25_ask_plus_sl.das` | Tier 3 buy at ask + offset with auto stop/TP (200 base shares). |
 | `Alt+Ctrl+Shift+3` | `hotkeys/buy_50_ask_plus_sl.das` | Tier 4 buy at ask + offset with auto stop/TP (300 base shares). |
 | `Alt+Ctrl+Shift+S` | `hotkeys/short_tier1_ask.das` | Sell short Tier 1 at ask without automatic protection. |
+| `Alt+Ctrl+Shift+D` | `hotkeys/short_tier2_ask.das` | Sell short Tier 2 at ask without automatic protection. |
+| `Alt+Ctrl+Shift+F` | `hotkeys/short_tier3_ask.das` | Sell short Tier 3 at ask without automatic protection. |
+| `Alt+Ctrl+Shift+G` | `hotkeys/short_tier4_ask.das` | Sell short Tier 4 at ask without automatic protection. |
 | `Alt+Ctrl+Shift+C` | `hotkeys/cover_1_1_ask.das` | Cover the full short position at ask plus `$exitOffset` using DAS Reverse. |
 | `Ctrl+A` | `hotkeys/sell_1_1_ask.das` | Sell full position at ask. |
 | `Ctrl+S` | `hotkeys/sell_1_2_ask.das` | Sell half position at ask. |
@@ -321,7 +325,7 @@ Rehab mode is a safety throttle for live trading. When enabled (`$rehab = 1`), t
 - `$qtyMult` scales all four base sizes together. Results are rounded to the
   nearest whole share before position-size and risk-cap checks run.
   Use the multiplier preset hotkeys to switch the current session between
-  `0.5x`, `1.0x`, `2.0x`, and `3.0x` without reloading all globals.
+  `0.5x`, `1.0x`, `1.5x`, `2.0x`, and `3.0x` without reloading all globals.
 - Buy MIB scripts use `$tier1ShareSize` (default 50 shares). MIB entries are
   treated like IB for dynamic/structured gating.
 - Buy IB scripts use `$tier2ShareSize` (default 100 shares).
@@ -371,10 +375,11 @@ guards or create stop-loss, take-profit, structured-stop, or timer-arming
 state. Treat the position as manually managed and verify locate availability,
 route behavior, and applicable short-sale restrictions with the broker.
 
-- `Short T1 Ask` cancels working orders for the montage symbol, then sends an
-  explicit sell-short limit order at Ask for
-  `round($tier1ShareSize * $qtyMult)` shares. It can open a short while flat or
-  add Tier 1 to an existing short, but aborts if the current position is long.
+- `Short T1/T2/T3/T4 Ask` cancels working orders for the montage symbol, then
+  sends an explicit sell-short limit order at Ask for
+  `round($tierNShareSize * $qtyMult)` shares. Each hotkey can open a short while
+  flat or add its tier to an existing short, but aborts if the current position
+  is long or its direction cannot be resolved safely.
 - `Cover 1/1 Ask+` cancels working orders for the montage symbol, then uses the
   native `Share=Pos; SEND=Reverse` command at `Ask + $exitOffset`. DAS resolves the position
   quantity and direction internally; for a short it sends a buy for the full

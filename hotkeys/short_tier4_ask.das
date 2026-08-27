@@ -1,15 +1,15 @@
 // =====================
-// SHORT TIER 1 AT ASK
+// SHORT TIER 4 AT ASK
 // Group: Short orders: Ask
 // =====================
-// Sends a Tier 1 sell-short limit order at Ask.
+// Sends a Tier 4 sell-short limit order at Ask.
 // This manual short workflow intentionally does not arm stops or take profit.
 
 FocusWindow Primary_OE;
 
 $M = GetWindowObj("Primary_OE");
 if (!IsObj($M)) {
-    MsgBox("Short Tier 1 aborted: Primary_OE montage unavailable.");
+    MsgBox("Short Tier 4 aborted: Primary_OE montage unavailable.");
     return;
 }
 
@@ -18,7 +18,7 @@ $mySym  = StrTrim("" + $M.Symb);
 $posNow = GetCurrPos();
 
 if ($myAcc == "" || $mySym == "") {
-    MsgBox("Short Tier 1 aborted: account or symbol unavailable.");
+    MsgBox("Short Tier 4 aborted: account or symbol unavailable.");
     return;
 }
 
@@ -31,27 +31,27 @@ while ($posNow == 0 && $M.Pos != 0 && $shortPosPoll < 10) {
     $shortPosPoll = $shortPosPoll + 1;
 }
 if ($posNow == 0 && $M.Pos != 0) {
-    MsgBox("Short Tier 1 aborted: unable to resolve current position direction.");
+    MsgBox("Short Tier 4 aborted: unable to resolve current position direction.");
     return;
 }
 if ($posNow > 0) {
-    MsgBox("Short Tier 1 aborted: close the long position first.");
+    MsgBox("Short Tier 4 aborted: close the long position first.");
     return;
 }
 if ($orderRoute == "") {
-    MsgBox("Short Tier 1 aborted: orderRoute is not configured.");
+    MsgBox("Short Tier 4 aborted: orderRoute is not configured.");
     return;
 }
 
-$rawShares = $tier1ShareSize * $qtyMult;
+$rawShares = $tier4ShareSize * $qtyMult;
 $roundedShares = $rawShares + 0.5;
 $qty = $roundedShares - ($roundedShares % 1);
 if ($qty < 1) {
-    MsgBox("Short Tier 1 aborted: invalid Tier 1 share size.");
+    MsgBox("Short Tier 4 aborted: invalid Tier 4 share size.");
     return;
 }
 if (Ask <= 0) {
-    MsgBox("Short Tier 1 aborted: Ask is unavailable.");
+    MsgBox("Short Tier 4 aborted: Ask is unavailable.");
     return;
 }
 
@@ -62,7 +62,7 @@ Wait(100);
 // Recheck direction after the cancel delay so this hotkey cannot reverse a long.
 $symNow = StrTrim("" + $M.Symb);
 if ($symNow != $mySym) {
-    MsgBox("Short Tier 1 aborted: montage symbol changed.");
+    MsgBox("Short Tier 4 aborted: montage symbol changed.");
     return;
 }
 $posNow = GetCurrPos();
@@ -73,17 +73,17 @@ while ($posNow == 0 && $M.Pos != 0 && $shortPosPoll < 10) {
     $shortPosPoll = $shortPosPoll + 1;
 }
 if ($posNow == 0 && $M.Pos != 0) {
-    MsgBox("Short Tier 1 aborted: unable to resolve position direction after cancelling orders.");
+    MsgBox("Short Tier 4 aborted: unable to resolve position direction after cancelling orders.");
     return;
 }
 if ($posNow > 0) {
-    MsgBox("Short Tier 1 aborted: position became long.");
+    MsgBox("Short Tier 4 aborted: position became long.");
     return;
 }
 
 $px = Ask;
 if ($px <= 0) {
-    MsgBox("Short Tier 1 aborted: Ask is unavailable.");
+    MsgBox("Short Tier 4 aborted: Ask is unavailable.");
     return;
 }
 $inc = 0.01;
@@ -102,4 +102,4 @@ $order.Price   = $px;
 $order.Share   = $qty;
 $order.Send();
 
-MsgLog("Short Tier 1: sent " + $qty + " " + $mySym + " at Ask " + $px + " via " + $orderRoute + ".");
+MsgLog("Short Tier 4: sent " + $qty + " " + $mySym + " at Ask " + $px + " via " + $orderRoute + ".");

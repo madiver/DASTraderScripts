@@ -27,6 +27,10 @@
   key: Alt+Ctrl+Shift+8
   label: Set Qty Mult 3.0x
   scriptPath: hotkeys/set_qty_mult_3_0.das
+- id: set_qty_mult_1_5
+  key: Alt+Ctrl+Shift+9
+  label: Set Qty Mult 1.5x
+  scriptPath: hotkeys/set_qty_mult_1_5.das
 - id: switch_to_sim
   key: Alt+Ctrl+S
   label: Switch to Sim
@@ -125,6 +129,18 @@
   key: Alt+Ctrl+Shift+S
   label: Short T1 Ask
   scriptPath: hotkeys/short_tier1_ask.das
+- id: short_tier2_ask
+  key: Alt+Ctrl+Shift+D
+  label: Short T2 Ask
+  scriptPath: hotkeys/short_tier2_ask.das
+- id: short_tier3_ask
+  key: Alt+Ctrl+Shift+F
+  label: Short T3 Ask
+  scriptPath: hotkeys/short_tier3_ask.das
+- id: short_tier4_ask
+  key: Alt+Ctrl+Shift+G
+  label: Short T4 Ask
+  scriptPath: hotkeys/short_tier4_ask.das
 
 # Cover orders: Ask+
 - id: cover_1_1_ask
