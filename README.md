@@ -86,8 +86,8 @@ Short orders: Ask, Stops, Take profit, Utilities & toggles.
 
 - Scale-ins are allowed only when the existing position is at least 1R in profit (dynamic R when active, otherwise `stopLossTrigger`).
 - When adding to an existing long, the scripts use the scale-in-specific BE stop hotkey (`Set Auto Stop BE Scale 1/1`).
-- Buy tiers use configurable base share counts: MIB uses `$tier1ShareSize` (50), IB uses `$tier2ShareSize` (100), the legacy `buy_25_*` family uses `$tier3ShareSize` (200), and the legacy `buy_50_*` family uses `$tier4ShareSize` (300). Each base size is multiplied by `$qtyMult` (default `1.0`) and rounded to the nearest whole share.
-- Multiplier preset hotkeys switch `$qtyMult` between `0.5x`, `1.0x`, `1.5x`, `2.0x`, and `3.0x` for the current session.
+- Buy tiers use configurable base share counts: MIB uses `$tier1ShareSize` (50), IB uses `$tier2ShareSize` (100), the legacy `buy_25_*` family uses `$tier3ShareSize` (200), and the legacy `buy_50_*` family uses `$tier4ShareSize` (300). Each base size is multiplied by `$qtyMult` (default `1.0`) and rounded to the nearest whole share. `$maxPositionSize` is derived from the scaled Tier 4 size.
+- Multiplier preset hotkeys switch `$qtyMult` between `0.5x`, `1.0x`, `1.5x`, `2.0x`, and `3.0x` for the current session and recalculate `$maxPositionSize`.
 - Projected risk caps are evaluated against net risk to the planned stop on total size after the add (current position + new shares).
 
 ## Manual Shorting

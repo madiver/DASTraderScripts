@@ -55,7 +55,7 @@ $usePerTradeRiskCap       = 1;     // 1=abort if projected risk exceeds cap
 $useSpreadCheck           = 1;     // 1=check spreads before allowing buy order
 $pegToBid                 = 0;     // 1=use bid for BE limit sells when applicable
 $hijackProtection       = 1;     // 1=enable position-size hijack protection
-$applyLiveGuardsToSim     = 1;     // 1=apply live-only guards (hijack, rehab) in SIM
+$applyLiveGuardsToSim     = 0;     // 1=apply live-only guards (hijack, rehab) in SIM
 $singlePositionGuard      = 1;     // 1=block new entries on a different symbol (script-tracked)
 
 $useAutoStop = "Yes";
@@ -79,7 +79,7 @@ $gtfoRoute = "FLASHL";
 
 // Stop distance from entry, per share, in dollars (your "1R")
 // Example: 0.10 = 10 cents risk per share
-$stopLossTrigger = 0.10;
+$stopLossTrigger = 0.20;
 
 // Backstop trigger settings (manual catastrophic exit helper)
 $backstopBuffer = 0.03;      // trigger when Bid < stop - buffer
@@ -142,8 +142,8 @@ $tier2ShareSize = 100;  // IB script family
 $tier3ShareSize = 200;  // Legacy buy_25_* script family
 $tier4ShareSize = 300;  // Legacy buy_50_* script family
 
-// Maximum allowed position size (shares)
-$maxPositionSize = 500;
+// Maximum allowed position size: one scaled Tier 4 order.
+$maxPositionSize = Round($tier4ShareSize * $qtyMult, 0);
 
 // Maximum allowed $ risk *per trade*
 // Useful for guarding against oversized positions or bad spreads

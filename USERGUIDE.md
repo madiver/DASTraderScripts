@@ -26,7 +26,7 @@ Regardless of the method you choose, the timer script must be installed manually
 5) Run `set_global_variables.das` to initialize globals.
 6) Use `show_config.das` to confirm account mode, defaults, and guard states.
 
-Important: update `$TRSIM` and `$LIVEACT` in `hotkeys/set_global_variables.das` with your actual account identifiers if they are not already populated (they are shown in the config display for reference). `$applyLiveGuardsToSim` controls whether the live-only guards (hijack, rehab) also apply in SIM; it defaults to `1`. Set it to `0` if you want those guards to run only in LIVE. Also verify that any `%%SIMULATED%%` and `%%LIVE%%` placeholders have been replaced in the SIM/LIVE switch scripts (the VS Code extension handles this during build; if you copy scripts manually, you must replace them yourself).
+Important: update `$TRSIM` and `$LIVEACT` in `hotkeys/set_global_variables.das` with your actual account identifiers if they are not already populated (they are shown in the config display for reference). `$applyLiveGuardsToSim` controls whether the live-only guards (hijack, rehab) also apply in SIM; it defaults to `0`, keeping those guards live-only. Set it to `1` if you also want them enabled in SIM. Also verify that any `%%SIMULATED%%` and `%%LIVE%%` placeholders have been replaced in the SIM/LIVE switch scripts (the VS Code extension handles this during build; if you copy scripts manually, you must replace them yourself).
 
 By default (`$useTimerArming = 1`), a buy hotkey sends the limit order, records entry context, and returns immediately. A timer-driven handler then waits for a fill and arms stop loss / take profit on subsequent 1-second ticks. If position size increases on later ticks, the handler cancels existing sell orders, re-arms the stop, and only re-arms TP when the TP reset conditions are met. If no fill appears within `$entryMaxTicks`, the handler cancels the working buy order and clears the pending state. If `$useTimerArming = 0`, the buy hotkey polls for a fill up to `$maxPolls * $pollMs`; if nothing fills, the order is canceled and the script exits without arming any protection. If a partial fill meets `$minFillShares`, the remainder is canceled (when enabled) and the scripts proceed as if the trade is active, using the average entry price for subsequent calculations.
 
@@ -58,7 +58,7 @@ Feature toggles and entry guards:
 - `$useSpreadCheck`: enables spread-vs-R safety checks before entries.
 - `$pegToBid`: when enabled, BE limit sells can peg to bid instead of AvgCost.
 - `$hijackProtection`: enables the position-size hijack backstop (LIVE, and SIM when `$applyLiveGuardsToSim = 1`).
-- `$applyLiveGuardsToSim`: when set to 1 (default), apply hijack and rehab guards in SIM.
+- `$applyLiveGuardsToSim`: when set to 1, apply hijack and rehab guards in SIM; defaults to 0 (live-only).
 - `$singlePositionGuard`: when set to 1 (default), block new entries on a different symbol (script-tracked).
 - `$useAutoStop`: toggles auto stop placement.
 - `$useTakeProfit`: toggles take-profit alerts/executor behavior.
@@ -113,7 +113,7 @@ Sizing and risk limits:
 - `$tier2ShareSize`: ice breaker entry size.
 - `$tier3ShareSize`: entry size for the legacy `buy_25_*` script family.
 - `$tier4ShareSize`: entry size for the legacy `buy_50_*` script family.
-- `$maxPositionSize`: maximum total position size in shares.
+- `$maxPositionSize`: maximum total position size, calculated as `round($tier4ShareSize * $qtyMult)`.
 - `$riskCapDollars`: maximum projected net risk per trade in dollars.
 
 Order fill polling:
@@ -173,7 +173,7 @@ baseline values when you run "Set Global Variables."
 | Toggles | `$useSpreadCheck` | `1` |
 | Toggles | `$pegToBid` | `0` |
 | Toggles | `$hijackProtection` | `1` |
-| Toggles | `$applyLiveGuardsToSim` | `1` |
+| Toggles | `$applyLiveGuardsToSim` | `0` |
 | Toggles | `$singlePositionGuard` | `1` |
 | Toggles | `$useAutoStop` | `"Yes"` |
 | Toggles | `$useTakeProfit` | `"Yes"` |
@@ -182,7 +182,7 @@ baseline values when you run "Set Global Variables."
 | Risk | `$exitOffset` | `0.10` |
 | Risk | `$orderRoute` | `"ARCAL"` |
 | Risk | `$gtfoRoute` | `"FLASHL"` |
-| Risk | `$stopLossTrigger` | `0.10` |
+| Risk | `$stopLossTrigger` | `0.20` |
 | Risk | `$takeProfitFactor` | `1.0` |
 | Risk | `$takeProfitSize` | `0.50` |
 | Risk | `$takeProfitSizeRehab` | `0.50` |
@@ -217,7 +217,7 @@ baseline values when you run "Set Global Variables."
 | Sizing | `$tier2ShareSize` | `100` |
 | Sizing | `$tier3ShareSize` | `200` |
 | Sizing | `$tier4ShareSize` | `300` |
-| Sizing | `$maxPositionSize` | `500` |
+| Sizing | `$maxPositionSize` | `300` (`$tier4ShareSize * $qtyMult`) |
 | Limits | `$riskCapDollars` | `1000.00` |
 | Polling | `$pollMs` | `100` |
 | Polling | `$maxPolls` | `20` |
@@ -316,15 +316,16 @@ scripts rather than direct invocation.
 
 ## BUY ORDERS
 
-Sizing philosophy: start small to probe the trade, add only when it is working, and cap exposure with hard limits. The four entry tiers have configurable base sizes of 50 shares for MIB, 100 for IB, 200 for the legacy `buy_25_*` family, and 300 for the legacy `buy_50_*` family. Every entry uses `round(base tier size * $qtyMult)`, where `$qtyMult` defaults to `1.0`. In rehab mode (`$rehab = 1`), trading is restricted to MIB/IB entries and scale-ins are blocked in LIVE and SIM when `$applyLiveGuardsToSim = 1`.
+Sizing philosophy: start small to probe the trade, add only when it is working, and cap exposure with hard limits. The four entry tiers have configurable base sizes of 50 shares for MIB, 100 for IB, 200 for the legacy `buy_25_*` family, and 300 for the legacy `buy_50_*` family. Every entry uses `round(base tier size * $qtyMult)`, where `$qtyMult` defaults to `1.0`. `$maxPositionSize` uses the same calculation with `$tier4ShareSize`, so the position cap always equals one scaled Tier 4 order. In rehab mode (`$rehab = 1`), trading is restricted to MIB/IB entries and scale-ins are blocked in LIVE and SIM when `$applyLiveGuardsToSim = 1`.
 
-Rehab mode is a safety throttle for live trading. When enabled (`$rehab = 1`), the scripts block scale-ins and prevent larger tier entries in live accounts, forcing you to trade only MIB/IB size while you reset discipline or reduce risk after a drawdown. The same restrictions apply in SIM when `$applyLiveGuardsToSim = 1` (default). You can set the default by changing `$rehab` in `hotkeys/set_global_variables.das` and re-running "Set Global Variables" (or restarting DAS), or toggle it for the current session using the `Toggle Rehab Mode` hotkey. Disabling rehab requires typing `YES` to confirm.
+Rehab mode is a safety throttle for live trading. When enabled (`$rehab = 1`), the scripts block scale-ins and prevent larger tier entries in live accounts, forcing you to trade only MIB/IB size while you reset discipline or reduce risk after a drawdown. The same restrictions apply in SIM only when `$applyLiveGuardsToSim = 1`; that setting defaults to `0`. You can set the default by changing `$rehab` in `hotkeys/set_global_variables.das` and re-running "Set Global Variables" (or restarting DAS), or toggle it for the current session using the `Toggle Rehab Mode` hotkey. Disabling rehab requires typing `YES` to confirm.
 
 ### Configurable entry tiers
 
 - `$qtyMult` scales all four base sizes together. Results are rounded to the
-  nearest whole share before position-size and risk-cap checks run.
-  Use the multiplier preset hotkeys to switch the current session between
+  nearest whole share before position-size and risk-cap checks run. Each
+  multiplier hotkey also recalculates `$maxPositionSize` from the scaled Tier 4
+  size. Use the multiplier preset hotkeys to switch the current session between
   `0.5x`, `1.0x`, `1.5x`, `2.0x`, and `3.0x` without reloading all globals.
 - Buy MIB scripts use `$tier1ShareSize` (default 50 shares). MIB entries are
   treated like IB for dynamic/structured gating.
@@ -539,10 +540,12 @@ These controls help prevent low-quality fills and oversized risk.
 - Slippage margin: requires the planned stop to sit below bid by a minimum
   tick/spread buffer (`$useSlippageMargin`, `$slipTicksMin`, `$slipSpreadFrac`).
 - Hijack protection: if the position size exceeds `$maxPositionSize` (LIVE, and
-  SIM when `$applyLiveGuardsToSim = 1`), the timer triggers GTFO, locks all
-  montage order buttons, and sets `$HIJACKED_LOCKED` to block new buys. The lock
-  clears only after restarting DAS or re-running `Set Global Variables`, and
-  montage unlock is manual.
+  SIM when `$applyLiveGuardsToSim = 1`), the timer submits a direction-aware
+  full-position emergency exit, locks all montage order buttons, and sets
+  `$HIJACKED_LOCKED` to block new buys. Longs exit at `Bid - $exitOffset` and
+  shorts cover at `Ask + $exitOffset` through `$gtfoRoute` using native
+  `SEND=Reverse`. The lock clears only after restarting DAS or re-running
+  `Set Global Variables`, and montage unlock is manual.
 - Single-position guard: when `$singlePositionGuard = 1`, buy hotkeys block
   entries on a different symbol once a position is tracked. This is
   script-tracked using the Primary_OE montage; if you close a position while
@@ -552,19 +555,20 @@ These controls help prevent low-quality fills and oversized risk.
 - Per-trade risk cap: blocks entries when projected risk exceeds
   `$riskCapDollars` (`$usePerTradeRiskCap`).
 
-SIM vs LIVE: hijack protection and rehab gating apply in LIVE and SIM when
-`$applyLiveGuardsToSim = 1` (default). Set `$applyLiveGuardsToSim = 0` to keep
-those guards live-only. All other guard rails apply in both SIM and LIVE.
+SIM vs LIVE: hijack protection and rehab gating apply in LIVE by default.
+Set `$applyLiveGuardsToSim = 1` to also enable those guards in SIM; it defaults
+to `0`. All other guard rails apply in both SIM and LIVE.
 
 ### Hijack protection (position-size backstop)
 
 This is a strict discipline backstop. It is enabled by default via
 `$hijackProtection = 1` and continuously compares your position size to
 `$maxPositionSize` using the `Primary_OE` montage. It applies to LIVE and to
-SIM when `$applyLiveGuardsToSim = 1` (default).
+SIM only when `$applyLiveGuardsToSim = 1`; that setting defaults to `0`.
 
 If the timer detects a position larger than `$maxPositionSize`, it:
-- Triggers `GTFO` to flatten.
+- Submits a full-position native `Reverse` through `$gtfoRoute`: sells a long at
+  `Bid - $exitOffset` or covers a short at `Ask + $exitOffset`.
 - Locks all montage order buttons via `LockAllMontage Lock`.
 - Sets `$HIJACKED_LOCKED` to block new buys.
 - Plays a brief voice alert.

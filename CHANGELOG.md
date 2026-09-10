@@ -7,13 +7,17 @@ All notable changes to this repository will be documented in this file.
 ### Features
 - Add configurable tier base sizes—`$tier1ShareSize` 50 (MIB), `$tier2ShareSize` 100 (IB), `$tier3ShareSize` 200 (`buy_25_*`), and `$tier4ShareSize` 300 (`buy_50_*`)—scaled together by `$qtyMult` (default `1.0`).
 - Add hotkey presets for setting `$qtyMult` to `0.5x`, `1.0x`, `1.5x`, `2.0x`, or `3.0x`.
+- Derive `$maxPositionSize` from `$tier4ShareSize * $qtyMult` and recalculate it whenever a multiplier preset changes.
 - Add isolated manual hotkeys to sell short Tiers 1–4 at Ask and cover 100% at Ask without arming long-side stops, take profit, or entry state.
+- Default `$applyLiveGuardsToSim` to `0` so hijack and rehab guards remain live-only unless explicitly enabled in SIM.
 - Add a `$0.30` fixed stop-loss preset bound to `Alt+Ctrl+Win+=`.
 - Add a `$0.50` fixed stop-loss preset bound to `Alt+Ctrl+Win+5`.
+- Change the default fixed stop loss from `$0.10` to `$0.20` per share.
 - Increase the default take-profit partial from 25% to 50% of the position.
 - Increase the default per-trade risk cap from `$100` to `$1,000`.
 
 ### Bug Fixes
+- Make hijack exits direction-aware so oversized longs sell at `Bid - $exitOffset` and oversized shorts cover at `Ask + $exitOffset` using native `SEND=Reverse`.
 - Use DAS native `Share=Pos; SEND=Reverse` for full-position covers so short quantities are resolved correctly instead of relying on the advanced montage `Pos` sign.
 - Price the full-position cover at `Ask + $exitOffset` to improve execution probability during fast upward moves.
 - Make GTFO direction-aware: long positions exit at Bid minus $0.50 and short positions cover at Ask plus $0.50 using `$gtfoRoute` and native `SEND=Reverse`.
