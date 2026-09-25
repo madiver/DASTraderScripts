@@ -121,7 +121,7 @@ if ($bid <= 0 || $ask <= 0 || $spread < 0) {
 }
 
 // Projected entry/stop based on reference side
-$pxEntry    = $refPx + $entryOffset;
+$pxEntry    = $refPx + $entryAskOffset;
 $hypoStop = $pxEntry - $stopLossTrigger;
 
 // ---- Tick increment for safety checks ----

@@ -13,7 +13,7 @@ Important constraints:
 - Assumes a single active symbol (multi-symbol trading is not supported).
 - Requires a montage named `Primary_OE`.
 - Requires installing `other scripts/timer.das` in DAS Trader's Timer Event Scripts.
-- Requires installing `other scripts/chart_1m.das` as a 1-minute Chart Script.
+- Requires a 1-minute chart named `Primary_Chart` with `other scripts/chart_1m.das` installed as its Chart Script.
 
 Read this first: [USERGUIDE.md](USERGUIDE.md)
 
@@ -44,6 +44,13 @@ Serious about day trading? You can find me on Discord here:  https://discord.gg/
 2. Ensure `keymap.yaml` is present at the repo root.
 3. Run `DAS: Build Hotkey File`.
 4. Use the generated `output.htk` in DAS Trader.
+
+## Momo coordinated swap
+
+`hotkeys/swap_internal.das` is the canonical DAS swap script. Its `keymap.yaml`
+entry is **Momo Swap Internal**, assigned to `Ctrl+Shift+F12`. Manage its source,
+binding, build and installation in this repository using **DAS: Build Hotkey File**.
+Momo uses this fixed shortcut automatically. See [Momo swap setup](USERGUIDE.md#momo-coordinated-swap).
 
 ## Notes
 

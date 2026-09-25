@@ -24,7 +24,7 @@ $displayPos = $M.Pos;
 $needExit = 0;
 
 // Montage .Pos is an absolute quantity, so it detects oversized longs and shorts.
-// GetCurrPos() is resolved below only when an exit is needed.
+// $M.GetCurrPos() is resolved below only when an exit is needed.
 if ($HIJACKED_LOCKED == 1 && $displayPos > 0) {
     $needExit = 1;
 } else {
@@ -61,11 +61,12 @@ Wait(100);
 
 // Cancelling a working order can briefly make GetCurrPos() return zero. Poll
 // while the montage still reports a non-flat position so direction is known.
-$posNow = GetCurrPos();
+// Bind the function to Primary_OE explicitly when invoked by the timer.
+$posNow = $M.GetCurrPos();
 $i = 0;
 while ($posNow == 0 && $M.Pos != 0 && $i < 10) {
     Wait(50);
-    $posNow = GetCurrPos();
+    $posNow = $M.GetCurrPos();
     $i = $i + 1;
 }
 if ($posNow == 0) {
@@ -103,7 +104,7 @@ if ($px <= 0) {
 }
 
 // Do not send if the position flattened or changed sides during preparation.
-$posCheck = GetCurrPos();
+$posCheck = $M.GetCurrPos();
 if ($posCheck == 0 || ($posNow > 0 && $posCheck < 0) || ($posNow < 0 && $posCheck > 0)) {
     MsgLog("Hijack Exit: position changed while preparing exit for " + $mySym + ". Aborting.");
     return;

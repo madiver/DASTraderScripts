@@ -2,7 +2,7 @@
 // STRUCTURED STOP VALIDATE (1m)
 // Group: Stops
 // =====================
-// Validates impulse/pullback structure on Chart_1m and sets structured globals.
+// Validates impulse/pullback structure on Primary_Chart and sets structured globals.
 // Result codes:
 //  0 = PASS
 //  1..11 = FAIL (see $structuredReason for code)
@@ -17,10 +17,10 @@ $structuredR = 0;
 $structuredSymbol = "";
 
 // ---- Load chart ----
-$chart = GetWindowObj("Chart_1m");
+$chart = GetWindowObj("Primary_Chart");
 if (!IsObj($chart)) {
-    $structuredReasonText = "Chart_1m not found";
-    MsgLog("Structured stop failed: Chart_1m not found.");
+    $structuredReasonText = "Primary_Chart not found";
+    MsgLog("Structured stop failed: Primary_Chart not found.");
     return;
 }
 

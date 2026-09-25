@@ -107,7 +107,7 @@ if ($bid <= 0 || $ask <= 0 || $spread < 0) {
 }
 
 // ---- Precompute entry price ----
-$pxEntry = $refPx + $entryOffset;
+$pxEntry = $refPx + $entryAskOffset;
 
 // ---- Step 0b: Resolve effective R (dynamic vs fixed / structured) ----
 $useDynStop = ($mode == "DYNAMIC");

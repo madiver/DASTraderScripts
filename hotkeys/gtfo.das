@@ -21,7 +21,7 @@ if ($route == "") {
 // Avoid canceling unrelated working orders when GTFO is pressed while flat.
 // Montage .Pos is reliable for flat/non-flat; GetCurrPos() supplies direction.
 $displayPos = $M.Pos;
-$prePos = GetCurrPos();
+$prePos = $M.GetCurrPos();
 if ($displayPos == 0 && $prePos == 0) { return; }
 
 CXL ALL;
@@ -29,11 +29,11 @@ Wait(100);
 
 // GetCurrPos() is signed; montage .Pos and built-in Pos are absolute quantities.
 // Poll briefly after cancels so working protection does not hide the position.
-$posNow = GetCurrPos();
+$posNow = $M.GetCurrPos();
 $i = 0;
 while ($posNow == 0 && $M.Pos != 0 && $i < 10) {
     Wait(50);
-    $posNow = GetCurrPos();
+    $posNow = $M.GetCurrPos();
     $i = $i + 1;
 }
 if ($posNow == 0) {
@@ -67,7 +67,7 @@ if ($px <= 0) {
 }
 
 // Abort if the position changed sides while the emergency order was prepared.
-$posCheck = GetCurrPos();
+$posCheck = $M.GetCurrPos();
 if ($posCheck == 0 || ($posNow > 0 && $posCheck < 0) || ($posNow < 0 && $posCheck > 0)) {
     MsgLog("GTFO: position changed while preparing exit for " + $mySym + ". Aborting.");
     return;

@@ -5,6 +5,10 @@ All notable changes to this repository will be documented in this file.
 ## 0.3.3 - Unreleased
 
 ### Features
+- Add `swap_internal.das` as **Momo Swap Internal**, bound to `Ctrl+Shift+F12` in the canonical keymap, for coordinated primary/secondary montage swaps.
+- Disable position-size hijack protection by default (`$hijackProtection = 0`); set it to `1` to opt in.
+- Add independent Bid+ and Ask+ buy-entry offsets, each with `-0.03`, `-0.02`, `-0.01`, `+0.01`, and `+0.03` presets and a separate five-state Stream Deck toggle reset by LOAD CFG. Defaults are BID `+0.01` and ASK `-0.01` in the scripts and Stream Deck reset actions.
+- Bind the new -2-cent presets to `Alt+Ctrl+Shift+Win+5` (BID) and `Alt+Ctrl+Shift+Win+F5` (ASK), and insert them between -3 and -1 cents on the page 4 Stream Deck buttons.
 - Add configurable tier base sizes—`$tier1ShareSize` 50 (MIB), `$tier2ShareSize` 100 (IB), `$tier3ShareSize` 200 (`buy_25_*`), and `$tier4ShareSize` 300 (`buy_50_*`)—scaled together by `$qtyMult` (default `1.0`).
 - Add hotkey presets for setting `$qtyMult` to `0.5x`, `1.0x`, `1.5x`, `2.0x`, or `3.0x`.
 - Derive `$maxPositionSize` from `$tier4ShareSize * $qtyMult` and recalculate it whenever a multiplier preset changes.
@@ -17,6 +21,8 @@ All notable changes to this repository will be documented in this file.
 - Increase the default per-trade risk cap from `$100` to `$1,000`.
 
 ### Bug Fixes
+- Correct all five size states of the local Stream Deck MIB Bid+ button (including **BUY 25 BID+** at `0.5x`) to send `Alt+Ctrl+Shift+Win+0`; the previous plain-Bid shortcut skipped the configured offset.
+- Bind all `GetCurrPos()` reads to the `Primary_OE` montage object so timer-triggered Hijack Exit and other hotkeys do not rely on the caller's window context.
 - Make hijack exits direction-aware so oversized longs sell at `Bid - $exitOffset` and oversized shorts cover at `Ask + $exitOffset` using native `SEND=Reverse`.
 - Use DAS native `Share=Pos; SEND=Reverse` for full-position covers so short quantities are resolved correctly instead of relying on the advanced montage `Pos` sign.
 - Price the full-position cover at `Ask + $exitOffset` to improve execution probability during fast upward moves.
@@ -24,6 +30,11 @@ All notable changes to this repository will be documented in this file.
 - Use signed `GetCurrPos()` in Cancel All so automatic long stops are never re-armed for short positions.
 - Snap Cover and direction-aware GTFO prices to valid route tick increments so aggressive exits are not rejected for sub-penny prices.
 - Use signed `GetCurrPos()` in the Tier 1 short hotkey so it can add to an existing short while continuing to reject long positions.
+
+### Cleanup
+- Rename the chart window reference from `Chart_1m` to `Primary_Chart` in symbol synchronization and structured stop validation; keep the chart on the 1-minute timeframe.
+- Remove the five remaining test-toggle hotkeys and scripts, freeing `Alt+Ctrl+Win+T` and `Alt+Ctrl+Shift+Win+2/3/4`; `Alt+Ctrl+Shift+Win+5` is now used by the BID -2-cent preset. The former Max Loss test binding (`Alt+Ctrl+Shift+Win+1`) was already unused.
+- Remove all six test buttons from page 4 of the local DAS Trader Stream Deck profile.
 
 ## 0.3.2 - 2026-02-11
 

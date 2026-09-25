@@ -18,11 +18,11 @@ if (!IsObj($M)) {
 // Snapshot symbol and signed position after cancels. GetCurrPos() preserves
 // direction, while montage .Pos and built-in Pos are absolute quantities.
 $mySym = $M.Symb;
-$posNow = GetCurrPos();
+$posNow = $M.GetCurrPos();
 $i = 0;
 while ($posNow == 0 && $M.Pos != 0 && $i < 10) {
     Wait(50);
-    $posNow = GetCurrPos();
+    $posNow = $M.GetCurrPos();
     $i = $i + 1;
 }
 

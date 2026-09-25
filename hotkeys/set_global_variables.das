@@ -54,7 +54,7 @@ $cancelRemainderOnPartial = 1;     // 1=cancel remainder before arming stop on p
 $usePerTradeRiskCap       = 1;     // 1=abort if projected risk exceeds cap
 $useSpreadCheck           = 1;     // 1=check spreads before allowing buy order
 $pegToBid                 = 0;     // 1=use bid for BE limit sells when applicable
-$hijackProtection       = 1;     // 1=enable position-size hijack protection
+$hijackProtection         = 0;     // 0=disabled by default; 1=enable position-size hijack protection
 $applyLiveGuardsToSim     = 0;     // 1=apply live-only guards (hijack, rehab) in SIM
 $singlePositionGuard      = 1;     // 1=block new entries on a different symbol (script-tracked)
 
@@ -64,9 +64,10 @@ $resetStopOnCancel = "Yes";
 
 // ---- 2) Risk & Execution Variables ----
 
-// Entry offset above/below bid/ask (depending on strategy)
-// Example: 0.01 = enter 1 cent(s) above BID (or below ASK)
-$entryOffset = 0.03;
+// Independent signed offsets added to BID or ASK by the "plus" buy scripts.
+// Presets: -0.03, -0.02, -0.01, +0.01, +0.03; defaults BID +0.01, ASK -0.01.
+$entryBidOffset = 0.01;
+$entryAskOffset = -0.01;
 
 // Exit offset above/below bid/ask (depending on strategy)
 // Example: 0.01 = exit 1 cent(s) below BID (or above ASK)

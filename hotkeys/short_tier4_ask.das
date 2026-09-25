@@ -15,7 +15,7 @@ if (!IsObj($M)) {
 
 $myAcc  = StrTrim("" + $M.Account);
 $mySym  = StrTrim("" + $M.Symb);
-$posNow = GetCurrPos();
+$posNow = $M.GetCurrPos();
 
 if ($myAcc == "" || $mySym == "") {
     MsgBox("Short Tier 4 aborted: account or symbol unavailable.");
@@ -27,7 +27,7 @@ if ($myAcc == "" || $mySym == "") {
 $shortPosPoll = 0;
 while ($posNow == 0 && $M.Pos != 0 && $shortPosPoll < 10) {
     Wait(50);
-    $posNow = GetCurrPos();
+    $posNow = $M.GetCurrPos();
     $shortPosPoll = $shortPosPoll + 1;
 }
 if ($posNow == 0 && $M.Pos != 0) {
@@ -65,11 +65,11 @@ if ($symNow != $mySym) {
     MsgBox("Short Tier 4 aborted: montage symbol changed.");
     return;
 }
-$posNow = GetCurrPos();
+$posNow = $M.GetCurrPos();
 $shortPosPoll = 0;
 while ($posNow == 0 && $M.Pos != 0 && $shortPosPoll < 10) {
     Wait(50);
-    $posNow = GetCurrPos();
+    $posNow = $M.GetCurrPos();
     $shortPosPoll = $shortPosPoll + 1;
 }
 if ($posNow == 0 && $M.Pos != 0) {

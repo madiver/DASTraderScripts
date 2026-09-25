@@ -18,7 +18,7 @@ if (IsObj($M)) {
     $diagSym = StrTrim("" + $M.Symb);
     $diagMontagePos = $M.Pos;
     $diagBuiltInPos = Pos;
-    $diagCurrPos = GetCurrPos();
+    $diagCurrPos = $M.GetCurrPos();
     if (StrLen($acct) > 0) {
         if (StrFind($acct, "TR") == 0) { $acctMode = "SIM"; } else { $acctMode = "LIVE"; }
     }
@@ -76,7 +76,8 @@ $msg =
 
 "RISK\n" +
 "-----------------\n" +
-"entryOffset: $" + $entryOffset + "\n" +
+"entryBidOffset: $" + $entryBidOffset + "\n" +
+"entryAskOffset: $" + $entryAskOffset + "\n" +
 "exitOffset: $" + $exitOffset + "\n" +
 "orderRoute: " + $orderRoute + "\n" +
 "gtfoRoute: " + $gtfoRoute + "\n" +
@@ -119,7 +120,7 @@ $msg =
 "Symbol: " + $diagSym + "\n" +
 "Montage .Pos: " + $diagMontagePos + "\n" +
 "Built-in Pos: " + $diagBuiltInPos + "\n" +
-"GetCurrPos(): " + $diagCurrPos + "\n\n" +
+"Montage GetCurrPos(): " + $diagCurrPos + "\n\n" +
 
 "ACCOUNTS\n" +
 "-----------------\n" +

@@ -8,7 +8,7 @@ The automated entry-protection workflow is designed for LONG positions only. Fiv
 
 Repository structure: the `hotkeys/` folder contains the `.das` hotkey scripts, `keymap.yaml` defines the key bindings and metadata, and `other scripts/` contains support scripts like the timer. A `.das` file is plain text you can paste into the DAS Trader Script Editor. The `keymap.yaml` can be compiled into a `Hotkey.htk` using the DAS Hotkey Tools VS Code extension, or you can skip the compiler and copy the scripts manually.
 
-These scripts assume you have a primary montage window named `Primary_OE` (Primary Order Entry). If that montage name does not exist, many scripts will fail or behave incorrectly. You can reference my DAS Trader desktop and chart settings here: https://github.com/madiver/DASTraderConfig
+These scripts assume you have a primary montage window named `Primary_OE` (Primary Order Entry) and a 1-minute chart window named `Primary_Chart`. If that montage name does not exist, many scripts will fail or behave incorrectly. The chart name is used for symbol synchronization and structured stop validation. You can reference my DAS Trader desktop and chart settings here: https://github.com/madiver/DASTraderConfig
 
 Regardless of the method you choose, the timer script must be installed manually in DAS Trader under "Timer Event Scripts," and the chart script must be installed manually under the chart "Scripting" section (see details below). I also recommend adding `ExecHotKey("Set Global Variables");` to your Desktop Load Scripts so globals are initialized every time DAS starts.
 
@@ -21,12 +21,12 @@ Regardless of the method you choose, the timer script must be installed manually
    - `dasHotkeyTools.outputPath` (required).
    - `dasHotkeyTools.liveAccount` and `dasHotkeyTools.simulatedAccount` for `%%LIVE%%` / `%%SIMULATED%%` substitution.
    - Optional: `dasHotkeyTools.placeholders.failOnMissing` to block builds when placeholders are unresolved.
-3) Ensure your montage is named `Primary_OE`, the timer script `other scripts/timer.das` is installed under Timer Event Scripts, and the chart script `other scripts/chart_1m.das` is installed as a 1-minute Chart Script.
+3) Ensure your montage is named `Primary_OE`, the timer script `other scripts/timer.das` is installed under Timer Event Scripts, and the chart script `other scripts/chart_1m.das` is installed on your 1-minute chart named `Primary_Chart`.
 4) Run `switch_to_sim.das` or `switch_to_live.das` to set the montage account and filters.
 5) Run `set_global_variables.das` to initialize globals.
 6) Use `show_config.das` to confirm account mode, defaults, and guard states.
 
-Important: update `$TRSIM` and `$LIVEACT` in `hotkeys/set_global_variables.das` with your actual account identifiers if they are not already populated (they are shown in the config display for reference). `$applyLiveGuardsToSim` controls whether the live-only guards (hijack, rehab) also apply in SIM; it defaults to `0`, keeping those guards live-only. Set it to `1` if you also want them enabled in SIM. Also verify that any `%%SIMULATED%%` and `%%LIVE%%` placeholders have been replaced in the SIM/LIVE switch scripts (the VS Code extension handles this during build; if you copy scripts manually, you must replace them yourself).
+Important: update `$TRSIM` and `$LIVEACT` in `hotkeys/set_global_variables.das` with your actual account identifiers if they are not already populated (they are shown in the config display for reference). Hijack protection defaults to off (`$hijackProtection = 0`); set it to `1` to enable it. `$applyLiveGuardsToSim` controls whether enabled live-only guards (hijack, rehab) also apply in SIM; it defaults to `0`. Set it to `1` to apply those enabled guards in SIM. Also verify that any `%%SIMULATED%%` and `%%LIVE%%` placeholders have been replaced in the SIM/LIVE switch scripts (the VS Code extension handles this during build; if you copy scripts manually, you must replace them yourself).
 
 By default (`$useTimerArming = 1`), a buy hotkey sends the limit order, records entry context, and returns immediately. A timer-driven handler then waits for a fill and arms stop loss / take profit on subsequent 1-second ticks. If position size increases on later ticks, the handler cancels existing sell orders, re-arms the stop, and only re-arms TP when the TP reset conditions are met. If no fill appears within `$entryMaxTicks`, the handler cancels the working buy order and clears the pending state. If `$useTimerArming = 0`, the buy hotkey polls for a fill up to `$maxPolls * $pollMs`; if nothing fills, the order is canceled and the script exits without arming any protection. If a partial fill meets `$minFillShares`, the remainder is canceled (when enabled) and the scripts proceed as if the trade is active, using the average entry price for subsequent calculations.
 
@@ -57,7 +57,7 @@ Feature toggles and entry guards:
 - `$usePerTradeRiskCap`: blocks entries if projected net risk to the planned stop exceeds `$riskCapDollars`.
 - `$useSpreadCheck`: enables spread-vs-R safety checks before entries.
 - `$pegToBid`: when enabled, BE limit sells can peg to bid instead of AvgCost.
-- `$hijackProtection`: enables the position-size hijack backstop (LIVE, and SIM when `$applyLiveGuardsToSim = 1`).
+- `$hijackProtection`: enables the position-size hijack backstop (LIVE, and SIM when `$applyLiveGuardsToSim = 1`); defaults to `0` (disabled).
 - `$applyLiveGuardsToSim`: when set to 1, apply hijack and rehab guards in SIM; defaults to 0 (live-only).
 - `$singlePositionGuard`: when set to 1 (default), block new entries on a different symbol (script-tracked).
 - `$useAutoStop`: toggles auto stop placement.
@@ -66,7 +66,7 @@ Feature toggles and entry guards:
 - `$useTimerArming`: uses timer-based entry arming (1) or inline polling (0).
 
 Risk and execution:
-- `$entryOffset`: bid/ask offset for the "plus" entry scripts.
+- `$entryBidOffset` / `$entryAskOffset`: independent signed offsets for Bid+ / Ask+ buy scripts (defaults: BID `+0.01`, ASK `-0.01`). Negative values price below the corresponding reference quote.
 - `$exitOffset`: aggression offset for Bid- long exits and Ask+ short covers, and the limit offset for non-dynamic stops.
 - `$orderRoute`: limit order route for entries/exits (buys/sells/TP/BE). Default is `ARCAL`. `FREEL` is the free route for ST Global Market/Open Ocean.
 - `$gtfoRoute`: emergency exit route for GTFO/backstop/hijack exits. Default is `FLASHL` (Open Ocean broadcast route).
@@ -172,13 +172,14 @@ baseline values when you run "Set Global Variables."
 | Toggles | `$usePerTradeRiskCap` | `1` |
 | Toggles | `$useSpreadCheck` | `1` |
 | Toggles | `$pegToBid` | `0` |
-| Toggles | `$hijackProtection` | `1` |
+| Toggles | `$hijackProtection` | `0` |
 | Toggles | `$applyLiveGuardsToSim` | `0` |
 | Toggles | `$singlePositionGuard` | `1` |
 | Toggles | `$useAutoStop` | `"Yes"` |
 | Toggles | `$useTakeProfit` | `"Yes"` |
 | Toggles | `$resetStopOnCancel` | `"Yes"` |
-| Risk | `$entryOffset` | `0.03` |
+| Risk | `$entryBidOffset` | `0.01` |
+| Risk | `$entryAskOffset` | `-0.01` |
 | Risk | `$exitOffset` | `0.10` |
 | Risk | `$orderRoute` | `"ARCAL"` |
 | Risk | `$gtfoRoute` | `"FLASHL"` |
@@ -222,9 +223,10 @@ baseline values when you run "Set Global Variables."
 | Polling | `$pollMs` | `100` |
 | Polling | `$maxPolls` | `20` |
 
-Test mode: set `$testMode = 1` to run buy hotkeys through non-market guard
-checks only (no order is sent). Use this for off-hours validation of lock
-states and guard logic. Test mode and the test toggles are SIM-only.
+For manual SIM diagnostics, set `$testMode = 1` to run buy hotkeys through
+non-market guard checks only (no order is sent). Set it back to `0` or run
+`Set Global Variables` when finished. The dedicated test-toggle hotkeys and
+Stream Deck test buttons have been removed.
 
 Use "Show Config" to view the current runtime values.
 
@@ -248,6 +250,16 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Shift+7` | `hotkeys/set_qty_mult_2_0.das` | Set the shared tier-size multiplier to 2.0x. |
 | `Alt+Ctrl+Shift+8` | `hotkeys/set_qty_mult_3_0.das` | Set the shared tier-size multiplier to 3.0x. |
 | `Alt+Ctrl+Shift+9` | `hotkeys/set_qty_mult_1_5.das` | Set the shared tier-size multiplier to 1.5x. |
+| `Alt+Ctrl+Shift+Win+6` | `hotkeys/set_bid_entry_offset_minus_3.das` | Set the Bid+ entry offset to -3 cents. |
+| `Alt+Ctrl+Shift+Win+5` | `hotkeys/set_bid_entry_offset_minus_2.das` | Set the Bid+ entry offset to -2 cents. |
+| `Alt+Ctrl+Shift+Win+7` | `hotkeys/set_bid_entry_offset_minus_1.das` | Set the Bid+ entry offset to -1 cent. |
+| `Alt+Ctrl+Shift+Win+8` | `hotkeys/set_bid_entry_offset_plus_1.das` | Restore the default Bid+ entry offset of +1 cent. |
+| `Alt+Ctrl+Shift+Win+9` | `hotkeys/set_bid_entry_offset_plus_3.das` | Set the Bid+ entry offset to +3 cents. |
+| `Alt+Ctrl+Shift+Win+F6` | `hotkeys/set_ask_entry_offset_minus_3.das` | Set the Ask+ entry offset to -3 cents. |
+| `Alt+Ctrl+Shift+Win+F5` | `hotkeys/set_ask_entry_offset_minus_2.das` | Set the Ask+ entry offset to -2 cents. |
+| `Alt+Ctrl+Shift+Win+F7` | `hotkeys/set_ask_entry_offset_minus_1.das` | Restore the default Ask+ entry offset of -1 cent. |
+| `Alt+Ctrl+Shift+Win+F8` | `hotkeys/set_ask_entry_offset_plus_1.das` | Set the Ask+ entry offset to +1 cent. |
+| `Alt+Ctrl+Shift+Win+F9` | `hotkeys/set_ask_entry_offset_plus_3.das` | Set the Ask+ entry offset to +3 cents. |
 | `Alt+Ctrl+S` | `hotkeys/switch_to_sim.das` | Switch montage and filters to SIM. |
 | `Alt+Ctrl+L` | `hotkeys/switch_to_live.das` | Switch montage and filters to LIVE. |
 | `Alt+Ctrl+.` | `hotkeys/show_config.das` | Show current globals, account mode, guard states, and position diagnostics. |
@@ -305,11 +317,6 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Win+2` | `hotkeys/set_order_route_arcal.das` | Set limit order route to ARCAL. |
 | `Alt+Ctrl+Win+3` | `hotkeys/set_order_route_freel.das` | Set limit order route to FREEL (free route for ST Global Market/Open Ocean). |
 | `Alt+Ctrl+Win+M` | `hotkeys/toggle_single_position_guard.das` | Toggle single-symbol entry guard. |
-| `Alt+Ctrl+Win+T` | `hotkeys/toggle_test_mode.das` | Toggle test mode (no order sends). |
-| `Alt+Ctrl+Shift+Win+2` | `hotkeys/toggle_test_hijack_guard.das` | Toggle hijack guard test. |
-| `Alt+Ctrl+Shift+Win+3` | `hotkeys/toggle_test_single_position_guard.das` | Toggle single-position guard test. |
-| `Alt+Ctrl+Shift+Win+4` | `hotkeys/toggle_test_pending_entry_guard.das` | Toggle pending-entry guard test. |
-| `Alt+Ctrl+Shift+Win+5` | `hotkeys/toggle_test_max_position_guard.das` | Toggle max-position guard test. |
 | `Alt+Ctrl+Win+H` | `hotkeys/enable_rehab_mode.das` | Toggle rehab mode (YES to disable). |
 | Unbound | `hotkeys/hijack_exit.das` | Hijack guard exit/lock enforcement (timer-only). |
 | Unbound | `hotkeys/timer_entry_handler.das` | Timer-driven stop/TP arming for entries. |
@@ -335,7 +342,27 @@ Rehab mode is a safety throttle for live trading. When enabled (`$rehab = 1`), t
   filenames and IDs are retained to avoid breaking existing integrations.
 - All buy scripts enforce `$maxPositionSize` and `$riskCapDollars` before
   sending an order.
-- "Plus" versions use `$entryOffset` to price above bid or ask.
+- Bid+ versions add `$entryBidOffset` to bid; Ask+ versions add
+  `$entryAskOffset` to ask. Positive offsets price above the reference quote;
+  negative offsets price below it, before tick rounding.
+- Each side has presets for `-0.03`, `-0.02`, `-0.01`, `+0.01`, and `+0.03`. Selecting
+  a preset changes only that side's offset for subsequent buy entries.
+- In the local **DAS Trader** Stream Deck profile, page 4, column 6, the
+  Advanced Toggles **BID OFFSET** (row 1) and **ASK OFFSET** (row 2) buttons
+  use green and red microchip outlines, respectively, on black backgrounds.
+  Both buttons
+  independently cycle **-3, -2, -1, +1, +3 cents**. BID defaults to **+1 cent**
+  (next press: **+3 cents**); ASK defaults to **-1 cent** (next press: **+1 cent**).
+  They use Toggle Groups 3 and 4,
+  respectively, independently of the fixed-stop and share-size toggles.
+  **LOAD CFG** reloads the default globals and resets BID to **+1 cent** and
+  ASK to **-1 cent**.
+  Running `Set Global Variables` directly in DAS resets the variables but does
+  not update the Stream Deck displays; use **LOAD CFG** to reset both together.
+- The first Bid+ button displays **BUY 25 BID+** at `0.5x`; it uses the MIB
+  script (50 base shares), not the legacy `buy_25_*` Tier 3 script. All five
+  size states of this button must send `Alt+Ctrl+Shift+Win+0`. The plain-Bid
+  shortcut `Alt+Ctrl+0` skips the offset regardless of the button's title.
 
 ### Scaling-in logic
 
@@ -389,7 +416,7 @@ route behavior, and applicable short-sale restrictions with the broker.
 - Ask orders are limit orders. A short entry can remain unfilled if Ask moves
   away, and an Ask+ cover can remain unfilled if Ask rises beyond its limit before execution. Monitor
   working orders and the resulting position directly in DAS.
-- `Cancel All` uses signed `GetCurrPos()` after cancelling orders. It re-arms
+- `Cancel All` uses signed `$M.GetCurrPos()` on `Primary_OE` after cancelling orders. It re-arms
   the automatic stop only for a confirmed long and deliberately skips the
   long stop engine for shorts.
 - `GTFO` cancels orders and uses `$gtfoRoute` with native `SEND=Reverse`. It
@@ -469,7 +496,7 @@ the selector; `enable_dynamic_stop_mode.das` and
 ### Structured stop losses (experimental)
 
 Structured stops are enabled when `$stopMode = "STRUCTURED"`
-and require the `Chart_1m` window running `other scripts/chart_1m.das` so live
+and require the `Primary_Chart` window running `other scripts/chart_1m.das` so live
 candle values are available. The structured validator computes a stop price
 from a 1-minute impulse/pullback pattern and stores it in `$structuredStop`.
 
@@ -539,13 +566,13 @@ These controls help prevent low-quality fills and oversized risk.
   (`$useSpreadCheck`).
 - Slippage margin: requires the planned stop to sit below bid by a minimum
   tick/spread buffer (`$useSlippageMargin`, `$slipTicksMin`, `$slipSpreadFrac`).
-- Hijack protection: if the position size exceeds `$maxPositionSize` (LIVE, and
+- Hijack protection (disabled by default): when enabled, if the position size exceeds `$maxPositionSize` (LIVE, and
   SIM when `$applyLiveGuardsToSim = 1`), the timer submits a direction-aware
   full-position emergency exit, locks all montage order buttons, and sets
   `$HIJACKED_LOCKED` to block new buys. Longs exit at `Bid - $exitOffset` and
   shorts cover at `Ask + $exitOffset` through `$gtfoRoute` using native
-  `SEND=Reverse`. The lock clears only after restarting DAS or re-running
-  `Set Global Variables`, and montage unlock is manual.
+  `SEND=Reverse`. Re-running `Set Global Variables` clears the script lock;
+  montage unlock is manual (see reset instructions below).
 - Single-position guard: when `$singlePositionGuard = 1`, buy hotkeys block
   entries on a different symbol once a position is tracked. This is
   script-tracked using the Primary_OE montage; if you close a position while
@@ -555,16 +582,24 @@ These controls help prevent low-quality fills and oversized risk.
 - Per-trade risk cap: blocks entries when projected risk exceeds
   `$riskCapDollars` (`$usePerTradeRiskCap`).
 
-SIM vs LIVE: hijack protection and rehab gating apply in LIVE by default.
-Set `$applyLiveGuardsToSim = 1` to also enable those guards in SIM; it defaults
-to `0`. All other guard rails apply in both SIM and LIVE.
+SIM vs LIVE: enabled hijack protection and rehab gating apply only in LIVE
+unless `$applyLiveGuardsToSim = 1`; that setting defaults to `0`.
+Hijack protection itself defaults to off and requires `$hijackProtection = 1`.
+All other guard rails apply in both SIM and LIVE.
 
 ### Hijack protection (position-size backstop)
 
-This is a strict discipline backstop. It is enabled by default via
-`$hijackProtection = 1` and continuously compares your position size to
-`$maxPositionSize` using the `Primary_OE` montage. It applies to LIVE and to
-SIM only when `$applyLiveGuardsToSim = 1`; that setting defaults to `0`.
+This position-size backstop is disabled by default (`$hijackProtection = 0`).
+Set `$hijackProtection = 1` to enable it. While enabled, it continuously compares
+your position size to `$maxPositionSize` using the `Primary_OE` montage. It
+applies to LIVE and to SIM only when `$applyLiveGuardsToSim = 1`; that setting
+defaults to `0`.
+
+To disable it for the current session, run `$hijackProtection = 0;` in DAS.
+For a persistent change, edit that value in `hotkeys/set_global_variables.das`,
+rebuild/reload the hotkeys, then run `Set Global Variables`.
+Disabling it does not clear a lock that has already triggered. To clear that
+lock explicitly, run `$HIJACKED_LOCKED = 0; LockAllMontage Unlock;`.
 
 If the timer detects a position larger than `$maxPositionSize`, it:
 - Submits a full-position native `Reverse` through `$gtfoRoute`: sells a long at
@@ -574,14 +609,14 @@ If the timer detects a position larger than `$maxPositionSize`, it:
 - Plays a brief voice alert.
 
 Reset behavior:
-- `$HIJACKED_LOCKED` clears only after restarting DAS or re-running `Set Global Variables`.
+- `$HIJACKED_LOCKED` clears after restarting DAS, re-running `Set Global Variables`, or explicitly setting it to `0`.
 - Montage lock must be manually cleared (UI lock icon or `LockAllMontage Unlock`).
 
 ## TIMER SCRIPT
 
 `other scripts/timer.das` does three things:
 
-1) Enforces hijack protection on position size (LIVE, and SIM when `$applyLiveGuardsToSim = 1`).
+1) Enforces hijack protection when `$hijackProtection = 1` (LIVE, and SIM when `$applyLiveGuardsToSim = 1`).
 2) Runs `Timer Entry Handler` each tick to arm stops/TP after fills when
    `$useTimerArming = 1`.
 3) Clears take-profit alerts and dynamic/structured stop state when flat.
@@ -622,16 +657,6 @@ Safety toggles:
 - `set_order_route_freel.das` sets `$orderRoute` to `FREEL` (free route for ST Global Market/Open Ocean).
 - `toggle_single_position_guard.das` toggles the single-position guard
   (`$singlePositionGuard`).
-- `toggle_test_mode.das` toggles test mode (`$testMode`) for off-hours guard checks.
-- `toggle_test_hijack_guard.das` toggles a hijack-guard test by lowering
-  `maxPositionSize` (requires `$testMode = 1` and an open position).
-- `toggle_test_single_position_guard.das` toggles a simulated active symbol for
-  the single-position guard (requires `$testMode = 1`).
-- `toggle_test_pending_entry_guard.das` toggles a simulated pending entry for
-  the guard (requires `$testMode = 1` and a flat position).
-- `toggle_test_max_position_guard.das` toggles a max-position guard test by
-  setting `maxPositionSize` to the current position (requires `$testMode = 1`
-  and an open position).
 - `enable_rehab_mode.das` toggles rehab mode on/off; disabling requires typing `YES`.
 
 Account and session:
@@ -647,7 +672,7 @@ Order control:
 
 UI and convenience:
 - `show_config.das` displays current globals and account mode. It also logs
-  `Primary_OE` values for montage `.Pos`, built-in `Pos`, and `GetCurrPos()`;
+  `Primary_OE` values for montage `.Pos`, built-in `Pos`, and `$M.GetCurrPos()`;
   these read-only diagnostics help verify how DAS represents flat, long, and
   short positions before direction-aware emergency logic is enabled.
 - `select_primary_order_entry.das` focuses the Primary_OE montage.
@@ -697,3 +722,29 @@ pre-market or after-hours depends on your broker and DAS configuration. If you
 trade outside regular hours, verify your broker's behavior and consider a
 LIMITP-based workflow tailored to your setup.
 
+
+## Momo coordinated swap
+
+The optional `hotkeys/swap_internal.das` swaps the symbols in `Primary_OE` and
+`Secondary_OE`, then updates `Primary_Chart`, `Secondary_Chart` and `Secondary_TS`.
+Both original symbols are saved before any window is changed. Keep each chart
+and Time & Sales window linked to its corresponding montage. Both charts use
+one-minute candles; the existing primary tape remains linked to `Primary_OE`.
+Only the primary montage is used for Momo trading.
+
+1. **Momo Swap Internal** is assigned to `Ctrl+Shift+F12` in `keymap.yaml`.
+   Keep the keymap label and script together in the normal build.
+2. Run **DAS: Build Hotkey File** and load the generated file through your normal
+   DAS installation workflow.
+3. Momo uses the fixed `Ctrl+Shift+F12` shortcut automatically; there is no app
+   setting. Keep this binding when building the hotkey file.
+4. Request swaps through Momo's **Swap** button. An optional user-facing DAS
+   shortcut can launch Momo's `tools/das_feed_viewer/das_helpers/request_swap.cmd`
+   through `ShellExec`; the request helper stays with the Momo application.
+
+The internal script only changes window symbols. Momo performs the flat-account,
+pending-order and setup checks before invoking it, so do not use the internal
+binding directly as your user-facing shortcut. Loading the script does not
+qualify two-stock execution: keep Momo Inactive and the account flat for the
+required layout and user-triggered swap verification. The new windows/scripts
+have not yet passed that live qualification.
