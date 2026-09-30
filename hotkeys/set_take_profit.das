@@ -30,24 +30,8 @@ if ($avgNow <= 0) { $avgNow = $M.Last; }
 
 // ---- Step 3: Load profit factor (R multiple) ----
 
-// Effective TP distance in dollars per share
-$mode = $stopMode;
-if ($mode == "") {
-    if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "FIXED"; }
-}
-
-$effR = $stopLossTrigger;
-if ($mode == "DYNAMIC" && $dynamicStopActive == 1) {
-    $effR = $dynamicStopR;
-}
-if ($mode == "STRUCTURED") {
-    if ($structuredStop <= 0) { return; }
-    if ($structuredSymbol != "" && $structuredSymbol != $mySym) { return; }
-    $effR = $avgNow - $structuredStop;
-    if ($effR <= 0) { return; }
-    $structuredR = $effR;
-}
-$tpDist = $effR * $takeProfitFactor;
+// TP distance in dollars per share using the fixed R.
+$tpDist = $stopLossTrigger * $takeProfitFactor;
 
 // ---- Step 4: Compute the target price ----
 $tpPx = $avgNow;

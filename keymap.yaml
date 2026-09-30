@@ -257,11 +257,6 @@
   key: Alt+Ctrl+B
   label: Set Auto Stop BE 1/2
   scriptPath: hotkeys/set_auto_stop_be_1_2.das
-- id: structured_stop_validate
-  key:
-  label: Structured Stop Validate
-  scriptPath: hotkeys/structured_stop_validate.das
-
 # Take profit
 - id: set_take_profit
   key: Ctrl+Shift+T
@@ -293,18 +288,6 @@
   key: Alt+Ctrl+Win+'
   label: Toggle Spread Check Feature
   scriptPath: hotkeys/toggle_spread_check_feature.das
-- id: enable_dynamic_stop_mode
-  key: Ctrl+Alt+Win+D
-  label: Enable Dynamic Stop Mode
-  scriptPath: hotkeys/enable_dynamic_stop_mode.das
-- id: enable_standard_stop_mode
-  key: Ctrl+Alt+Win+F
-  label: Enable Fixed Stop Mode
-  scriptPath: hotkeys/enable_standard_stop_mode.das
-- id: enable_structured_stop_mode
-  key: Alt+Ctrl+Win+S
-  label: Enable Structured Stop Mode
-  scriptPath: hotkeys/enable_structured_stop_mode.das
 - id: toggle_apply_live_guards_to_sim
   key: Alt+Ctrl+Win+G
   label: Toggle Live Guards in SIM

@@ -32,12 +32,6 @@ if (IsObj($M)) {
     $avgBefore = AvgCost;
 }
 
-// ---- Resolve stop mode ----
-$mode = $stopMode;
-if ($mode == "") {
-    if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "FIXED"; }
-}
-
 // Rehab gate: block scaling in while rehab mode is enabled (LIVE; optional SIM).
 $acct = "";
 if (IsObj($M)) { $acct = StrTrim("" + $M.Account); }
@@ -109,59 +103,7 @@ if ($bid <= 0 || $ask <= 0 || $spread < 0) {
 // ---- Precompute entry price ----
 $pxEntry = $refPx + $entryAskOffset;
 
-// ---- Step 0b: Resolve effective R (dynamic vs fixed / structured) ----
-$useDynStop = ($mode == "DYNAMIC");
-$dynRNew = 0;
 $effR = $stopLossTrigger;
-if ($useDynStop == 1) {
-    if ($posBefore <= 0) {
-        $dynMult = $dynamicStopMult;
-        if ($dynMult <= 0) { $dynMult = 2; }
-        $dynRNew = $spread * $dynMult;
-        $effR = $dynRNew;
-    } else {
-        if ($dynamicStopActive == 1) {
-            $effR = $dynamicStopR;
-        }
-    }
-}
-if ($mode == "STRUCTURED") {
-    if ($posBefore <= 0) {
-        ExecHotkey("Structured Stop Validate");
-        if ($structuredOk != 1) {
-            $reasonText = $structuredReasonText;
-            if ($reasonText == "") { $reasonText = "code " + $structuredReason; }
-            MsgBox("Structured stop check failed: " + $reasonText + ".");
-            return;
-        }
-        if ($structuredSymbol != "" && $structuredSymbol != $entrySymbol) {
-            MsgLog("Structured stop symbol mismatch for " + $entrySymbol + ".");
-            MsgBox("Structured stop symbol mismatch for " + $entrySymbol + ".");
-            return;
-        }
-        $structuredR = $pxEntry - $structuredStop;
-    } else {
-        if ($structuredR <= 0) {
-            MsgLog("Structured stop data missing. Use a structured IB entry first.");
-            MsgBox("Structured stop data missing. Use a structured IB entry first.");
-            return;
-        }
-    }
-
-    if ($structuredSymbol != "" && $structuredSymbol != $entrySymbol) {
-        MsgLog("Structured stop symbol mismatch for " + $entrySymbol + ".");
-        MsgBox("Structured stop symbol mismatch for " + $entrySymbol + ".");
-        return;
-    }
-
-    if ($structuredStop <= 0 || $structuredR <= 0) {
-        MsgLog("Structured stop data missing. Aborting.");
-        MsgBox("Structured stop data missing. Aborting.");
-        return;
-    }
-
-    $effR = $structuredR;
-}
 
 // Projected entry/stop based on reference side
 $hypoStop = $pxEntry - $effR;
@@ -254,10 +196,6 @@ if ($useTimerArming == 1) {
     $entryAvgBefore = $avgBefore;
     $entryScaleIn = 0;
     if ($posBefore > 0) { $entryScaleIn = 1; }
-    $entryDynR = 0;
-    if ($mode == "DYNAMIC" && $posBefore <= 0) {
-        $entryDynR = $dynRNew;
-    }
 }
 
 // ---- Step 3: Cancel BUY working orders (keep protection until fill) ----     
@@ -321,12 +259,6 @@ if ($filled == 2 && $cancelRemainderOnPartial == 1) {
     $order.Cancel();
     // brief wait to let the residual cancel
     Wait(200);
-}
-
-// ---- Step 5b: Persist dynamic R for new trades ----
-if ($mode == "DYNAMIC" && $posBefore <= 0) {
-    $dynamicStopR = $dynRNew;
-    $dynamicStopActive = 1;
 }
 
 // ---- Step 6: Arm unified 1R stop via "Set Auto Stop" ----

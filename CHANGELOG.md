@@ -5,11 +5,13 @@ All notable changes to this repository will be documented in this file.
 ## 0.3.3 - Unreleased
 
 ### Features
+- Display full entry-button quantities exceeding three digits on their own line on both physical and Virtual Stream Deck profiles.
+- Increase tier base sizes from 50/100/200/300 to 100/200/300/500 shares and update all five multiplier labels on the 20 entry buttons in each physical and Virtual Stream Deck profile.
 - Add `swap_internal.das` as **Momo Swap Internal**, bound to `Ctrl+Shift+F12` in the canonical keymap, for coordinated primary/secondary montage swaps.
 - Disable position-size hijack protection by default (`$hijackProtection = 0`); set it to `1` to opt in.
 - Add independent Bid+ and Ask+ buy-entry offsets, each with `-0.03`, `-0.02`, `-0.01`, `+0.01`, and `+0.03` presets and a separate five-state Stream Deck toggle reset by LOAD CFG. Defaults are BID `+0.01` and ASK `-0.01` in the scripts and Stream Deck reset actions.
 - Bind the new -2-cent presets to `Alt+Ctrl+Shift+Win+5` (BID) and `Alt+Ctrl+Shift+Win+F5` (ASK), and insert them between -3 and -1 cents on the page 4 Stream Deck buttons.
-- Add configurable tier base sizes—`$tier1ShareSize` 50 (MIB), `$tier2ShareSize` 100 (IB), `$tier3ShareSize` 200 (`buy_25_*`), and `$tier4ShareSize` 300 (`buy_50_*`)—scaled together by `$qtyMult` (default `1.0`).
+- Add configurable tier base sizes—`$tier1ShareSize` 100 (MIB), `$tier2ShareSize` 200 (IB), `$tier3ShareSize` 300 (`buy_25_*`), and `$tier4ShareSize` 500 (`buy_50_*`)—scaled together by `$qtyMult` (default `1.0`).
 - Add hotkey presets for setting `$qtyMult` to `0.5x`, `1.0x`, `1.5x`, `2.0x`, or `3.0x`.
 - Derive `$maxPositionSize` from `$tier4ShareSize * $qtyMult` and recalculate it whenever a multiplier preset changes.
 - Add isolated manual hotkeys to sell short Tiers 1–4 at Ask and cover 100% at Ask without arming long-side stops, take profit, or entry state.
@@ -18,9 +20,10 @@ All notable changes to this repository will be documented in this file.
 - Add a `$0.50` fixed stop-loss preset bound to `Alt+Ctrl+Win+5`.
 - Change the default fixed stop loss from `$0.10` to `$0.20` per share.
 - Increase the default take-profit partial from 25% to 50% of the position.
-- Increase the default per-trade risk cap from `$100` to `$1,000`.
+- Increase the default per-trade risk cap from `$100` to `$2,000`.
 
 ### Bug Fixes
+- Correct the physical and Virtual Stream Deck plain-ASK buttons to use the matching Tier 1–4 Ask hotkeys in every multiplier state.
 - Correct all five size states of the local Stream Deck MIB Bid+ button (including **BUY 25 BID+** at `0.5x`) to send `Alt+Ctrl+Shift+Win+0`; the previous plain-Bid shortcut skipped the configured offset.
 - Bind all `GetCurrPos()` reads to the `Primary_OE` montage object so timer-triggered Hijack Exit and other hotkeys do not rely on the caller's window context.
 - Make hijack exits direction-aware so oversized longs sell at `Bid - $exitOffset` and oversized shorts cover at `Ask + $exitOffset` using native `SEND=Reverse`.
@@ -32,7 +35,9 @@ All notable changes to this repository will be documented in this file.
 - Use signed `GetCurrPos()` in the Tier 1 short hotkey so it can add to an existing short while continuing to reject long positions.
 
 ### Cleanup
-- Rename the chart window reference from `Chart_1m` to `Primary_Chart` in symbol synchronization and structured stop validation; keep the chart on the 1-minute timeframe.
+- Remove dynamic and structured stop modes, their hotkeys, runtime state, entry gates, adaptive stop offsets, and live-candle helper. Use fixed R throughout stops, take profit, and scale-in checks.
+- Remove the stop-mode buttons from both buy pages in the physical and Virtual Stream Deck DAS Trader profiles; retain fixed-stop amount presets.
+- Rename the chart window reference from `Chart_1m` to `Primary_Chart` in symbol synchronization.
 - Remove the five remaining test-toggle hotkeys and scripts, freeing `Alt+Ctrl+Win+T` and `Alt+Ctrl+Shift+Win+2/3/4`; `Alt+Ctrl+Shift+Win+5` is now used by the BID -2-cent preset. The former Max Loss test binding (`Alt+Ctrl+Shift+Win+1`) was already unused.
 - Remove all six test buttons from page 4 of the local DAS Trader Stream Deck profile.
 

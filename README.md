@@ -9,11 +9,11 @@ This repository contains human-readable DAS Trader hotkey scripts plus a keymap 
 These are the scripts I trade with on a daily basis. If you choose to use them, start by reading the user guide and then review the global settings in `hotkeys/set_global_variables.das` and the bindings in `keymap.yaml` (mine are tailored to my setup). I primarily use a Stream Deck.
 
 Important constraints:
-- Automated entry protection (stops, take profit, structured modes, and timer arming) is long-only. The manual Tier 1–4 short-entry and full-cover hotkeys are intentionally isolated from that workflow.
+- Automated entry protection (stops, take profit, and timer arming) is long-only. The manual Tier 1–4 short-entry and full-cover hotkeys are intentionally isolated from that workflow.
 - Assumes a single active symbol (multi-symbol trading is not supported).
 - Requires a montage named `Primary_OE`.
 - Requires installing `other scripts/timer.das` in DAS Trader's Timer Event Scripts.
-- Requires a 1-minute chart named `Primary_Chart` with `other scripts/chart_1m.das` installed as its Chart Script.
+- Uses a chart named `Primary_Chart` for symbol synchronization.
 
 Read this first: [USERGUIDE.md](USERGUIDE.md)
 
@@ -91,9 +91,9 @@ Short orders: Ask, Stops, Take profit, Utilities & toggles.
 
 ## Scaling Behavior
 
-- Scale-ins are allowed only when the existing position is at least 1R in profit (dynamic R when active, otherwise `stopLossTrigger`).
+- Scale-ins are allowed only when the existing position is at least 1R in profit (`$stopLossTrigger`).
 - When adding to an existing long, the scripts use the scale-in-specific BE stop hotkey (`Set Auto Stop BE Scale 1/1`).
-- Buy tiers use configurable base share counts: MIB uses `$tier1ShareSize` (50), IB uses `$tier2ShareSize` (100), the legacy `buy_25_*` family uses `$tier3ShareSize` (200), and the legacy `buy_50_*` family uses `$tier4ShareSize` (300). Each base size is multiplied by `$qtyMult` (default `1.0`) and rounded to the nearest whole share. `$maxPositionSize` is derived from the scaled Tier 4 size.
+- Buy tiers use configurable base share counts: MIB uses `$tier1ShareSize` (100), IB uses `$tier2ShareSize` (200), the legacy `buy_25_*` family uses `$tier3ShareSize` (300), and the legacy `buy_50_*` family uses `$tier4ShareSize` (500). Each base size is multiplied by `$qtyMult` (default `1.0`) and rounded to the nearest whole share. `$maxPositionSize` is derived from the scaled Tier 4 size.
 - Multiplier preset hotkeys switch `$qtyMult` between `0.5x`, `1.0x`, `1.5x`, `2.0x`, and `3.0x` for the current session and recalculate `$maxPositionSize`.
 - Projected risk caps are evaluated against net risk to the planned stop on total size after the add (current position + new shares).
 
@@ -101,16 +101,16 @@ Short orders: Ask, Stops, Take profit, Utilities & toggles.
 
 - `Short T1/T2/T3/T4 Ask` sends `round($tierNShareSize * $qtyMult)` shares as an explicit sell-short limit order at Ask. These hotkeys can open a short or add to an existing short, but reject long positions.
 - `Cover 1/1 Ask+` cancels current-symbol orders and uses DAS `Share=Pos; SEND=Reverse` at `Ask + $exitOffset`. For a short position, DAS resolves the full quantity and sends a buy without adding past flat.
-- These scripts use `$orderRoute` and `DAY+`, but deliberately do not use the long-side entry guards, stop loss, take profit, structured-stop state, or timer arming. Confirm locate availability, broker routing, and short-sale restrictions before use.
+- These scripts use `$orderRoute` and `DAY+`, but deliberately do not use the long-side entry guards, stop loss, take profit, or timer arming. Confirm locate availability, broker routing, and short-sale restrictions before use.
 - `Cancel All` cancels short-side working orders without invoking the long stop engine. `GTFO` uses signed position direction to sell longs at Bid minus $0.50 or cover shorts at Ask plus $0.50 through `$gtfoRoute`.
 
-## Dynamic Stops (Buy IB/MIB Only)
+## Fixed Stops
 
-- Controlled by `dynamicStop` and `dynamicStopMult` in `hotkeys/set_global_variables.das`.
-- Dynamic R is based on spread at order send and is fixed for the life of the trade.
-- Dynamic R is cleared when flat by the timer script (see `other scripts/timer.das`).
-- Adaptive stop-limit offsets are used only when a dynamic stop is active; otherwise `$exitOffset` is used.
-- When `dynamicStop = 1`, initial entries must use `buy_mib_*` or `buy_ib_*`; `buy_25_*` and `buy_50_*` are scale-in only.
+- All buy tiers use `$stopLossTrigger` as their 1R stop distance (default `$0.20`).
+- `Set Auto Stop` places a full-position stop-limit at average cost minus 1R,
+  with its limit price a further `$exitOffset` below the trigger.
+- The fixed-stop presets select `$0.10`, `$0.20`, `$0.30`, or `$0.50`.
+- Scale-ins and successful take-profit fills use the existing breakeven protection.
 
 ## Risk Disclaimer
 

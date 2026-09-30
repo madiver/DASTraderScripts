@@ -2,10 +2,9 @@
 // SET AUTO STOP (1R, LONG ONLY)
 // Group: Stops
 // =====================
-// Reusable stop-loss engine using montage context and effective R.
+// Reusable stop-loss engine using montage context and the fixed R distance.
 // Uses:
 // - $stopLossTrigger (fixed 1R in dollars)
-// - $dynamicStopActive/$dynamicStopR (dynamic 1R for buy_ib trades)
 // - $entryRefPx as fallback if AvgCost lags
 // - Caller should ensure $useAutoStop is enabled
 // - Primary_OE montage (no global Symbol/Account)
@@ -27,8 +26,8 @@ $mySym  = $M.Symb;
 $posNow = $M.Pos;
 $avgNow = $M.AvgCost;
 
-// TEMP: debug manual reset behavior
-MsgLog("Set Auto Stop: sym=" + $mySym + " pos=" + $posNow + " avg=" + $avgNow + " mode=" + $stopMode);
+// Log manual reset context
+MsgLog("Set Auto Stop: sym=" + $mySym + " pos=" + $posNow + " avg=" + $avgNow);
 
 // LONG-ONLY: if no long position, nothing to protect
 if ($posNow <= 0) {
@@ -57,20 +56,6 @@ if ($posNow <= 0 || $avgNow <= 0) {
     return;
 }
 
-// ---- Resolve stop mode ----
-$mode = $stopMode;
-if ($mode == "") {
-    if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "FIXED"; }
-}
-
-// ---- Tunables ----
-// Use adaptive offset only when an active dynamic stop is in effect.
-$useAdaptiveLimitOff  = 0;     // 1=offset based on spread; 0=use fixed $limitOff
-if ($mode == "DYNAMIC" && $dynamicStopActive == 1) { $useAdaptiveLimitOff = 1; }
-$adapt_k              = 2.0;   // limit offset = max(minTicks*inc, min(maxLimitOff, k*spread))
-$adapt_minTicks       = 2;     // min ticks for stop-limit offset
-$adapt_maxLimitOff    = 0.25;  // hard cap in dollars on limit offset
-
 // ---- Step 3: Cancel existing SELL orders ----
 $skipCancel = 0;
 if ($timerActive == 1) { $skipCancel = 1; }
@@ -84,30 +69,7 @@ if ($skipCancel == 0) {
 }
 
 // ---- Step 4: Compute raw 1R stop ----
-$effR = $stopLossTrigger;
-$stop = 0;
-if ($mode == "STRUCTURED") {
-    if ($structuredStop <= 0) {
-        MsgLog("Set Auto Stop: structuredStop missing (stop=" + $structuredStop + ", sym=" + $structuredSymbol + ").");
-        return;
-    }
-    if ($structuredSymbol != "" && $structuredSymbol != $mySym) {
-        MsgLog("Set Auto Stop: structuredSymbol mismatch (have=" + $structuredSymbol + ", cur=" + $mySym + ").");
-        return;
-    }
-    $stop = $structuredStop;
-    $effR = $avgNow - $stop;
-    if ($effR <= 0) {
-        MsgLog("Set Auto Stop: structuredR invalid (avg=" + $avgNow + ", stop=" + $stop + ").");
-        return;
-    }
-    $structuredR = $effR;
-} else {
-    if ($mode == "DYNAMIC" && $dynamicStopActive == 1) {
-        $effR = $dynamicStopR;
-    }
-    $stop = $avgNow - $effR;
-}
+$stop = $avgNow - $stopLossTrigger;
 
 // ---- Step 5: Resolve tick-size bands ----
 $inc = 0.01;
@@ -120,21 +82,8 @@ $stop = Round($stop, 102, $inc);
 $lastStop = $stop;
 $lastStopSymbol = $mySym;
 
-// ---- Step 6: Compute stop-limit offset ----
-$effLimitOff = $exitOffset;
-if ($useAdaptiveLimitOff == 1) {
-    // Use montage-level quotes, not globals
-    $spreadNow   = $M.Ask - $M.Bid;
-    $effLimitOff = ($adapt_k * $spreadNow);
-    // floor to min ticks
-    $minOff = ($adapt_minTicks * $inc);
-    if ($effLimitOff < $minOff)            { $effLimitOff = $minOff; }
-    // cap
-    if ($effLimitOff > $adapt_maxLimitOff) { $effLimitOff = $adapt_maxLimitOff; }
-}
-
-// Compute and snap limit
-$px = $stop - $effLimitOff;
+// ---- Step 6: Compute and snap the stop-limit price ----
+$px = $stop - $exitOffset;
 $px = Round($px, 102, $inc);
 
 // Safety: ensure SLP limit is strictly below trigger (for sells)

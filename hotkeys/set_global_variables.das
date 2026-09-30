@@ -27,7 +27,6 @@ $entryMaxTicks = 10;    // timeout in timer ticks while waiting for fill
 $entryPosBefore = 0;
 $entryAvgBefore = 0;
 $entryScaleIn = 0;
-$entryDynR = 0;
 $entrySymbol = "";
 $tpSymbol = "";
 $entryRefPx = 0;
@@ -97,37 +96,6 @@ $takeProfitSize = 0.50;
 // Portion to sell/cover when rehab mode is active (LIVE; SIM if $applyLiveGuardsToSim = 1)
 $takeProfitSizeRehab = 0.50;
 
-// ---- 2b) Dynamic Stop Settings (buy_ib only) ----
-// 1 = enable dynamic spread-based R for buy_ib entries, else fixed R.
-$dynamicStop = 0;
-// Stop mode selector: FIXED, DYNAMIC, or STRUCTURED.
-$stopMode = "FIXED";
-// Multiplier for spread-based R when dynamicStop is enabled.
-$dynamicStopMult = 2;
-// Runtime state for active dynamic trades (do not edit manually).
-$dynamicStopActive = 0;
-$dynamicStopR = 0;
-
-// ---- 2c) Structured Stop Settings (1-minute, buy_ib only) ----
-$structuredMaxLookback = 5;
-$structuredMaxPullback = 3;
-$structuredBuffer = 0.01;
-$structuredMaxStop = 0.40;
-$structuredMinImpulse = 0.15;
-$structuredMinClearance = 0.05;
-$structuredMicroTolPct = 0.25;
-$structuredMicroTolMax = 0.10;
-$structuredMicroExt = 0.10;
-
-// Runtime state for structured stops (do not edit manually).
-$structuredOk = 0;
-$structuredReason = 0;
-$structuredReasonText = "";
-$structuredType = "";
-$structuredStop = 0;
-$structuredR = 0;
-$structuredSymbol = "";
-
 // ---- 3) Account Tokens (Simulation / Live) ----
 //
 // These vars store your SIM and LIVE account identifiers.
@@ -138,17 +106,17 @@ $LIVEACT = "%%LIVE%%";      // your LIVE trading account
 
 // Shared multiplier and base share sizes for each buy tier.
 $qtyMult = 1.0;
-$tier1ShareSize = 50;   // MIB script family
-$tier2ShareSize = 100;  // IB script family
-$tier3ShareSize = 200;  // Legacy buy_25_* script family
-$tier4ShareSize = 300;  // Legacy buy_50_* script family
+$tier1ShareSize = 100;  // MIB script family
+$tier2ShareSize = 200;  // IB script family
+$tier3ShareSize = 300;  // Legacy buy_25_* script family
+$tier4ShareSize = 500;  // Legacy buy_50_* script family
 
 // Maximum allowed position size: one scaled Tier 4 order.
 $maxPositionSize = Round($tier4ShareSize * $qtyMult, 0);
 
 // Maximum allowed $ risk *per trade*
 // Useful for guarding against oversized positions or bad spreads
-$riskCapDollars = 1000.00;
+$riskCapDollars = 2000.00;
 
 // Order entry fill wait parameters
 $pollMs           = 100;             // polling cadence (ms)

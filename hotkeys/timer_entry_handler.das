@@ -22,10 +22,6 @@ if (!IsObj($M)) {
 // Snapshot symbol and position
 $mySym  = StrTrim("" + $M.Symb);
 $posNow = $M.Pos;
-$mode = $stopMode;
-if ($mode == "") {
-    if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "FIXED"; }
-}
 
 // If no pending entry, optionally re-arm when size increases
 if ($entryPending != 1) {
@@ -43,14 +39,6 @@ if ($entryPending != 1) {
             $entryLastPos = 0;
             $entryScaleIn = 0;
             $entrySymbol = "";
-            if ($mode == "STRUCTURED") {
-                $structuredOk = 0;
-                $structuredReason = 0;
-                $structuredType = "";
-                $structuredStop = 0;
-                $structuredR = 0;
-                $structuredSymbol = "";
-            }
             return;
         }
 
@@ -113,25 +101,15 @@ if ($entryWatch == 1) {
 // Safety: bail if montage symbol doesn't match the entry
 $entrySym = StrTrim("" + $entrySymbol);
 if ($entrySym != "" && $mySym != $entrySym) {
-    $wasScaleIn = $entryScaleIn;
     $accObj = GetAccountObj($M.Account);
     $accObj.CancelOrder("BUY", $entrySymbol, 0);
     $entryPending = 0;
     $entryStage = 0;
     $entryTicks = 0;
-    $entryDynR = 0;
     $entryScaleIn = 0;
     $entryWatch = 0;
     $entryLastPos = 0;
     $entryRefPx = 0;
-    if ($wasScaleIn != 1 && $mode == "STRUCTURED") {
-        $structuredOk = 0;
-        $structuredReason = 0;
-        $structuredType = "";
-        $structuredStop = 0;
-        $structuredR = 0;
-        $structuredSymbol = "";
-    }
     return;
 }
 
@@ -141,7 +119,6 @@ if ($entryScaleIn == 1) {
         $entryPending = 0;
         $entryStage = 0;
         $entryTicks = 0;
-        $entryDynR = 0;
         $entryScaleIn = 0;
         $entryWatch = 0;
         $entryLastPos = 0;
@@ -152,18 +129,9 @@ if ($entryScaleIn == 1) {
         $entryPending = 0;
         $entryStage = 0;
         $entryTicks = 0;
-        $entryDynR = 0;
         $entryScaleIn = 0;
         $entryWatch = 0;
         $entryLastPos = 0;
-        if ($mode == "STRUCTURED") {
-            $structuredOk = 0;
-            $structuredReason = 0;
-            $structuredType = "";
-            $structuredStop = 0;
-            $structuredR = 0;
-            $structuredSymbol = "";
-        }
         return;
     }
 }
@@ -184,51 +152,27 @@ if ($entryStage == 0) {
                 $entryPending = 0;
                 $entryStage = 0;
                 $entryTicks = 0;
-                $entryDynR = 0;
                 $entryScaleIn = 0;
             }
         }
         return;
     }
 
-        if ($posNow > 0) {
-            if (StrTrim("" + $singlePositionSymbol) == "") { $singlePositionSymbol = $mySym; }
-            $mode = $stopMode;
-            if ($mode == "") {
-                if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "FIXED"; }
-            }
-            if ($entryDynR > 0 && $mode == "DYNAMIC") {
-                $dynamicStopR = $entryDynR;
-                $dynamicStopActive = 1;
-            }
-            if ($mode == "STRUCTURED" && $structuredStop > 0) {
-                $avgNow = $M.AvgCost;
-                if ($avgNow > 0) {
-                    $structuredR = $avgNow - $structuredStop;
-                }
-            }
-            $entryStage = 2; // stop stage
+    if ($posNow > 0) {
+        if (StrTrim("" + $singlePositionSymbol) == "") { $singlePositionSymbol = $mySym; }
+        $entryStage = 2; // stop stage
+        $entryTicks = 0;
+    } else {
+        if ($entryMaxTicks > 0 && $entryTicks >= $entryMaxTicks) {
+            $accObj = GetAccountObj($M.Account);
+            $accObj.CancelOrder("BUY", $mySym, 0);
+            $entryPending = 0;
+            $entryStage = 0;
             $entryTicks = 0;
-        } else {
-            if ($entryMaxTicks > 0 && $entryTicks >= $entryMaxTicks) {
-                $accObj = GetAccountObj($M.Account);
-                $accObj.CancelOrder("BUY", $mySym, 0);
-                $entryPending = 0;
-                $entryStage = 0;
-                $entryTicks = 0;
-                $entryDynR = 0;
-                $entryScaleIn = 0;
-                if ($mode == "STRUCTURED") {
-                    $structuredOk = 0;
-                    $structuredReason = 0;
-                    $structuredType = "";
-                    $structuredStop = 0;
-                    $structuredR = 0;
-                    $structuredSymbol = "";
-                }
-            }
+            $entryScaleIn = 0;
         }
-        return;
+    }
+    return;
 }
 
 // Stage 1: cancel existing SELL orders for scale-ins
@@ -287,7 +231,6 @@ if ($entryStage == 3) {
     $entryPending = 0;
     $entryStage = 0;
     $entryTicks = 0;
-    $entryDynR = 0;
     $entryWatch = 1;
     $entryLastPos = $posNow;
     return;

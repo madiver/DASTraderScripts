@@ -50,7 +50,6 @@ $msg =
 "entryPosBefore: " + $entryPosBefore + "\n" +
 "entryAvgBefore: " + $entryAvgBefore + "\n" +
 "entryScaleIn: " + $entryScaleIn + "\n" +
-"entryDynR: $" + $entryDynR + "\n" +
 "entrySymbol: " + $entrySymbol + "\n" +
 "tpSymbol: " + $tpSymbol + "\n" +
 "entryWatch: " + $entryWatch + "\n" +
@@ -84,24 +83,6 @@ $msg =
 "stopLossTrigger (1R): $" + $stopLossTrigger + "\n" +
 "takeProfitFactor: " + $takeProfitFactor + "R\n" +
 "takeProfitSize: " + ($takeProfitSize * 100) + "% (rehab: " + ($takeProfitSizeRehab * 100) + "%)\n\n" +
-
-"DYNAMIC STOP\n" +
-"-----------------\n" +
-"stopMode: " + $stopMode + "\n" +
-"dynamicStop: " + $dynamicStop + "\n" +
-"dynamicStopMult: " + $dynamicStopMult + "\n" +
-"dynamicStopActive: " + $dynamicStopActive + "\n" +
-"dynamicStopR: $" + $dynamicStopR + "\n\n" +
-
-"STRUCTURED STOP\n" +
-"-----------------\n" +
-"structuredOk: " + $structuredOk + "\n" +
-"structuredReason: " + $structuredReason + "\n" +
-"structuredReasonText: " + $structuredReasonText + "\n" +
-"structuredType: " + $structuredType + "\n" +
-"structuredStop: $" + $structuredStop + "\n" +
-"structuredR: $" + $structuredR + "\n" +
-"structuredSymbol: " + $structuredSymbol + "\n\n" +
 
 "BACKSTOP\n" +
 "-----------------\n" +

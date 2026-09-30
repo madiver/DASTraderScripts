@@ -4,11 +4,11 @@
 
 These scripts are the hotkeys I use in DAS Trader for active, discretionary day trading. They focus on fast, repeatable order entry with guard rails and are designed around a single active symbol at a time. I treat the micro ice breaker and ice breaker (Buy MIB/IB) entries as the first tests of a trade thesis; while DAS allows multiple positions, these hotkeys assume one symbol and may behave unpredictably otherwise.
 
-The automated entry-protection workflow is designed for LONG positions only. Five isolated manual hotkeys support Tier 1–4 shorts at Ask and a 100% cover at Ask; they do not arm stop loss, take profit, structured-stop state, or timer handling.
+The automated entry-protection workflow is designed for LONG positions only. Five isolated manual hotkeys support Tier 1–4 shorts at Ask and a 100% cover at Ask; they do not arm stop loss, take profit, or timer handling.
 
 Repository structure: the `hotkeys/` folder contains the `.das` hotkey scripts, `keymap.yaml` defines the key bindings and metadata, and `other scripts/` contains support scripts like the timer. A `.das` file is plain text you can paste into the DAS Trader Script Editor. The `keymap.yaml` can be compiled into a `Hotkey.htk` using the DAS Hotkey Tools VS Code extension, or you can skip the compiler and copy the scripts manually.
 
-These scripts assume you have a primary montage window named `Primary_OE` (Primary Order Entry) and a 1-minute chart window named `Primary_Chart`. If that montage name does not exist, many scripts will fail or behave incorrectly. The chart name is used for symbol synchronization and structured stop validation. You can reference my DAS Trader desktop and chart settings here: https://github.com/madiver/DASTraderConfig
+These scripts assume you have a primary montage window named `Primary_OE` (Primary Order Entry) and a chart window named `Primary_Chart`. If that montage name does not exist, many scripts will fail or behave incorrectly. The chart name is used for symbol synchronization. You can reference my DAS Trader desktop and chart settings here: https://github.com/madiver/DASTraderConfig
 
 Regardless of the method you choose, the timer script must be installed manually in DAS Trader under "Timer Event Scripts," and the chart script must be installed manually under the chart "Scripting" section (see details below). I also recommend adding `ExecHotKey("Set Global Variables");` to your Desktop Load Scripts so globals are initialized every time DAS starts.
 
@@ -21,7 +21,7 @@ Regardless of the method you choose, the timer script must be installed manually
    - `dasHotkeyTools.outputPath` (required).
    - `dasHotkeyTools.liveAccount` and `dasHotkeyTools.simulatedAccount` for `%%LIVE%%` / `%%SIMULATED%%` substitution.
    - Optional: `dasHotkeyTools.placeholders.failOnMissing` to block builds when placeholders are unresolved.
-3) Ensure your montage is named `Primary_OE`, the timer script `other scripts/timer.das` is installed under Timer Event Scripts, and the chart script `other scripts/chart_1m.das` is installed on your 1-minute chart named `Primary_Chart`.
+3) Ensure your montage is named `Primary_OE`, the timer script `other scripts/timer.das` is installed under Timer Event Scripts, and the chart used for symbol synchronization is named `Primary_Chart`.
 4) Run `switch_to_sim.das` or `switch_to_live.das` to set the montage account and filters.
 5) Run `set_global_variables.das` to initialize globals.
 6) Use `show_config.das` to confirm account mode, defaults, and guard states.
@@ -67,41 +67,16 @@ Feature toggles and entry guards:
 
 Risk and execution:
 - `$entryBidOffset` / `$entryAskOffset`: independent signed offsets for Bid+ / Ask+ buy scripts (defaults: BID `+0.01`, ASK `-0.01`). Negative values price below the corresponding reference quote.
-- `$exitOffset`: aggression offset for Bid- long exits and Ask+ short covers, and the limit offset for non-dynamic stops.
+- `$exitOffset`: aggression offset for Bid- long exits and Ask+ short covers, and the limit offset for fixed stops.
 - `$orderRoute`: limit order route for entries/exits (buys/sells/TP/BE). Default is `ARCAL`. `FREEL` is the free route for ST Global Market/Open Ocean.
 - `$gtfoRoute`: emergency exit route for GTFO/backstop/hijack exits. Default is `FLASHL` (Open Ocean broadcast route).
-- `$stopLossTrigger`: fixed 1R risk per share (used when dynamic stops are off).
+- `$stopLossTrigger`: fixed 1R risk per share for all buy tiers.
 - `$backstopBuffer`: trigger buffer below the stop for the manual backstop alert.
 - `$backstopBidOffset`: limit offset from Bid for backstop exits.
 - `$backstopMaxRetries`: max retry attempts for backstop exits when still not flat.
 - `$takeProfitFactor`: R multiple for take-profit alerts.
 - `$takeProfitSize`: fraction of the position to sell on a TP trigger.
 - `$takeProfitSizeRehab`: TP fraction when rehab is active (LIVE; SIM when `$applyLiveGuardsToSim = 1`).
-
-Dynamic stop settings (buy_ib only):
-- `$stopMode`: selects stop logic ("FIXED", "DYNAMIC", or "STRUCTURED").
-- `$dynamicStop`: enables spread-based R for buy IB entries.
-- `$dynamicStopMult`: multiplier for the spread-based R.
-- `$dynamicStopActive`: runtime flag set when a dynamic trade is active.
-- `$dynamicStopR`: stored dynamic R used for stops and TP during the trade.
-
-Structured stop settings (buy_ib only):
-- `$structuredMaxLookback`: max bars to scan for the impulse.
-- `$structuredMaxPullback`: max bars to evaluate the pullback.
-- `$structuredBuffer`: stop buffer below the rejection/pullback low.
-- `$structuredMaxStop`: max allowed stop distance (R).
-- `$structuredMinImpulse`: minimum impulse body size.
-- `$structuredMinClearance`: minimum clearance above stop.
-- `$structuredMicroTolPct`: micro pullback tolerance (fraction of impulse body).
-- `$structuredMicroTolMax`: cap for micro tolerance (absolute).
-- `$structuredMicroExt`: max extension above impulse high before abort.
-- `$structuredOk`: last structured validation result (1=pass, 0=fail).
-- `$structuredReason`: last structured failure code.
-- `$structuredReasonText`: last structured failure reason string.
-- `$structuredType`: `"MICROPB"` or `"STDPB"` on pass.
-- `$structuredStop`: last structured stop price.
-- `$structuredR`: last structured R distance.
-- `$structuredSymbol`: symbol used for the last structured check.
 
 Account tokens:
 - `$TRSIM`: SIM account identifier.
@@ -123,7 +98,7 @@ Order fill polling:
 
 Timer-based entry arming (runtime):
 - `$entryPending`, `$entryStage`, `$entryTicks`, `$entryMaxTicks`: timer state and timeout for arming stops/TP after fills. When the timeout is reached, the handler cancels the working buy order.
-- `$entrySymbol`, `$entryPosBefore`, `$entryAvgBefore`, `$entryScaleIn`, `$entryDynR`: captured entry context used by the timer handler.
+- `$entrySymbol`, `$entryPosBefore`, `$entryAvgBefore`, `$entryScaleIn`: captured entry context used by the timer handler.
 - `$entryRefPx`: entry reference price used as a fallback for stop placement when AvgCost lags.
 - `$entryWatch`, `$entryLastPos`: track position size changes so the handler can re-arm stops/TP when size increases.
 - `$lastStop`, `$lastStopSymbol`: last stop price/symbol set by auto-stop scripts (used by backstop triggers).
@@ -147,7 +122,6 @@ baseline values when you run "Set Global Variables."
 | Runtime | `$entryPosBefore` | `0` |
 | Runtime | `$entryAvgBefore` | `0` |
 | Runtime | `$entryScaleIn` | `0` |
-| Runtime | `$entryDynR` | `0` |
 | Runtime | `$entrySymbol` | `""` |
 | Runtime | `$tpSymbol` | `""` |
 | Runtime | `$entryRefPx` | `0` |
@@ -190,36 +164,15 @@ baseline values when you run "Set Global Variables."
 | Backstop | `$backstopBuffer` | `0.03` |
 | Backstop | `$backstopBidOffset` | `0.10` |
 | Backstop | `$backstopMaxRetries` | `3` |
-| Dynamic stop | `$dynamicStop` | `0` |
-| Dynamic stop | `$stopMode` | `"FIXED"` |
-| Dynamic stop | `$dynamicStopMult` | `2` |
-| Dynamic stop | `$dynamicStopActive` | `0` |
-| Dynamic stop | `$dynamicStopR` | `0` |
-| Structured stop | `$structuredMaxLookback` | `5` |
-| Structured stop | `$structuredMaxPullback` | `3` |
-| Structured stop | `$structuredBuffer` | `0.01` |
-| Structured stop | `$structuredMaxStop` | `0.40` |
-| Structured stop | `$structuredMinImpulse` | `0.15` |
-| Structured stop | `$structuredMinClearance` | `0.05` |
-| Structured stop | `$structuredMicroTolPct` | `0.25` |
-| Structured stop | `$structuredMicroTolMax` | `0.10` |
-| Structured stop | `$structuredMicroExt` | `0.10` |
-| Structured stop | `$structuredOk` | `0` |
-| Structured stop | `$structuredReason` | `0` |
-| Structured stop | `$structuredReasonText` | `""` |
-| Structured stop | `$structuredType` | `""` |
-| Structured stop | `$structuredStop` | `0` |
-| Structured stop | `$structuredR` | `0` |
-| Structured stop | `$structuredSymbol` | `""` |
 | Accounts | `$TRSIM` | `"%%SIMULATED%%"` |
 | Accounts | `$LIVEACT` | `"%%LIVE%%"` |
 | Sizing | `$qtyMult` | `1.0` |
-| Sizing | `$tier1ShareSize` | `50` |
-| Sizing | `$tier2ShareSize` | `100` |
-| Sizing | `$tier3ShareSize` | `200` |
-| Sizing | `$tier4ShareSize` | `300` |
-| Sizing | `$maxPositionSize` | `300` (`$tier4ShareSize * $qtyMult`) |
-| Limits | `$riskCapDollars` | `1000.00` |
+| Sizing | `$tier1ShareSize` | `100` |
+| Sizing | `$tier2ShareSize` | `200` |
+| Sizing | `$tier3ShareSize` | `300` |
+| Sizing | `$tier4ShareSize` | `500` |
+| Sizing | `$maxPositionSize` | `500` (`$tier4ShareSize * $qtyMult`) |
+| Limits | `$riskCapDollars` | `2000.00` |
 | Polling | `$pollMs` | `100` |
 | Polling | `$maxPolls` | `20` |
 
@@ -267,20 +220,20 @@ scripts rather than direct invocation.
 | Unbound | `hotkeys/cancel_all_no_stops.das` | Cancel orders and TP alerts without re-arming stops. |
 | `Alt+Ctrl+Shift+Win+0` | `hotkeys/buy_mib_bid_plus_sl.das` | Micro ice breaker buy at bid + offset with auto stop/TP. |
 | `Ctrl+Shift+1` | `hotkeys/buy_ib_bid_plus_sl.das` | Ice breaker buy at bid + offset with auto stop/TP. |
-| `Ctrl+Shift+2` | `hotkeys/buy_25_bid_plus_sl.das` | Tier 3 buy at bid + offset with auto stop/TP (200 base shares). |
-| `Ctrl+Shift+3` | `hotkeys/buy_50_bid_plus_sl.das` | Tier 4 buy at bid + offset with auto stop/TP (300 base shares). |
+| `Ctrl+Shift+2` | `hotkeys/buy_25_bid_plus_sl.das` | Tier 3 buy at bid + offset with auto stop/TP (300 base shares). |
+| `Ctrl+Shift+3` | `hotkeys/buy_50_bid_plus_sl.das` | Tier 4 buy at bid + offset with auto stop/TP (500 base shares). |
 | `Alt+Ctrl+0` | `hotkeys/buy_mib_bid_sl.das` | Micro ice breaker buy at bid with auto stop/TP. |
 | `Alt+Ctrl+1` | `hotkeys/buy_ib_bid_sl.das` | Ice breaker buy at bid with auto stop/TP. |
-| `Alt+Ctrl+2` | `hotkeys/buy_25_bid_sl.das` | Tier 3 buy at bid with auto stop/TP (200 base shares). |
-| `Alt+Ctrl+3` | `hotkeys/buy_50_bid_sl.das` | Tier 4 buy at bid with auto stop/TP (300 base shares). |
+| `Alt+Ctrl+2` | `hotkeys/buy_25_bid_sl.das` | Tier 3 buy at bid with auto stop/TP (300 base shares). |
+| `Alt+Ctrl+3` | `hotkeys/buy_50_bid_sl.das` | Tier 4 buy at bid with auto stop/TP (500 base shares). |
 | `Alt+Shift+0` | `hotkeys/buy_mib_ask_sl.das` | Micro ice breaker buy at ask with auto stop/TP. |
 | `Alt+Shift+1` | `hotkeys/buy_ib_ask_sl.das` | Ice breaker buy at ask with auto stop/TP. |
-| `Alt+Shift+2` | `hotkeys/buy_25_ask_sl.das` | Tier 3 buy at ask with auto stop/TP (200 base shares). |
-| `Alt+Shift+3` | `hotkeys/buy_50_ask_sl.das` | Tier 4 buy at ask with auto stop/TP (300 base shares). |
+| `Alt+Shift+2` | `hotkeys/buy_25_ask_sl.das` | Tier 3 buy at ask with auto stop/TP (300 base shares). |
+| `Alt+Shift+3` | `hotkeys/buy_50_ask_sl.das` | Tier 4 buy at ask with auto stop/TP (500 base shares). |
 | `Alt+Ctrl+Shift+0` | `hotkeys/buy_mib_ask_plus_sl.das` | Micro ice breaker buy at ask + offset with auto stop/TP. |
 | `Alt+Ctrl+Shift+1` | `hotkeys/buy_ib_ask_plus_sl.das` | Ice breaker buy at ask + offset with auto stop/TP. |
-| `Alt+Ctrl+Shift+2` | `hotkeys/buy_25_ask_plus_sl.das` | Tier 3 buy at ask + offset with auto stop/TP (200 base shares). |
-| `Alt+Ctrl+Shift+3` | `hotkeys/buy_50_ask_plus_sl.das` | Tier 4 buy at ask + offset with auto stop/TP (300 base shares). |
+| `Alt+Ctrl+Shift+2` | `hotkeys/buy_25_ask_plus_sl.das` | Tier 3 buy at ask + offset with auto stop/TP (300 base shares). |
+| `Alt+Ctrl+Shift+3` | `hotkeys/buy_50_ask_plus_sl.das` | Tier 4 buy at ask + offset with auto stop/TP (500 base shares). |
 | `Alt+Ctrl+Shift+S` | `hotkeys/short_tier1_ask.das` | Sell short Tier 1 at ask without automatic protection. |
 | `Alt+Ctrl+Shift+D` | `hotkeys/short_tier2_ask.das` | Sell short Tier 2 at ask without automatic protection. |
 | `Alt+Ctrl+Shift+F` | `hotkeys/short_tier3_ask.das` | Sell short Tier 3 at ask without automatic protection. |
@@ -301,7 +254,6 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Win+[` | `hotkeys/set_0_20_stop.das` | Set 1R stop-loss trigger to $0.20. |
 | `Alt+Ctrl+Win+=` | `hotkeys/set_0_30_stop.das` | Set 1R stop-loss trigger to $0.30. |
 | `Alt+Ctrl+Win+5` | `hotkeys/set_0_50_stop.das` | Set 1R stop-loss trigger to $0.50. |
-| Unbound | `hotkeys/structured_stop_validate.das` | Structured stop validation (internal). |
 | `Alt+Ctrl+B` | `hotkeys/set_auto_stop_be_1_2.das` | Breakeven stop/limit for half position. |
 | `Ctrl+Shift+T` | `hotkeys/set_take_profit.das` | Create R-based take-profit alert. |
 | Unbound | `hotkeys/take_profit_executor.das` | Execute TP partial when alert fires. |
@@ -310,9 +262,6 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Win+]` | `hotkeys/toggle_stp_feature.das` | Toggle auto stop-loss feature. |
 | `Alt+Ctrl+Win+/` | `hotkeys/toggle_tp_feature.das` | Toggle take-profit alerts. |
 | `Alt+Ctrl+Win+'` | `hotkeys/toggle_spread_check_feature.das` | Toggle spread safety guard. |
-| `Ctrl+Alt+Win+D` | `hotkeys/enable_dynamic_stop_mode.das` | Enable dynamic stop mode (Buy IB/MIB only). |
-| `Ctrl+Alt+Win+F` | `hotkeys/enable_standard_stop_mode.das` | Enable fixed stop mode. |
-| `Alt+Ctrl+Win+S` | `hotkeys/enable_structured_stop_mode.das` | Enable structured stop mode (IB/MIB only). |
 | `Alt+Ctrl+Win+G` | `hotkeys/toggle_apply_live_guards_to_sim.das` | Toggle live-only guards in SIM. |
 | `Alt+Ctrl+Win+2` | `hotkeys/set_order_route_arcal.das` | Set limit order route to ARCAL. |
 | `Alt+Ctrl+Win+3` | `hotkeys/set_order_route_freel.das` | Set limit order route to FREEL (free route for ST Global Market/Open Ocean). |
@@ -323,22 +272,36 @@ scripts rather than direct invocation.
 
 ## BUY ORDERS
 
-Sizing philosophy: start small to probe the trade, add only when it is working, and cap exposure with hard limits. The four entry tiers have configurable base sizes of 50 shares for MIB, 100 for IB, 200 for the legacy `buy_25_*` family, and 300 for the legacy `buy_50_*` family. Every entry uses `round(base tier size * $qtyMult)`, where `$qtyMult` defaults to `1.0`. `$maxPositionSize` uses the same calculation with `$tier4ShareSize`, so the position cap always equals one scaled Tier 4 order. In rehab mode (`$rehab = 1`), trading is restricted to MIB/IB entries and scale-ins are blocked in LIVE and SIM when `$applyLiveGuardsToSim = 1`.
+Sizing philosophy: start small to probe the trade, add only when it is working, and cap exposure with hard limits. The four entry tiers have configurable base sizes of 100 shares for MIB, 200 for IB, 300 for the legacy `buy_25_*` family, and 500 for the legacy `buy_50_*` family. Every entry uses `round(base tier size * $qtyMult)`, where `$qtyMult` defaults to `1.0`. `$maxPositionSize` uses the same calculation with `$tier4ShareSize`, so the position cap always equals one scaled Tier 4 order. In rehab mode (`$rehab = 1`), trading is restricted to MIB/IB entries and scale-ins are blocked in LIVE and SIM when `$applyLiveGuardsToSim = 1`.
 
 Rehab mode is a safety throttle for live trading. When enabled (`$rehab = 1`), the scripts block scale-ins and prevent larger tier entries in live accounts, forcing you to trade only MIB/IB size while you reset discipline or reduce risk after a drawdown. The same restrictions apply in SIM only when `$applyLiveGuardsToSim = 1`; that setting defaults to `0`. You can set the default by changing `$rehab` in `hotkeys/set_global_variables.das` and re-running "Set Global Variables" (or restarting DAS), or toggle it for the current session using the `Toggle Rehab Mode` hotkey. Disabling rehab requires typing `YES` to confirm.
 
 ### Configurable entry tiers
+
+The physical and Virtual Stream Deck DAS Trader profiles each have 20 buy,
+buy-offset, and short buttons displaying these share counts for each multiplier:
+
+| Multiplier | Tier 1 (MIB) | Tier 2 (IB) | Tier 3 | Tier 4 |
+| --- | ---: | ---: | ---: | ---: |
+| 0.5x | 50 | 100 | 150 | 250 |
+| 1x | 100 | 200 | 300 | 500 |
+| 1.5x | 150 | 300 | 450 | 750 |
+| 2x | 200 | 400 | 600 | 1,000 |
+| 3x | 300 | 600 | 900 | 1,500 |
+
+Button labels show the full share count on its own line when it exceeds three
+digits, for example `BUY`, `1500`, and `BID+` on three lines. This changes only
+the display; order quantities remain the same.
 
 - `$qtyMult` scales all four base sizes together. Results are rounded to the
   nearest whole share before position-size and risk-cap checks run. Each
   multiplier hotkey also recalculates `$maxPositionSize` from the scaled Tier 4
   size. Use the multiplier preset hotkeys to switch the current session between
   `0.5x`, `1.0x`, `1.5x`, `2.0x`, and `3.0x` without reloading all globals.
-- Buy MIB scripts use `$tier1ShareSize` (default 50 shares). MIB entries are
-  treated like IB for dynamic/structured gating.
-- Buy IB scripts use `$tier2ShareSize` (default 100 shares).
-- The `buy_25_*` scripts use `$tier3ShareSize` (default 200 shares), and the
-  `buy_50_*` scripts use `$tier4ShareSize` (default 300 shares). Their legacy
+- Buy MIB scripts use `$tier1ShareSize` (default 100 shares).
+- Buy IB scripts use `$tier2ShareSize` (default 200 shares).
+- The `buy_25_*` scripts use `$tier3ShareSize` (default 300 shares), and the
+  `buy_50_*` scripts use `$tier4ShareSize` (default 500 shares). Their legacy
   filenames and IDs are retained to avoid breaking existing integrations.
 - All buy scripts enforce `$maxPositionSize` and `$riskCapDollars` before
   sending an order.
@@ -359,8 +322,8 @@ Rehab mode is a safety throttle for live trading. When enabled (`$rehab = 1`), t
   ASK to **-1 cent**.
   Running `Set Global Variables` directly in DAS resets the variables but does
   not update the Stream Deck displays; use **LOAD CFG** to reset both together.
-- The first Bid+ button displays **BUY 25 BID+** at `0.5x`; it uses the MIB
-  script (50 base shares), not the legacy `buy_25_*` Tier 3 script. All five
+- The first Bid+ button displays **BUY 50 BID+** at `0.5x`; it uses the MIB
+  script (100 base shares), not the legacy `buy_25_*` Tier 3 script. All five
   size states of this button must send `Alt+Ctrl+Shift+Win+0`. The plain-Bid
   shortcut `Alt+Ctrl+0` skips the offset regardless of the button's title.
 
@@ -370,11 +333,7 @@ Scaling in means adding shares after an initial entry once the trade is working
 and risk is reduced. These scripts only allow scale-ins when the existing
 position has moved at least 1R in your favor.
 
-- The profit gate is measured as `BID - AvgCost >= R` for longs. R is
-  `$stopLossTrigger` for normal trades. Buy MIB/IB entries use dynamic R when
-  enabled; `buy_25_*`/`buy_50_*` entries use dynamic R only when
-  `dynamicStop = 1` and
-  `dynamicStopActive = 1`, otherwise `$stopLossTrigger`.
+- The profit gate is measured as `BID - AvgCost >= $stopLossTrigger` for longs.
 - When adding to a position, the scripts arm the scale-in BE stop
   (`Set Auto Stop BE Scale 1/1`) so the combined position is protected.
 - Rehab mode (`$rehab = 1`) blocks scale-ins entirely in LIVE and SIM when `$applyLiveGuardsToSim = 1`.
@@ -399,7 +358,7 @@ avoid unprotected fills.
 
 The initial short workflow is intentionally separate from the automated long
 workflow. It uses `$orderRoute` and `DAY+`, but it does not run the long entry
-guards or create stop-loss, take-profit, structured-stop, or timer-arming
+guards or create stop-loss, take-profit, or timer-arming
 state. Treat the position as manually managed and verify locate availability,
 route behavior, and applicable short-sale restrictions with the broker.
 
@@ -455,71 +414,24 @@ still work even when automatic stops are disabled.
 
 ## STOP LOSSES
 
+The scripts use fixed stop distances. The physical and Virtual Stream Deck
+profiles retain the fixed-stop amount buttons; the former stop-mode buttons
+on the two buy pages are now empty.
+
 ### Fixed stop losses
 
 `Set Auto Stop` places a stop-limit order at 1R below avg cost for long
-positions. R is `$stopLossTrigger` when dynamic stops are inactive. The script
+positions. R is `$stopLossTrigger` for all buy tiers. The script
 uses the montage average cost when available and falls back to the entry
 reference price (`$entryRefPx`) or last price if AvgCost is lagging. It cancels
 existing sell orders for the symbol before placing the new stop, except when
 invoked in timer mode (`$timerMode`) where cancels are skipped.
 
-When dynamic stops are inactive, the stop-limit offset uses `$exitOffset`. The
+The stop-limit offset uses `$exitOffset`. The
 order is snapped to valid tick sizes and sent as a STOP/SLP order.
 Use the fixed-stop preset hotkeys to set `$stopLossTrigger` to `$0.10`, `$0.20`,
 `$0.30`, or `$0.50`; each preset writes the selected value to the DAS message
 log.
-
-### Dynamic stop losses (experimental)
-
-Dynamic stops are only supported for Buy IB/MIB entries due to the
-added risk of spread-based sizing, and they only activate when
-`$dynamicStop == 1`. They are intended for parabolic movers where spreads and
-intraday swings expand sharply as price accelerates.
-
-The stop engine now uses `$stopMode` ("FIXED", "DYNAMIC", or "STRUCTURED") as
-the selector; `enable_dynamic_stop_mode.das` and
-`enable_standard_stop_mode.das` keep `$stopMode` in sync with `$dynamicStop`.
-`STRUCTURED` uses the structured stop price (`$structuredStop`) and distance
-(`$structuredR`) when present.
-
-- R is computed once at order send: `R = spread * $dynamicStopMult`.
-- R is fixed for the life of the trade and reused for scale-ins.
-- The stop trigger uses the dynamic R.
-- Adaptive stop-limit offsets are used only when a dynamic stop is active; the
-  offset is derived from the live spread at stop placement and capped by an
-  internal maximum.
-- When `$dynamicStop = 1`, initial entries must use Buy MIB/IB; `buy_25_*` and
-  `buy_50_*` only allow scale-ins.
-- Dynamic state is cleared when flat by the timer script.
-
-### Structured stop losses (experimental)
-
-Structured stops are enabled when `$stopMode = "STRUCTURED"`
-and require the `Primary_Chart` window running `other scripts/chart_1m.das` so live
-candle values are available. The structured validator computes a stop price
-from a 1-minute impulse/pullback pattern and stores it in `$structuredStop`.
-
-- Only Buy IB/MIB entries can open a new position in structured mode.
-- The 200/300-share tiers (`buy_25_*`/`buy_50_*`) are allowed only for scale-ins
-  (and require `$structuredR`).
-- If structured data is missing at entry time, the entry is aborted.
-- The stop engine uses `$structuredStop`, and TP distance uses `$structuredR`.
-Mechanics summary:
-- The validator first looks for a bullish impulse on the prior 1-minute bar
-  (bar -1), requiring a green candle with body >= `$structuredMinImpulse` and
-  dominance vs the previous bar (body > bar -2 body).
-- If a valid impulse is found, it attempts a MICROPB pullback using live
-  `$CURR_*` values: price must not dip below the impulse high by more than the
-  bounded tolerance (`$structuredMicroTolPct` capped by `$structuredMicroTolMax`)
-  and must not extend above the impulse high by more than `$structuredMicroExt`.
-  The stop is anchored to the live rejection low minus `$structuredBuffer`.
-- If the micro conditions fail, the validator falls back to a STDPB pullback:
-  it scans back up to `$structuredMaxLookback` bars for a bullish impulse that
-  dominates the next `$structuredMaxPullback` bars, then sets the stop below the
-  lowest pullback low (minus `$structuredBuffer`).
-- The candidate stop is rejected if price is already below it, clearance is
-  below `$structuredMinClearance`, or the stop distance exceeds `$structuredMaxStop`.
 
 ### Backstop trigger (manual, limit-only)
 
@@ -545,7 +457,7 @@ hotkey. It is not a resting broker-side order.
 
 `Set Take Profit` builds the alert using an R-based distance:
 - Distance is `R * $takeProfitFactor`.
-- R is `$stopLossTrigger` for normal trades or dynamic R when active.
+- R is `$stopLossTrigger`.
 - The alert watches last sale and fires above the target for longs.
 
 When the alert fires, `Take Profit Executor`:
@@ -619,22 +531,12 @@ Reset behavior:
 1) Enforces hijack protection when `$hijackProtection = 1` (LIVE, and SIM when `$applyLiveGuardsToSim = 1`).
 2) Runs `Timer Entry Handler` each tick to arm stops/TP after fills when
    `$useTimerArming = 1`.
-3) Clears take-profit alerts and dynamic/structured stop state when flat.
+3) Clears take-profit and backstop alerts and their tracking state when flat.
 
 Installation: add this script to DAS Trader's timer so it runs every second.
 It is not installed automatically by the hotkey build. Ensure
 `hotkeys/timer_entry_handler.das` is included in your keymap because the timer
 calls it via `ExecHotkey`.
-
-## CHART SCRIPT (1-MINUTE)
-
-`other scripts/chart_1m.das` captures the current 1-minute candle's live values
-and exposes them as globals for other scripts. It is not installed automatically
-by the hotkey build.
-
-Installation: add this script to DAS Trader's chart "Scripting" section and bind
-it to a 1-minute chart that follows your active symbol (only one chart should
-run it at a time).
 
 ## UTILITIES & TOGGLES
 
@@ -648,9 +550,6 @@ Safety toggles:
 - `toggle_stp_feature.das` and `toggle_tp_feature.das` enable/disable auto stops
   and take-profit alerts.
 - `toggle_spread_check_feature.das` enables/disables the spread safety guard.
-- `enable_dynamic_stop_mode.das` sets dynamic R for Buy IB/MIB entries (and disables fixed mode).
-- `enable_standard_stop_mode.das` sets fixed R stops and disables dynamic mode.
-- `enable_structured_stop_mode.das` sets structured stop mode (IB/MIB only).
 - `toggle_apply_live_guards_to_sim.das` toggles whether live-only guards also
   apply in SIM (`$applyLiveGuardsToSim`).
 - `set_order_route_arcal.das` sets `$orderRoute` to `ARCAL`.

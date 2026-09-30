@@ -81,25 +81,6 @@ if ($oneSecondScriptCnt >= 5) {
         $lastStop = 0;
         $lastStopSymbol = "";
 
-        // ---- Clear dynamic stop state when flat ----
-        if ($dynamicStopActive == 1) {
-            $dynamicStopActive = 0;
-            $dynamicStopR = 0;
-        }
-
-        // ---- Clear structured stop state when flat ----
-        // Avoid clearing during pending entry staging to prevent races with structured fills.
-        if ($entryPending != 1 && $entryStage == 0 && StrTrim("" + $entrySymbol) == "") {
-            if ($structuredStop != 0 || $structuredR != 0 || $structuredType != "" || $structuredSymbol != "") {
-                $structuredOk = 0;
-                $structuredReason = 0;
-                $structuredType = "";
-                $structuredStop = 0;
-                $structuredR = 0;
-                $structuredSymbol = "";
-            }
-        }
-
         // ---- Clear entry reference when flat ----
         $entryRefPx = 0;
     }

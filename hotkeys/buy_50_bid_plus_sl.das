@@ -40,30 +40,6 @@ if (IsObj($M)) {
     $avgBefore = AvgCost;
 }
 
-// ---- Resolve stop mode ----
-$mode = $stopMode;
-if ($mode == "") {
-    if ($dynamicStop == 1) { $mode = "DYNAMIC"; } else { $mode = "FIXED"; }
-}
-
-// ---- Stop mode entry guard ----
-if (($mode == "DYNAMIC" || $mode == "STRUCTURED") && $posBefore <= 0) {
-    MsgLog("Stop mode requires Buy IB for the initial position (" + $mode + ") on " + $entrySymbol + ".");
-    MsgBox("Stop mode requires Buy IB for the initial position.");
-    return;
-}
-if ($mode == "STRUCTURED" && $structuredR <= 0) {
-    MsgLog("Structured stop data missing. Use a structured IB entry first.");
-    MsgBox("Structured stop data missing. Use a structured IB entry first.");
-    return;
-}
-if ($mode == "STRUCTURED" && $structuredSymbol != "" && $structuredSymbol != $entrySymbol) {
-    MsgLog("Structured stop symbol mismatch for " + $entrySymbol + ".");
-    MsgBox("Structured stop symbol mismatch for " + $entrySymbol + ".");
-    return;
-}
-
-
 // ---- Entry sizing and pacing ----
 $rawShares = $tier4ShareSize * $qtyMult;
 $roundedShares = $rawShares + 0.5;
@@ -166,8 +142,6 @@ if ($usePerTradeRiskCap == 1) {
     }
 
     $effR = $stopLossTrigger;
-    if ($mode == "DYNAMIC" && $dynamicStopActive == 1 && $dynamicStopR > 0) { $effR = $dynamicStopR; }
-    if ($mode == "STRUCTURED") { $effR = $structuredR; }
 
     $projAvg = $pxEntry;
     $projStop = $projAvg - $effR;
@@ -202,8 +176,6 @@ $entryRefPx = $pxEntry;
 // ---- Scale-in gate: only allow profit-preserving adds ----
 if ($posBefore > 0) {
     $gateR = $stopLossTrigger;
-    if ($mode == "DYNAMIC" && $dynamicStopActive == 1 && $dynamicStopR > 0) { $gateR = $dynamicStopR; }
-    if ($mode == "STRUCTURED") { $gateR = $structuredR; }
     if ($avgBefore <= 0) {
         MsgBox("Scale-in aborted: AvgCost unavailable for " + Symbol + ".");    
         return;
@@ -220,7 +192,6 @@ if ($useTimerArming == 1) {
     $entryAvgBefore = $avgBefore;
     $entryScaleIn = 0;
     if ($posBefore > 0) { $entryScaleIn = 1; }
-    $entryDynR = 0;
 }
 
 // ---- Step 3: Cancel BUY working orders (keep protection until fill) ----     
