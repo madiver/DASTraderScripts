@@ -91,7 +91,7 @@ Wait($cancelWaitMs);
 
 // ---- Step 9: If not yet in profit, place BE limit sell ----
 if ($bid < $beStopTrigger) {
-    // Default ARCAL uses penny ticks
+    // Default ARCA1L uses penny ticks
     $incBE = 0.01;
 
     $px = Round($avgSnap, 102, $incBE);

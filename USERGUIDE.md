@@ -4,7 +4,7 @@
 
 These scripts are the hotkeys I use in DAS Trader for active, discretionary day trading. They focus on fast, repeatable order entry with guard rails and are designed around a single active symbol at a time. I treat the micro ice breaker and ice breaker (Buy MIB/IB) entries as the first tests of a trade thesis; while DAS allows multiple positions, these hotkeys assume one symbol and may behave unpredictably otherwise.
 
-The automated entry-protection workflow is designed for LONG positions only. Five isolated manual hotkeys support Tier 1–4 shorts at Ask and a 100% cover at Ask; they do not arm stop loss, take profit, or timer handling.
+The automated entry-protection workflow is designed for LONG positions only. Fourteen isolated manual hotkeys support Tier 1–4 shorts at Ask or Bid and full, half, or quarter covers at Bid or Ask plus the exit offset; they do not arm stop loss, take profit, or timer handling.
 
 Repository structure: the `hotkeys/` folder contains the `.das` hotkey scripts, `keymap.yaml` defines the key bindings and metadata, and `other scripts/` contains support scripts like the timer. A `.das` file is plain text you can paste into the DAS Trader Script Editor. The `keymap.yaml` can be compiled into a `Hotkey.htk` using the DAS Hotkey Tools VS Code extension, or you can skip the compiler and copy the scripts manually.
 
@@ -68,8 +68,8 @@ Feature toggles and entry guards:
 Risk and execution:
 - `$entryBidOffset` / `$entryAskOffset`: independent signed offsets for Bid+ / Ask+ buy scripts (defaults: BID `+0.01`, ASK `-0.01`). Negative values price below the corresponding reference quote.
 - `$exitOffset`: aggression offset for Bid- long exits and Ask+ short covers, and the limit offset for fixed stops.
-- `$orderRoute`: limit order route for entries/exits (buys/sells/TP/BE). Default is `ARCAL`. `FREEL` is the free route for ST Global Market/Open Ocean.
-- `$gtfoRoute`: emergency exit route for GTFO/backstop/hijack exits. Default is `FLASHL` (Open Ocean broadcast route).
+- `$orderRoute`: limit order route for entries/exits (buys/sells/TP/BE). Default is `ARCA1L`. `FREE1L` is the free route for ST Global Market/Open Ocean.
+- `$gtfoRoute`: emergency exit route for GTFO/backstop/hijack exits. Default is `FLSH1L` (Open Ocean broadcast route).
 - `$stopLossTrigger`: fixed 1R risk per share for all buy tiers.
 - `$backstopBuffer`: trigger buffer below the stop for the manual backstop alert.
 - `$backstopBidOffset`: limit offset from Bid for backstop exits.
@@ -155,8 +155,8 @@ baseline values when you run "Set Global Variables."
 | Risk | `$entryBidOffset` | `0.01` |
 | Risk | `$entryAskOffset` | `-0.01` |
 | Risk | `$exitOffset` | `0.10` |
-| Risk | `$orderRoute` | `"ARCAL"` |
-| Risk | `$gtfoRoute` | `"FLASHL"` |
+| Risk | `$orderRoute` | `"ARCA1L"` |
+| Risk | `$gtfoRoute` | `"FLSH1L"` |
 | Risk | `$stopLossTrigger` | `0.20` |
 | Risk | `$takeProfitFactor` | `1.0` |
 | Risk | `$takeProfitSize` | `0.50` |
@@ -238,7 +238,16 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Shift+D` | `hotkeys/short_tier2_ask.das` | Sell short Tier 2 at ask without automatic protection. |
 | `Alt+Ctrl+Shift+F` | `hotkeys/short_tier3_ask.das` | Sell short Tier 3 at ask without automatic protection. |
 | `Alt+Ctrl+Shift+G` | `hotkeys/short_tier4_ask.das` | Sell short Tier 4 at ask without automatic protection. |
+| `Alt+Ctrl+Shift+H` | `hotkeys/short_tier1_bid.das` | Sell short Tier 1 at bid with no offset or automatic protection. |
+| `Alt+Ctrl+Shift+J` | `hotkeys/short_tier2_bid.das` | Sell short Tier 2 at bid with no offset or automatic protection. |
+| `Alt+Ctrl+Shift+K` | `hotkeys/short_tier3_bid.das` | Sell short Tier 3 at bid with no offset or automatic protection. |
+| `Alt+Ctrl+Shift+L` | `hotkeys/short_tier4_bid.das` | Sell short Tier 4 at bid with no offset or automatic protection. |
 | `Alt+Ctrl+Shift+C` | `hotkeys/cover_1_1_ask.das` | Cover the full short position at ask plus `$exitOffset` using DAS Reverse. |
+| `Alt+Ctrl+Shift+X` | `hotkeys/cover_1_2_ask.das` | Cover half the current position at ask plus `$exitOffset` using DAS Reverse. |
+| `Alt+Ctrl+Shift+Z` | `hotkeys/cover_1_4_ask.das` | Cover a quarter of the current position at ask plus `$exitOffset` using DAS Reverse. |
+| `Alt+Ctrl+Shift+N` | `hotkeys/cover_1_1_bid.das` | Cover the full position at bid with no offset using DAS Reverse. |
+| `Alt+Ctrl+Shift+B` | `hotkeys/cover_1_2_bid.das` | Cover half the position at bid with no offset using DAS Reverse. |
+| `Alt+Ctrl+Shift+V` | `hotkeys/cover_1_4_bid.das` | Cover a quarter of the position at bid with no offset using DAS Reverse. |
 | `Ctrl+A` | `hotkeys/sell_1_1_ask.das` | Sell full position at ask. |
 | `Ctrl+S` | `hotkeys/sell_1_2_ask.das` | Sell half position at ask. |
 | `Ctrl+D` | `hotkeys/sell_1_4_ask.das` | Sell quarter position at ask. |
@@ -263,8 +272,8 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Win+/` | `hotkeys/toggle_tp_feature.das` | Toggle take-profit alerts. |
 | `Alt+Ctrl+Win+'` | `hotkeys/toggle_spread_check_feature.das` | Toggle spread safety guard. |
 | `Alt+Ctrl+Win+G` | `hotkeys/toggle_apply_live_guards_to_sim.das` | Toggle live-only guards in SIM. |
-| `Alt+Ctrl+Win+2` | `hotkeys/set_order_route_arcal.das` | Set limit order route to ARCAL. |
-| `Alt+Ctrl+Win+3` | `hotkeys/set_order_route_freel.das` | Set limit order route to FREEL (free route for ST Global Market/Open Ocean). |
+| `Alt+Ctrl+Win+2` | `hotkeys/set_order_route_arcal.das` | Set limit order route to ARCA1L. |
+| `Alt+Ctrl+Win+3` | `hotkeys/set_order_route_freel.das` | Set limit order route to FREE1L (free route for ST Global Market/Open Ocean). |
 | `Alt+Ctrl+Win+M` | `hotkeys/toggle_single_position_guard.das` | Toggle single-symbol entry guard. |
 | `Alt+Ctrl+Win+H` | `hotkeys/enable_rehab_mode.das` | Toggle rehab mode (YES to disable). |
 | Unbound | `hotkeys/hijack_exit.das` | Hijack guard exit/lock enforcement (timer-only). |
@@ -362,8 +371,8 @@ guards or create stop-loss, take-profit, or timer-arming
 state. Treat the position as manually managed and verify locate availability,
 route behavior, and applicable short-sale restrictions with the broker.
 
-- `Short T1/T2/T3/T4 Ask` cancels working orders for the montage symbol, then
-  sends an explicit sell-short limit order at Ask for
+- `Short T1/T2/T3/T4 Ask/Bid` cancels working orders for the montage symbol, then
+  sends an explicit sell-short limit order at the selected quote with no offset for
   `round($tierNShareSize * $qtyMult)` shares. Each hotkey can open a short while
   flat or add its tier to an existing short, but aborts if the current position
   is long or its direction cannot be resolved safely.
@@ -372,6 +381,23 @@ route behavior, and applicable short-sale restrictions with the broker.
   quantity and direction internally; for a short it sends a buy for the full
   short without adding past flat. If invoked while long, `SEND=Reverse` closes
   the long with a sell, so treat this as a full-position close hotkey.
+- `Cover 1/2 Ask+` and `Cover 1/4 Ask+` use the same native Reverse command
+  and Ask + `$exitOffset` pricing for half or a quarter of the current position.
+  Quantities are calculated after cancelling older orders, rounded down to
+  whole shares, and clamped to at least one share and at most the current position.
+  They do nothing while flat and abort if the montage account or symbol changes.
+  Like Cover 1/1, they reduce a long if invoked while long.
+  On page 3 of both Stream Deck profiles, the buttons are arranged
+  Cover 1/4, Cover 1/2, Cover 1/1 from left to right.
+- `Cover 1/1 Bid`, `Cover 1/2 Bid`, and `Cover 1/4 Bid` use plain Bid
+  with no offset. They use native Reverse and the same whole-share quantity
+  calculation as the partial Ask+ covers, including flat, quote, and montage checks.
+  They reduce a short with a buy, or a long with a sell if invoked while long.
+  Page 3 places Tier 1–4 Bid short buttons across the top right, and quarter,
+  half, and full Bid cover buttons across the left of the second row on both decks.
+  The Bid short buttons follow the same five quantity-multiplier states as Ask shorts.
+- Bid shorts and covers are limit orders. Bid covers may wait for a seller
+  and remain unfilled; monitor the working order and resulting position.
 - Ask orders are limit orders. A short entry can remain unfilled if Ask moves
   away, and an Ask+ cover can remain unfilled if Ask rises beyond its limit before execution. Monitor
   working orders and the resulting position directly in DAS.
@@ -447,7 +473,7 @@ and sends aggressive LIMIT exits for pre-market compatibility.
 
 The backstop uses `$lastStop` as its stop reference, so run `Set Auto Stop`
 before arming the backstop.
-`FLASHL` (the default `$gtfoRoute`) is the Open Ocean broadcast route; it costs
+`FLSH1L` (the default `$gtfoRoute`) is the Open Ocean broadcast route; it costs
 more but prioritizes exit speed.
 
 ## TAKE PROFIT
@@ -552,8 +578,8 @@ Safety toggles:
 - `toggle_spread_check_feature.das` enables/disables the spread safety guard.
 - `toggle_apply_live_guards_to_sim.das` toggles whether live-only guards also
   apply in SIM (`$applyLiveGuardsToSim`).
-- `set_order_route_arcal.das` sets `$orderRoute` to `ARCAL`.
-- `set_order_route_freel.das` sets `$orderRoute` to `FREEL` (free route for ST Global Market/Open Ocean).
+- `set_order_route_arcal.das` sets `$orderRoute` to `ARCA1L`.
+- `set_order_route_freel.das` sets `$orderRoute` to `FREE1L` (free route for ST Global Market/Open Ocean).
 - `toggle_single_position_guard.das` toggles the single-position guard
   (`$singlePositionGuard`).
 - `enable_rehab_mode.das` toggles rehab mode on/off; disabling requires typing `YES`.

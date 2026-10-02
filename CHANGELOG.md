@@ -5,6 +5,9 @@ All notable changes to this repository will be documented in this file.
 ## 0.3.3 - Unreleased
 
 ### Features
+- Add Tier 1–4 short-at-Bid hotkeys (`Alt+Ctrl+Shift+H/J/K/L`) and full/half/quarter cover-at-Bid hotkeys (`Alt+Ctrl+Shift+N/B/V`), all with no offset. Add matching buttons to page 3 of both Stream Deck profiles, including all five multiplier states for Bid shorts.
+- Add half and quarter Ask+ cover hotkeys (`Alt+Ctrl+Shift+X` / `Alt+Ctrl+Shift+Z`) with whole-share sizing, and place their buttons to the left of Cover 1/1 on page 3 of both physical and Virtual Stream Deck profiles.
+- Update route codes from `ARCAL` to `ARCA1L`, `FLASHL` to `FLSH1L`, and `FREEL` to `FREE1L`, including route preset hotkeys and physical/Virtual Stream Deck labels.
 - Display full entry-button quantities exceeding three digits on their own line on both physical and Virtual Stream Deck profiles.
 - Increase tier base sizes from 50/100/200/300 to 100/200/300/500 shares and update all five multiplier labels on the 20 entry buttons in each physical and Virtual Stream Deck profile.
 - Add `swap_internal.das` as **Momo Swap Internal**, bound to `Ctrl+Shift+F12` in the canonical keymap, for coordinated primary/secondary montage swaps.

@@ -72,10 +72,10 @@ $entryAskOffset = -0.01;
 // Example: 0.01 = exit 1 cent(s) below BID (or above ASK)
 $exitOffset = 0.10;
 
-// Limit order route for entries/exits (buys/sells/TP/BE). Default: ARCAL.
-$orderRoute = "ARCAL";
-// Emergency exit route (GTFO/backstop). Default: FLASHL.
-$gtfoRoute = "FLASHL";
+// Limit order route for entries/exits (buys/sells/TP/BE). Default: ARCA1L.
+$orderRoute = "ARCA1L";
+// Emergency exit route (GTFO/backstop). Default: FLSH1L.
+$gtfoRoute = "FLSH1L";
 
 // Stop distance from entry, per share, in dollars (your "1R")
 // Example: 0.10 = 10 cents risk per share
