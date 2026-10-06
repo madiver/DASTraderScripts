@@ -11,7 +11,7 @@
 //
 
 // ---- 0) Runtime Counters & Modes ----
-// Counter for the 1-second timer script (see other scripts/timer.das)
+// Legacy diagnostic counter; the timer now processes each trade every tick.
 $oneSecondScriptCnt = 0;
 
 // Rehab mode: limit entries to MIB/IB size
@@ -19,29 +19,21 @@ $rehab = 0;
 
 // Timer-based arming (entry hotkeys return early; timer places stop/TP)
 $useTimerArming = 1;
-$timerMode = 1;         // internal flag for timer-triggered hotkeys
-$entryPending = 0;
-$entryStage = 0;        // 0=wait fill, 1=cancel sells, 2=send stop, 3=set TP
-$entryTicks = 0;
-$entryMaxTicks = 10;    // timeout in timer ticks while waiting for fill
-$entryPosBefore = 0;
-$entryAvgBefore = 0;
-$entryScaleIn = 0;
-$entrySymbol = "";
-$tpSymbol = "";
-$entryRefPx = 0;
-$lastStop = 0;
-$lastStopSymbol = "";
+$tradeActionDepth = 0; // recover any interrupted action when configuration is loaded
+$tradeActionUntil = 0;
+$timerMode = 0;         // internal flag for timer-triggered hotkeys
+$entryMaxTicks = 10;    // timeout while waiting for a fill
 $HIJACKED_LOCKED = 0;
-$singlePositionSymbol = "";  // runtime symbol for single-position guard
-$trade_ok = 1;               // runtime flag set by Check Global Guards
-$testMode = 0;               // 1=skip market-dependent checks and order send
-$entryWatch = 0;
-$entryLastPos = 0;
-$backstopArmed = 0;
-$backstopRetries = 0;
-$backstopStop = 0;
-$backstopSymbol = "";
+$trade_ok = 1;
+$testMode = 0;
+// Keep open trades when LOAD CFG is pressed. New DAS sessions start empty.
+if (!IsObj(GetVar("tradeStates"))) {
+    $tradeStates = NewUserObj();
+    $tradeSlots = NewUserObj();
+    $tradeSlotCount = 0;
+}
+SetVar("TRADE_CONTEXT_ACCOUNT", "");
+SetVar("TRADE_CONTEXT_SYMBOL", "");
 
 // ---- 1) Feature Toggles ----
 $useSlippageMargin        = 1;     // 1=guard stop vs bid with margin
@@ -55,7 +47,7 @@ $useSpreadCheck           = 1;     // 1=check spreads before allowing buy order
 $pegToBid                 = 0;     // 1=use bid for BE limit sells when applicable
 $hijackProtection         = 0;     // 0=disabled by default; 1=enable position-size hijack protection
 $applyLiveGuardsToSim     = 0;     // 1=apply live-only guards (hijack, rehab) in SIM
-$singlePositionGuard      = 1;     // 1=block new entries on a different symbol (script-tracked)
+$singlePositionGuard      = 1;     // 1=one automated long per account; manual shorts are independent
 
 $useAutoStop = "Yes";
 $useTakeProfit = "Yes";

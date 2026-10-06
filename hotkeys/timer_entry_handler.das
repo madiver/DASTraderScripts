@@ -1,237 +1,87 @@
-// =====================
-// TIMER ENTRY HANDLER
 // Group: Utilities & toggles
-// =====================
-// Timer-safe stop/TP staging for entry hotkeys (no waits).
-
-if ($useTimerArming != 1) {
+// Process one explicitly bound trade. The outer timer visits every active context.
+ExecHotkey("Load Trade Context");
+if ($tradeContextValid != 1 || $tradePositionValid != 1) { return; }
+if ($posNow < 0) {
+    // A former long was reversed manually: never arm a SELL against the short.
+    if ($trade.entryPending == 1) { $tradeAccountObj.CancelOrder("BUY", $mySym, 0); }
+    ExecHotkey("Clear Trade State");
     return;
 }
-
-// Skip timer handling while the pending-entry test is active in test mode.
-if ($testMode == 1 && GetVar("TEST_PENDING_ENTRY_ACTIVE") * 1 == 1) {
-    return;
+if ($trade.entryPending != 1) {
+    if ($posNow == 0) { ExecHotkey("Clear Trade State"); return; }
+    if ($trade.entryWatch != 1) { return; }
+    if ($posNow > $trade.entryLastPos) {
+        $trade.entryStage = 1;
+        $trade.entryPending = 1;
+        $trade.entryTicks = 0;
+    } else { return; }
 }
-
-// Make sure we can access Primary_OE
-$M = GetWindowObj("Primary_OE");
-if (!IsObj($M)) {
-    return;
-}
-
-// Snapshot symbol and position
-$mySym  = StrTrim("" + $M.Symb);
-$posNow = $M.Pos;
-
-// If no pending entry, optionally re-arm when size increases
-if ($entryPending != 1) {
-    if ($entryWatch == 1) {
-        $entrySym = StrTrim("" + $entrySymbol);
-        if ($entrySym != "" && $mySym != $entrySym) {
-            $entryWatch = 0;
-            $entryLastPos = 0;
-            $entryScaleIn = 0;
-            $entrySymbol = "";
-            return;
-        }
-        if ($posNow <= 0) {
-            $entryWatch = 0;
-            $entryLastPos = 0;
-            $entryScaleIn = 0;
-            $entrySymbol = "";
-            return;
-        }
-
-        if ($entryLastPos <= 0) {
-            $entryLastPos = $posNow;
-            return;
-        }
-
-        if ($posNow > $entryLastPos) {
-            if ($useAutoStop == "Yes") {
-                $accObj = GetAccountObj($M.Account);
-                $accObj.CancelOrder("SELL", $mySym, 0);
-                $timerMode = 1;
-                if ($entryScaleIn == 1) {
-                    ExecHotkey("Set Auto Stop BE Scale 1/1");
-                } else {
-                    ExecHotkey("Set Auto Stop");
-                }
-                if ($timerMode == 1) {
-                    $timerMode = 0;
-                }
-            }
-
-            if ($useTakeProfit == "Yes") {
-                $doTp = 0;
-                if ($entryPosBefore <= 0) {
-                    $doTp = 1;
-                } else {
-                    $bidNow = $M.Bid;
-                    if ($entryAvgBefore <= 0) {
-                        $doTp = 1;
-                    } else {
-                        if ($bidNow <= $entryAvgBefore) {
-                            $doTp = 1;
-                        }
-                    }
-                }
-
-                if ($doTp == 1) {
-                    $timerMode = 1;
-                    ExecHotkey("Set Take Profit");
-                    if ($timerMode == 1) {
-                        $timerMode = 0;
-                    }
-                }
-            }
-        }
-
-        $entryLastPos = $posNow;
-    }
-    return;
-}
-
-// Reset watch when handling a new pending entry
-if ($entryWatch == 1) {
-    $entryWatch = 0;
-    $entryLastPos = 0;
-}
-
-// Safety: bail if montage symbol doesn't match the entry
-$entrySym = StrTrim("" + $entrySymbol);
-if ($entrySym != "" && $mySym != $entrySym) {
-    $accObj = GetAccountObj($M.Account);
-    $accObj.CancelOrder("BUY", $entrySymbol, 0);
-    $entryPending = 0;
-    $entryStage = 0;
-    $entryTicks = 0;
-    $entryScaleIn = 0;
-    $entryWatch = 0;
-    $entryLastPos = 0;
-    $entryRefPx = 0;
-    return;
-}
-
-// If we advanced stages but the position is gone, clear and exit
-if ($entryScaleIn == 1) {
-    if ($posNow <= $entryPosBefore && $entryStage > 0) {
-        $entryPending = 0;
-        $entryStage = 0;
-        $entryTicks = 0;
-        $entryScaleIn = 0;
-        $entryWatch = 0;
-        $entryLastPos = 0;
-        return;
-    }
-} else {
-    if ($posNow <= 0 && $entryStage > 0) {
-        $entryPending = 0;
-        $entryStage = 0;
-        $entryTicks = 0;
-        $entryScaleIn = 0;
-        $entryWatch = 0;
-        $entryLastPos = 0;
-        return;
-    }
-}
-
-// Stage 0: wait for fill
-if ($entryStage == 0) {
-    $entryTicks = $entryTicks + 1;
-
-    if ($entryScaleIn == 1) {
-        if ($posNow > $entryPosBefore) {
-            if (StrTrim("" + $singlePositionSymbol) == "") { $singlePositionSymbol = $mySym; }
-            $entryStage = 1; // cancel stage
-            $entryTicks = 0;
-        } else {
-            if ($entryMaxTicks > 0 && $entryTicks >= $entryMaxTicks) {
-                $accObj = GetAccountObj($M.Account);
-                $accObj.CancelOrder("BUY", $mySym, 0);
-                $entryPending = 0;
-                $entryStage = 0;
-                $entryTicks = 0;
-                $entryScaleIn = 0;
-            }
-        }
-        return;
-    }
-
-    if ($posNow > 0) {
-        if (StrTrim("" + $singlePositionSymbol) == "") { $singlePositionSymbol = $mySym; }
-        $entryStage = 2; // stop stage
-        $entryTicks = 0;
+if ($trade.entryStage == 0) {
+    $trade.entryTicks = $trade.entryTicks + 1;
+    if ($posNow > $trade.entryPosBefore) {
+        $trade.entryStage = 1;
+        $trade.entryTicks = 0;
     } else {
-        if ($entryMaxTicks > 0 && $entryTicks >= $entryMaxTicks) {
-            $accObj = GetAccountObj($M.Account);
-            $accObj.CancelOrder("BUY", $mySym, 0);
-            $entryPending = 0;
-            $entryStage = 0;
-            $entryTicks = 0;
-            $entryScaleIn = 0;
+        if ($entryMaxTicks > 0 && $trade.entryTicks >= $entryMaxTicks) {
+            $tradeAccountObj.CancelOrder("BUY", $mySym, 0);
+            $trade.entryPending = 0;
+            $trade.entryStage = 0;
+            // Watch any existing long for a late fill after cancellation.
+            $trade.entryWatch = 1;
+            $trade.entryLastPos = $posNow;
+            if ($posNow == 0) { ExecHotkey("Clear Trade State"); }
         }
+        return;
     }
+}
+if ($posNow <= 0) {
+    $trade.entryPending = 0;
+    ExecHotkey("Clear Trade State");
     return;
 }
-
-// Stage 1: cancel existing SELL orders for scale-ins
-if ($entryStage == 1) {
-    $accObj = GetAccountObj($M.Account);
-    $accObj.CancelOrder("SELL", $mySym, 0);
-    $entryStage = 2;
-    $entryTicks = 0;
+if ($trade.entryStage == 1) {
+    if ($useAutoStop == "Yes") {
+        $trade.stopArmed = 0;
+        $tradeAccountObj.CancelOrder("SELL", $mySym, 0);
+    }
+    $trade.entryStage = 2;
     return;
 }
-
-// Stage 2: send stop
-if ($entryStage == 2) {
+if ($trade.entryStage == 2) {
     if ($useAutoStop == "Yes") {
         $timerMode = 1;
-        if ($entryScaleIn == 1) {
+        if ($trade.entryScaleIn == 1) {
+            SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
+            SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
             ExecHotkey("Set Auto Stop BE Scale 1/1");
         } else {
+            SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
+            SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
             ExecHotkey("Set Auto Stop");
         }
-        if ($timerMode == 1) {
-            $timerMode = 0;
-        }
+        // Retry when position/average data is unavailable. Do not silently
+        // mark an unprotected trade as armed.
+        if ($stopSubmitted != 1) { return; }
     }
-    $entryStage = 3;
-    $entryTicks = 0;
+    $trade.entryStage = 3;
     return;
 }
-
-// Stage 3: set TP alert if needed
-if ($entryStage == 3) {
+if ($trade.entryStage == 3) {
     if ($useTakeProfit == "Yes") {
         $doTp = 0;
-        if ($entryPosBefore <= 0) {
-            $doTp = 1;
-        } else {
-            $bidNow = $M.Bid;
-            if ($entryAvgBefore <= 0) {
-                $doTp = 1;
-            } else {
-                if ($bidNow <= $entryAvgBefore) {
-                    $doTp = 1;
-                }
-            }
-        }
-
+        if ($trade.entryPosBefore <= 0 || $trade.entryAvgBefore <= 0 || $tradeBid <= $trade.entryAvgBefore) { $doTp = 1; }
         if ($doTp == 1) {
             $timerMode = 1;
+            SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
+            SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
             ExecHotkey("Set Take Profit");
-            if ($timerMode == 1) {
-                $timerMode = 0;
-            }
+            if ($tpCreated != 1) { return; }
         }
     }
-
-    $entryPending = 0;
-    $entryStage = 0;
-    $entryTicks = 0;
-    $entryWatch = 1;
-    $entryLastPos = $posNow;
-    return;
+    $trade.entryPending = 0;
+    $trade.entryStage = 0;
+    $trade.entryTicks = 0;
+    $trade.entryWatch = 1;
+    $trade.entryLastPos = $posNow;
 }

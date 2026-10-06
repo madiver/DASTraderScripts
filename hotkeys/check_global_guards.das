@@ -1,49 +1,46 @@
-// =====================
-// CHECK GLOBAL GUARDS
 // Group: Global controls & config
-// =====================
-// Sets $trade_ok based on global guard rails.
-
-$trade_ok = 1;
-
-// ---- Montage context for remaining guards ----
-$acct = "";
-$M = GetWindowObj("Primary_OE");
-if (IsObj($M)) {
-    $acct = StrTrim("" + $M.Account);
+// Long-entry guards are account scoped. Manual shorts do not occupy the long guard.
+$trade_ok = 0;
+ExecHotkey("Load Trade Context");
+if ($tradeContextValid != 1 || $tradePositionValid != 1) { return; }
+if ($posNow < 0) {
+    MsgBox("Long entry blocked: " + $myAcc + " " + $mySym + " is short. Use Cover instead.");
+    return;
 }
-
-// ---- Hijack protection guard ----
+$acct = $myAcc;
 $isLive = 0;
 if (StrLen($acct) > 0 && StrFind($acct, "TR") != 0) { $isLive = 1; }
 if ($HIJACKED_LOCKED == 1 && ($isLive == 1 || $applyLiveGuardsToSim == 1)) {
     MsgBox("Trading locked for " + $acct + " (hijack protection triggered).");
-    $trade_ok = 0;
     return;
 }
-
-// ---- Single-position guard (script-tracked) ----
-if (IsObj($M)) {
-    $curSym = StrTrim("" + $M.Symb);
-    $curPos = $M.Pos;
-
-    $trackedSym = StrTrim("" + $singlePositionSymbol);
-    if ($trackedSym != "" && $curSym == $trackedSym && $curPos <= 0) {
-        $singlePositionSymbol = "";
-    }
-
-    // Always block cross-symbol entries while a buy is pending.
-    $pendingSym = StrTrim("" + $entrySymbol);
-    if ($entryPending == 1 && $pendingSym != "" && $curSym != $pendingSym) {
-        MsgBox("Single-position mode: pending entry in " + $entrySymbol + ". New entries blocked.");
-        $trade_ok = 0;
-        return;
-    }
-
-    // Optional: block new entries on a different symbol while a position is tracked.
-    if ($singlePositionGuard == 1 && $trackedSym != "" && $curSym != $trackedSym) {
-        MsgBox("Single-position mode: active symbol " + $singlePositionSymbol + ". New entries blocked.");
-        $trade_ok = 0;
-        return;
-    }
+if ($trade.entryPending == 1) {
+    MsgBox("Entry already pending for " + $myAcc + " " + $mySym + ".");
+    return;
 }
+$guardIndex = 0;
+while ($guardIndex < $tradeSlotCount) {
+    $guardOther = $tradeSlots.Get($guardIndex);
+    if (IsObj($guardOther)) {
+        if ($guardOther.account == $myAcc && $guardOther.symbol != $mySym) {
+            if ($guardOther.entryPending == 1) {
+                MsgBox("Pending long entry in " + $guardOther.symbol + ". New entries blocked for " + $myAcc + ".");
+                return;
+            }
+            if ($singlePositionGuard == 1 && $guardOther.active == 1) {
+                $guardPos = GetAccountObj($myAcc).GetPosition($guardOther.symbol);
+                // Unknown position data cannot safely release the guard.
+                $guardBlock = 1;
+                if (IsObj($guardPos)) {
+                    if ($guardPos.Share <= 0) { $guardBlock = 0; }
+                }
+                if ($guardBlock == 1) {
+                    MsgBox("Single-long mode: active symbol " + $guardOther.symbol + " in " + $myAcc + ".");
+                    return;
+                }
+            }
+        }
+    }
+    $guardIndex = $guardIndex + 1;
+}
+$trade_ok = 1;

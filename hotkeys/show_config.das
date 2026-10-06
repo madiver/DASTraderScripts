@@ -1,3 +1,10 @@
+// Serialize manual actions; nested protection calls explicitly bind context.
+if (GetVar("tradeActionDepth") * 1 > 0 && GetVar("TRADE_CONTEXT_ACCOUNT") == "") {
+    MsgLog("Trade action already running; retry after it completes.");
+    return;
+}
+$tradeActionDepth = GetVar("tradeActionDepth") * 1 + 1;
+if ($tradeActionDepth == 1) { $tradeActionUntil = GetSecond() + 30; }
 // =====================
 // DISPLAY CONFIGURATION
 // Group: Global controls & config
@@ -25,6 +32,14 @@ if (IsObj($M)) {
     MsgLog("Position Diagnostics: account=" + $acct + " sym=" + $diagSym + " montagePos=" + $diagMontagePos + " builtInPos=" + $diagBuiltInPos + " currPos=" + $diagCurrPos + ".");
 }
 
+ExecHotkey("Load Trade Context");
+if ($tradeContextValid != 1) {
+    ExecHotkey("End Trade Action");
+    return;
+}
+$diagAccountPos = "UNAVAILABLE";
+if ($tradePositionValid == 1) { $diagAccountPos = $posNow; }
+
 // ---- Test guard status ----
 $testHijackActive = GetVar("TEST_HIJACK_ACTIVE") * 1;
 $testSingleActive = GetVar("TEST_SINGLE_POSITION_ACTIVE") * 1;
@@ -33,27 +48,24 @@ $testMaxPosActive = GetVar("TEST_MAX_POSITION_ACTIVE") * 1;
 
 // ---- Config Output ----
 $msg =
-"RUNTIME\n" +
+"RUNTIME (selected account/symbol)\n" +
 "-----------------\n" +
 "rehab: " + $rehab + "\n" +
 "HIJACKED_LOCKED: " + $HIJACKED_LOCKED + "\n" +
-"singlePositionSymbol: " + $singlePositionSymbol + "\n" +
 "trade_ok: " + $trade_ok + "\n" +
 "testMode: " + $testMode + "\n" +
 "oneSecondScriptCnt: " + $oneSecondScriptCnt + "\n" +
 "timerMode: " + $timerMode + "\n" +
 "useTimerArming: " + $useTimerArming + "\n" +
-"entryPending: " + $entryPending + "\n" +
-"entryStage: " + $entryStage + "\n" +
-"entryTicks: " + $entryTicks + "\n" +
+"entryPending: " + $trade.entryPending + "\n" +
+"entryStage: " + $trade.entryStage + "\n" +
+"entryTicks: " + $trade.entryTicks + "\n" +
 "entryMaxTicks: " + $entryMaxTicks + "\n" +
-"entryPosBefore: " + $entryPosBefore + "\n" +
-"entryAvgBefore: " + $entryAvgBefore + "\n" +
-"entryScaleIn: " + $entryScaleIn + "\n" +
-"entrySymbol: " + $entrySymbol + "\n" +
-"tpSymbol: " + $tpSymbol + "\n" +
-"entryWatch: " + $entryWatch + "\n" +
-"entryLastPos: " + $entryLastPos + "\n\n" +
+"entryPosBefore: " + $trade.entryPosBefore + "\n" +
+"entryAvgBefore: " + $trade.entryAvgBefore + "\n" +
+"entryScaleIn: " + $trade.entryScaleIn + "\n" +
+"entryWatch: " + $trade.entryWatch + "\n" +
+"entryLastPos: " + $trade.entryLastPos + "\n\n" +
 
 "TOGGLES\n" +
 "-----------------\n" +
@@ -89,19 +101,18 @@ $msg =
 "backstopBuffer: $" + $backstopBuffer + "\n" +
 "backstopBidOffset: $" + $backstopBidOffset + "\n" +
 "backstopMaxRetries: " + $backstopMaxRetries + "\n" +
-"backstopArmed: " + $backstopArmed + "\n" +
-"backstopRetries: " + $backstopRetries + "\n" +
-"backstopStop: $" + $backstopStop + "\n" +
-"backstopSymbol: " + $backstopSymbol + "\n" +
-"lastStop: $" + $lastStop + "\n" +
-"lastStopSymbol: " + $lastStopSymbol + "\n\n" +
+"backstopArmed: " + $trade.backstopArmed + "\n" +
+"backstopRetries: " + $trade.backstopRetries + "\n" +
+"backstopStop: $" + $trade.backstopStop + "\n" +
+"lastStop: $" + $trade.lastStop + "\n" +
 
 "POSITION DIAGNOSTICS\n" +
 "-----------------\n" +
 "Symbol: " + $diagSym + "\n" +
 "Montage .Pos: " + $diagMontagePos + "\n" +
 "Built-in Pos: " + $diagBuiltInPos + "\n" +
-"Montage GetCurrPos(): " + $diagCurrPos + "\n\n" +
+"Montage GetCurrPos(): " + $diagCurrPos + "\n" +
+"Account signed shares: " + $diagAccountPos + "\n\n" +
 
 "ACCOUNTS\n" +
 "-----------------\n" +
@@ -136,3 +147,5 @@ $msg =
 "TEST_MAX_POSITION_OVERRIDE: " + $testMaxPosActive + "\n";
 
 MsgBox($msg);
+
+ExecHotkey("End Trade Action");

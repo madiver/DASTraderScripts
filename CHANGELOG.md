@@ -5,6 +5,8 @@ All notable changes to this repository will be documented in this file.
 ## 0.3.3 - Unreleased
 
 ### Features
+- Add a FLASH1L limit order route preset, bound to `Alt+Ctrl+Win+F4`, and a fourth option with orange text on the existing route button in both Stream Deck profiles.
+- Add a BESTL limit order route preset, bound to `Alt+Ctrl+Win+4`, alongside ARCA1L and FREE1L. Update the existing route button on both physical and Virtual Stream Deck profiles to cycle through all three routes.
 - Add Tier 1–4 short-at-Bid hotkeys (`Alt+Ctrl+Shift+H/J/K/L`) and full/half/quarter cover-at-Bid hotkeys (`Alt+Ctrl+Shift+N/B/V`), all with no offset. Add matching buttons to page 3 of both Stream Deck profiles, including all five multiplier states for Bid shorts.
 - Add half and quarter Ask+ cover hotkeys (`Alt+Ctrl+Shift+X` / `Alt+Ctrl+Shift+Z`) with whole-share sizing, and place their buttons to the left of Cover 1/1 on page 3 of both physical and Virtual Stream Deck profiles.
 - Update route codes from `ARCAL` to `ARCA1L`, `FLASHL` to `FLSH1L`, and `FREEL` to `FREE1L`, including route preset hotkeys and physical/Virtual Stream Deck labels.
@@ -26,6 +28,8 @@ All notable changes to this repository will be documented in this file.
 - Increase the default per-trade risk cap from `$100` to `$2,000`.
 
 ### Bug Fixes
+- Isolate automated long entry, stop, TP, backstop, and timer state by account and symbol. Reject shorts in long-only workflows, keep protection tied to its original trade across montage/account swaps, and give alerts account identity plus a trade generation. Scope all order cancellations to the selected account/symbol, defer alerts during active cancel/fill actions, preserve a queued GTFO request for its original account/symbol, and preserve trade state when configuration is reloaded.
+- Interpret the single-position guard as one tracked automated long per account; manual shorts do not occupy it. Validate fills and exit quantities from signed position data and recheck after cancellation waits.
 - Correct the physical and Virtual Stream Deck plain-ASK buttons to use the matching Tier 1–4 Ask hotkeys in every multiplier state.
 - Correct all five size states of the local Stream Deck MIB Bid+ button (including **BUY 25 BID+** at `0.5x`) to send `Alt+Ctrl+Shift+Win+0`; the previous plain-Bid shortcut skipped the configured offset.
 - Bind all `GetCurrPos()` reads to the `Primary_OE` montage object so timer-triggered Hijack Exit and other hotkeys do not rely on the caller's window context.

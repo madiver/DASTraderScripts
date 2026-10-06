@@ -1,87 +1,38 @@
-// =====================
-// TIMER: HIJACK + ENTRY + TP CLEANUP
 // Ignore: True
-// =====================
-// Timer handler: runs hijack backstop, entry staging, and TP cleanup.
-
-// ---- Step 0: Hijack protection (position-size backstop) ----
-// Keep the timer script small; run hijack logic in a hotkey.
-ExecHotkey("Hijack Exit");
-
-// ---- Step 1: Single-position guard tracking (script-tracked) ----
-$M = GetWindowObj("Primary_OE");
-if (IsObj($M)) {
-    $symNow = StrTrim("" + $M.Symb);
-    $posNow = $M.Pos;
-    $trackedSym = StrTrim("" + $singlePositionSymbol);
-    if ($trackedSym == "" && $posNow > 0) {
-        $singlePositionSymbol = $symNow;
-    } else {
-        if ($trackedSym != "" && $symNow == $trackedSym && $posNow <= 0) {
-            $singlePositionSymbol = "";
-        }
-    }
+// Account/symbol-scoped entry protection and alert cleanup.
+// Wait-bearing scripts hold a short lease on shared DAS scratch variables.
+if (GetVar("tradeActionDepth") * 1 > 0) {
+    $timerNow = GetSecond();
+    if ($timerNow < $tradeActionUntil && $timerNow >= $tradeActionUntil - 30) { return; }
+    // Recover a script interrupted by a DAS error, including midnight rollover.
+    $tradeActionDepth = 0;
+    ExecHotkey("End Trade Action");
 }
-
-// ---- Step 2: Timer-based stop/TP arming ----
-ExecHotkey("Timer Entry Handler");
-
-// ---- Step 3: Clear TP alerts when flat ----
-
-$oneSecondScriptCnt = $oneSecondScriptCnt + 1;
-if ($oneSecondScriptCnt >= 5) {
-
-    $oneSecondScriptCnt= 0;
-
-    // Make sure we can access Primary_OE
-    $M = GetWindowObj("Primary_OE");
-    if (!IsObj($M)) {
-        return;
-    }
-
-    // Snapshot symbol and position
-    $mySym  = $M.Symb;
-    $posNow = $M.Pos;
-
-    // Only act if FLAT
-    if ($posNow == 0) {
-
-        // ---- TP alert cleanup loop ----
-        if ($mySym != "") {
-            $i = 1;
-            // i=1..20  -> factors: 0.5, 1.0, 1.5, ..., 10.0
-            while ($i <= 20) {
-                $f = ($i * 0.5);   // 0.5, 1, 1.5, 2, ...
-
-                $name = "TP " + $f + "R Partial " + $mySym;
-
-                $al = GetAlertObj($name);
-                if (IsObj($al)) {
-                    $al.Delete();
-                }
-
-                $i = $i + 1;
+ExecHotkey("Hijack Exit");
+if (!IsObj(GetVar("tradeSlots"))) { return; }
+$timerTradeIndex = 0;
+while ($timerTradeIndex < $tradeSlotCount) {
+    $timerTrade = $tradeSlots.Get($timerTradeIndex);
+    if (IsObj($timerTrade)) {
+        if ($timerTrade.active == 1 || $timerTrade.entryPending == 1) {
+            SetVar("TRADE_CONTEXT_ACCOUNT", $timerTrade.account);
+            SetVar("TRADE_CONTEXT_SYMBOL", $timerTrade.symbol);
+            ExecHotkey("Timer Entry Handler");
+            if ($timerTrade.deferredTp == 1) {
+                $timerTrade.deferredTp = 0;
+                SetVar("TP_ACCOUNT", $timerTrade.account);
+                SetVar("TP_SYMBOL", $timerTrade.symbol);
+                SetVar("TP_GENERATION", $timerTrade.generation);
+                ExecHotkey("Take Profit Executor");
+            }
+            if ($timerTrade.deferredBackstop == 1) {
+                $timerTrade.deferredBackstop = 0;
+                SetVar("BACKSTOP_ACCOUNT", $timerTrade.account);
+                SetVar("BACKSTOP_SYMBOL", $timerTrade.symbol);
+                SetVar("BACKSTOP_GENERATION", $timerTrade.generation);
+                ExecHotkey("Backstop Exit Executor");
             }
         }
-
-        // ---- Backstop alert cleanup ----
-        $bsSym = StrTrim("" + $backstopSymbol);
-        if ($bsSym == "") { $bsSym = $mySym; }
-        if ($bsSym != "") {
-            $bsName = "Backstop " + $bsSym;
-            $bsAlert = GetAlertObj($bsName);
-            if (IsObj($bsAlert)) {
-                $bsAlert.Delete();
-            }
-        }
-        $backstopArmed = 0;
-        $backstopRetries = 0;
-        $backstopStop = 0;
-        $backstopSymbol = "";
-        $lastStop = 0;
-        $lastStopSymbol = "";
-
-        // ---- Clear entry reference when flat ----
-        $entryRefPx = 0;
     }
+    $timerTradeIndex = $timerTradeIndex + 1;
 }

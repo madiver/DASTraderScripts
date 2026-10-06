@@ -2,12 +2,12 @@
 // TOGGLE SINGLE-POSITION GUARD
 // Group: Utilities & toggles
 // =====================
-// Toggles $singlePositionGuard (block multi-symbol entries).
+// Toggles $singlePositionGuard (one automated long per account).
 
 if ($singlePositionGuard == 1) {
    $singlePositionGuard = 0;
-   MsgLog("WARNING: single-position guard disabled.\nMulti-symbol trading will likely break stop/TP handling.");
+   MsgLog("Single-long guard disabled. Trade state remains isolated by account/symbol.");
 } else {
    $singlePositionGuard = 1;
-   MsgLog("Single-position guard enabled.");
+   MsgLog("Single-long guard enabled per account. Manual shorts are independent.");
 }

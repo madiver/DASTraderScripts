@@ -1,44 +1,30 @@
-// ======================
-// CANCEL ALL ORDERS + DELETE TP ALERTS (NO STOP RE-ARM)
-// Group: Global controls & config
-// ======================
-// Cancels all orders for the current symbol and clears TP alerts without re-arming stops.
-
-// ---- Step 1: Focus Primary_OE and read montage context ----
-FocusWindow Primary_OE;
-$M = GetWindowObj("Primary_OE");
-if (!IsObj($M)) {
-    // If we can't access Primary_OE, we can't safely infer symbol/position
+// Serialize manual actions; nested protection calls explicitly bind context.
+if (GetVar("tradeActionDepth") * 1 > 0 && GetVar("TRADE_CONTEXT_ACCOUNT") == "") {
+    MsgLog("Trade action already running; retry after it completes.");
     return;
 }
-
-// ---- Step 2: Snapshot symbol and position ----
-$mySym   = $M.Symb;
-$posNow  = $M.Pos;
-
-// ---- Step 3: Cancel all orders for current symbol ----
-CXL ALLSYMB;
-
-// ---- Step 4: Delete TP alerts for this symbol ----
-//    This matches how the TP Alert Builder names them:
-//    "TP " + <factor> + "R Partial " + <symbol>
-
-$i = 1;
-// i=1..20  -> factors: 0.5, 1.0, 1.5, ..., 10.0
-while ($i <= 20) {
-    $f = ($i * 0.5);   // 0.5, 1, 1.5, 2, ...
-
-    $name = "TP " + $f + "R Partial " + $mySym;
-
-    $al = GetAlertObj($name);
-    if (IsObj($al)) {
-        $al.Delete();
-    }
-
-    $i = $i + 1;
+$tradeActionDepth = GetVar("tradeActionDepth") * 1 + 1;
+if ($tradeActionDepth == 1) { $tradeActionUntil = GetSecond() + 30; }
+// Group: Global controls & config
+// Only selected account/symbol orders and alerts are canceled.
+FocusWindow Primary_OE;
+ExecHotkey("Load Trade Context");
+if ($tradeContextValid != 1 || $tradePositionValid != 1) {
+    ExecHotkey("End Trade Action");
+    return;
 }
+$tradeAccountObj.CancelOrder("BUY|SELL", $trade.symbol, 0);
+$trade.entryPending = 0;
+$trade.entryStage = 0;
+$trade.entryWatch = 0;
+ExecHotkey("Invalidate Trade Alerts");
+$trade.stopArmed = 0;
+Wait(100);
+ExecHotkey("Read Trade Position");
+if ($tradePositionValid != 1) {
+    ExecHotkey("End Trade Action");
+    return;
+}
+if ($posNow <= 0) { ExecHotkey("Clear Trade State"); ExecHotkey("End Trade Action"); return; }
 
-// Optional: confirm
-// MsgBox("Cancelled all non-stop orders and TP alerts for " + $mySym + ".");
-
-return;
+ExecHotkey("End Trade Action");

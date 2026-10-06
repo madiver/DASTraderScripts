@@ -10,7 +10,7 @@ These are the scripts I trade with on a daily basis. If you choose to use them, 
 
 Important constraints:
 - Automated entry protection (stops, take profit, and timer arming) is long-only. The manual Tier 1–4 short-entry and full-cover hotkeys are intentionally isolated from that workflow.
-- Assumes a single active symbol (multi-symbol trading is not supported).
+- Trade state is isolated by account and symbol. A manual short in another symbol can coexist with an automated long; the default guard allows one tracked automated long per account.
 - Requires a montage named `Primary_OE`.
 - Requires installing `other scripts/timer.das` in DAS Trader's Timer Event Scripts.
 - Uses a chart named `Primary_Chart` for symbol synchronization.
@@ -34,7 +34,7 @@ Serious about day trading? You can find me on Discord here:  https://discord.gg/
 
 ## Requirements
 
-- Tested with DAS Trader Pro 5.8.1.6
+- Requires DAS advanced hotkey scripting with AccountObj.GetPosition and NewUserObj support (installed target: DAS Trader Pro 5.8.4.4). Script regressions use an in-memory model; execution in this DAS build must be checked separately in SIM.
 - DAS Hotkey Tools VS Code extension (https://github.com/madiver/dasVSide)
 - DAS Trader Pro configuration (https://github.com/madiver/DASTraderConfig)
 
@@ -44,6 +44,7 @@ Serious about day trading? You can find me on Discord here:  https://discord.gg/
 2. Ensure `keymap.yaml` is present at the repo root.
 3. Run `DAS: Build Hotkey File`.
 4. Use the generated `output.htk` in DAS Trader.
+5. For the account/symbol isolation upgrade, also replace the installed Timer Event Script with `other scripts/timer.das`, run Set Global Variables, and recreate existing legacy TP/backstop alerts.
 
 ## Momo coordinated swap
 
@@ -123,3 +124,7 @@ and test hotkeys before use in DAS Trader.
 - Hotkeys can place, modify, or cancel orders instantly; mistakes can be costly.
 - You are responsible for compliance with broker rules, account settings, and
   regulatory requirements.
+
+## Script regression checks
+
+Run `node tools/tests/trade-isolation.test.cjs`. The harness executes the DAS source decisions against signed positions, orders, alerts, and montage changes in memory. It does not connect to DAS, send real orders, or validate broker execution.

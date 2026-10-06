@@ -1,3 +1,10 @@
+// Serialize manual actions; nested protection calls explicitly bind context.
+if (GetVar("tradeActionDepth") * 1 > 0 && GetVar("TRADE_CONTEXT_ACCOUNT") == "") {
+    MsgLog("Trade action already running; retry after it completes.");
+    return;
+}
+$tradeActionDepth = GetVar("tradeActionDepth") * 1 + 1;
+if ($tradeActionDepth == 1) { $tradeActionUntil = GetSecond() + 30; }
 // =====================
 // SHORT TIER 4 AT ASK
 // Group: Short orders: Ask
@@ -10,6 +17,7 @@ FocusWindow Primary_OE;
 $M = GetWindowObj("Primary_OE");
 if (!IsObj($M)) {
     MsgBox("Short Tier 4 aborted: Primary_OE montage unavailable.");
+    ExecHotkey("End Trade Action");
     return;
 }
 
@@ -19,6 +27,7 @@ $posNow = $M.GetCurrPos();
 
 if ($myAcc == "" || $mySym == "") {
     MsgBox("Short Tier 4 aborted: account or symbol unavailable.");
+    ExecHotkey("End Trade Action");
     return;
 }
 
@@ -32,14 +41,17 @@ while ($posNow == 0 && $M.Pos != 0 && $shortPosPoll < 10) {
 }
 if ($posNow == 0 && $M.Pos != 0) {
     MsgBox("Short Tier 4 aborted: unable to resolve current position direction.");
+    ExecHotkey("End Trade Action");
     return;
 }
 if ($posNow > 0) {
     MsgBox("Short Tier 4 aborted: close the long position first.");
+    ExecHotkey("End Trade Action");
     return;
 }
 if ($orderRoute == "") {
     MsgBox("Short Tier 4 aborted: orderRoute is not configured.");
+    ExecHotkey("End Trade Action");
     return;
 }
 
@@ -48,21 +60,33 @@ $roundedShares = $rawShares + 0.5;
 $qty = $roundedShares - ($roundedShares % 1);
 if ($qty < 1) {
     MsgBox("Short Tier 4 aborted: invalid Tier 4 share size.");
+    ExecHotkey("End Trade Action");
     return;
 }
 if (Ask <= 0) {
     MsgBox("Short Tier 4 aborted: Ask is unavailable.");
+    ExecHotkey("End Trade Action");
     return;
 }
 
 // Remove current-symbol orders so an older order cannot conflict with entry.
-CXL ALLSYMB;
+$scopedAccountObj = GetAccountObj($myAcc);
+if (!IsObj($scopedAccountObj)) {
+    ExecHotkey("End Trade Action");
+    return;
+}
+$scopedAccountObj.CancelOrder("BUY|SELL", $mySym, 0);
+SetVar("TRADE_CONTEXT_ACCOUNT", $myAcc);
+SetVar("TRADE_CONTEXT_SYMBOL", $mySym);
+ExecHotkey("Load Trade Context");
+if ($tradeContextValid == 1) { ExecHotkey("Invalidate Trade Alerts"); }
 Wait(100);
 
 // Recheck direction after the cancel delay so this hotkey cannot reverse a long.
 $symNow = StrTrim("" + $M.Symb);
 if ($symNow != $mySym) {
     MsgBox("Short Tier 4 aborted: montage symbol changed.");
+    ExecHotkey("End Trade Action");
     return;
 }
 $posNow = $M.GetCurrPos();
@@ -74,16 +98,19 @@ while ($posNow == 0 && $M.Pos != 0 && $shortPosPoll < 10) {
 }
 if ($posNow == 0 && $M.Pos != 0) {
     MsgBox("Short Tier 4 aborted: unable to resolve position direction after cancelling orders.");
+    ExecHotkey("End Trade Action");
     return;
 }
 if ($posNow > 0) {
     MsgBox("Short Tier 4 aborted: position became long.");
+    ExecHotkey("End Trade Action");
     return;
 }
 
 $px = Ask;
 if ($px <= 0) {
     MsgBox("Short Tier 4 aborted: Ask is unavailable.");
+    ExecHotkey("End Trade Action");
     return;
 }
 $inc = 0.01;
@@ -103,3 +130,5 @@ $order.Share   = $qty;
 $order.Send();
 
 MsgLog("Short Tier 4: sent " + $qty + " " + $mySym + " at Ask " + $px + " via " + $orderRoute + ".");
+
+ExecHotkey("End Trade Action");

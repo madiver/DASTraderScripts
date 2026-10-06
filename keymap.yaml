@@ -342,6 +342,14 @@
   key: Alt+Ctrl+Win+3
   label: Set Order Route FREE1L
   scriptPath: hotkeys/set_order_route_freel.das
+- id: set_order_route_bestl
+  key: Alt+Ctrl+Win+4
+  label: Set Order Route BESTL
+  scriptPath: hotkeys/set_order_route_bestl.das
+- id: set_order_route_flash1l
+  key: Alt+Ctrl+Win+F4
+  label: Set Order Route FLASH1L
+  scriptPath: hotkeys/set_order_route_flash1l.das
 - id: toggle_single_position_guard
   key: Alt+Ctrl+Win+M
   label: Toggle Single-Position Guard
@@ -364,3 +372,33 @@
   key: Ctrl+Shift+F12
   label: Momo Swap Internal
   scriptPath: hotkeys/swap_internal.das
+
+- id: load_trade_context
+  key:
+  label: Load Trade Context
+  scriptPath: hotkeys/load_trade_context.das
+
+- id: read_trade_position
+  key:
+  label: Read Trade Position
+  scriptPath: hotkeys/read_trade_position.das
+
+- id: clear_trade_state
+  key:
+  label: Clear Trade State
+  scriptPath: hotkeys/clear_trade_state.das
+
+- id: build_backstop_alert
+  key:
+  label: Build Backstop Alert
+  scriptPath: hotkeys/build_backstop_alert.das
+
+- id: end_trade_action
+  key:
+  label: End Trade Action
+  scriptPath: hotkeys/end_trade_action.das
+
+- id: invalidate_trade_alerts
+  key:
+  label: Invalidate Trade Alerts
+  scriptPath: hotkeys/invalidate_trade_alerts.das

@@ -1,3 +1,10 @@
+// Serialize manual actions; nested protection calls explicitly bind context.
+if (GetVar("tradeActionDepth") * 1 > 0 && GetVar("TRADE_CONTEXT_ACCOUNT") == "") {
+    MsgLog("Trade action already running; retry after it completes.");
+    return;
+}
+$tradeActionDepth = GetVar("tradeActionDepth") * 1 + 1;
+if ($tradeActionDepth == 1) { $tradeActionUntil = GetSecond() + 30; }
 // =====================
 // SCALING-AWARE ENTRY
 // Group: Buy orders: Bid SL
@@ -8,29 +15,17 @@ FocusWindow Primary_OE;
 
 // ---- Global guard checks ----
 ExecHotkey("Check Global Guards");
-if ($trade_ok != 1) { return; }
+if ($trade_ok != 1) {
+    ExecHotkey("End Trade Action");
+    return;
+}
 
-// Track entry symbol and reset TP symbol override
+// Guard selected a signed, account/symbol context.
+$posBefore = $posNow;
+$avgBefore = $avgNow;
 $M = GetWindowObj("Primary_OE");
-if (IsObj($M)) {
-    $entrySymbol = $M.Symb;
-} else {
-    $entrySymbol = Symbol;
-}
-$entrySymbol = StrTrim("" + $entrySymbol);
-$tpSymbol = "";
 
-// ---- Capture pre-entry position and avg cost (TP logic) ----
-$posBefore = 0;
-$avgBefore = 0;
 
-if (IsObj($M)) {
-    $posBefore = $M.Pos;
-    $avgBefore = $M.AvgCost;
-} else {
-    $posBefore = Pos;
-    $avgBefore = AvgCost;
-}
 
 // Rehab gate: block scaling in while rehab mode is enabled (LIVE; optional SIM).
 $acct = "";
@@ -39,6 +34,7 @@ $isLive = 0;
 if (StrLen($acct) > 0 && StrFind($acct, "TR") != 0) { $isLive = 1; }
 if ($rehab == 1 && $posBefore > 0 && ($isLive == 1 || $applyLiveGuardsToSim == 1)) {
     MsgBox("ABORTED: Rehab size violation, scaling in not allowed!");
+    ExecHotkey("End Trade Action");
     return;
 }
 
@@ -46,29 +42,24 @@ if ($rehab == 1 && $posBefore > 0 && ($isLive == 1 || $applyLiveGuardsToSim == 1
 $rawShares = $tier2ShareSize * $qtyMult;
 $roundedShares = $rawShares + 0.5;
 $addShares = $roundedShares - ($roundedShares % 1);
-if ($addShares < 1) { MsgBox("ABORTED: Invalid IB share size."); return; }
+if ($addShares < 1) { MsgBox("ABORTED: Invalid IB share size."); ExecHotkey("End Trade Action"); return; }
 
 // ---- Entry sizing and pacing ----
 $refPx             = BID;             // BID or ASK
 $minDelayMs  = 1000;           // throttle between order sends (ms)
 
 // ---- Max position size guard ----
-if ($maxPositionSize > 0) {    
-    // Determine current position in Primary_OE (fallback: Pos)
-    $curPos = 0;
-    if (IsObj($M)) {
-        $curPos = $M.Pos;
-    } else {
-        $curPos = Pos;        // DAS built-in position for current symbol
-    }
+if ($maxPositionSize > 0) {
+    $curPos = $posBefore;
 
     // Remaining capacity before hitting the guard rail
     $remaining = $maxPositionSize - $curPos;
 
     // If we're already at / above max, do not allow more size
     if ($remaining <= 0) {
-        MsgBox("Max position size reached for " + Symbol + 
-               " (" + $maxPositionSize + " shares). No additional size allowed.");
+        MsgBox("Max position size reached for " + Symbol +
+        " (" + $maxPositionSize + " shares). No additional size allowed.");
+        ExecHotkey("End Trade Action");
         return;
     }
 
@@ -82,6 +73,7 @@ if ($maxPositionSize > 0) {
 // ---- Test mode short-circuit ----
 if ($testMode == 1) {
     MsgBox("Test mode: entry checks passed (no order sent).");
+    ExecHotkey("End Trade Action");
     return;
 }
 // ---- Tick-size bands (for price snapping) ----
@@ -97,6 +89,7 @@ $spread = $ask - $bid;
 
 if ($bid <= 0 || $ask <= 0 || $spread < 0) {
     MsgBox("Quote sanity failed for " + Symbol + ": BID=" + $bid + " ASK=" + $ask + ". Aborting.");
+    ExecHotkey("End Trade Action");
     return;
 }
 
@@ -134,11 +127,12 @@ $spreadTooWide = ($spread > ($effR * 0.75)) && $useSpreadCheck == 1;
 // Abort if safety checks fail and we are not adding to an existing position
 if (($stopVsBidFail == 1 || $spreadTooWide == 1) && $posBefore <=0) {
     $msg = "Spread/Stop safety failed for " + Symbol + "\n" +
-           "Bid: " + $bid + "  Ask: " + $ask + "  Spread: " + $spread + "\n" +
-           "Planned Entry: " + $pxEntry + "  Planned Stop: " + $hypoStop + "\n\n";
+    "Bid: " + $bid + "  Ask: " + $ask + "  Spread: " + $spread + "\n" +
+    "Planned Entry: " + $pxEntry + "  Planned Stop: " + $hypoStop + "\n\n";
     if ($stopVsBidFail == 1)  { $msg = $msg + "- STOP_ABOVE_BID_WITH_MARGIN\n"; }
     if ($spreadTooWide == 1)  { $msg = $msg + "- SPREAD_TOO_WIDE vs stopOff\n"; }
     MsgBox($msg + "\nAction aborted.");
+    ExecHotkey("End Trade Action");
     return;
 }
 
@@ -167,6 +161,7 @@ if ($usePerTradeRiskCap == 1) {
     $projRisk = $riskPerShare * $totalShares;
     if ($projRisk > $riskCapDollars) {
         MsgBox("Risk cap exceeded for " + Symbol + ": projected $" + $projRisk + " > cap $" + $riskCapDollars + ". Aborting.");
+        ExecHotkey("End Trade Action");
         return;
     }
 }
@@ -177,33 +172,41 @@ $inc = 0.01;
 if ($pxEntry < 1 || $bid < 1 || $ask < 1) { $inc = 0.001; }
 if ($pxEntry < 0.25 || $bid < 0.25 || $ask < 0.25) { $inc = 0.0005; }
 $pxEntry = Round($pxEntry, 102, $inc);
-$entryRefPx = $pxEntry;
 // ---- Scale-in gate: only allow profit-preserving adds ----
 if ($posBefore > 0) {
     if ($avgBefore <= 0) {
-        MsgBox("Scale-in aborted: AvgCost unavailable for " + Symbol + ".");    
+        MsgBox("Scale-in aborted: AvgCost unavailable for " + Symbol + ".");
+        ExecHotkey("End Trade Action");
         return;
     }
     if (($bid - $avgBefore) < $effR) {
         MsgBox("Scale-in aborted: position not >= 1R in profit for " + Symbol + ".");
+        ExecHotkey("End Trade Action");
         return;
     }
 }
 
-// ---- Timer arming state (post-entry handling) ----
-if ($useTimerArming == 1) {
-    $entryPosBefore = $posBefore;
-    $entryAvgBefore = $avgBefore;
-    $entryScaleIn = 0;
-    if ($posBefore > 0) { $entryScaleIn = 1; }
+ExecHotkey("Read Trade Position");
+if ($tradePositionValid != 1 || $posNow < 0 || $posNow != $posBefore) {
+    MsgLog("Entry aborted: position changed during preparation.");
+    ExecHotkey("End Trade Action");
+    return;
 }
-
-// ---- Step 3: Cancel BUY working orders (keep protection until fill) ----     
-$acc = GetAccountObj(Account);
-$acc.CancelOrder("BUY", Symbol, 0);
+if ($posBefore == 0) {
+    ExecHotkey("Clear Trade State");
+}
+$trade.entryRefPx = $pxEntry;
+$trade.entryPosBefore = $posBefore;
+$trade.entryAvgBefore = $avgBefore;
+$trade.entryScaleIn = 0;
+if ($posBefore > 0) { $trade.entryScaleIn = 1; }
+$trade.active = 1;
+// ---- Step 3: Cancel BUY working orders (keep protection until fill) ----
+$acc = GetAccountObj($trade.account);
+$acc.CancelOrder("BUY", $trade.symbol, 0);
 $order = NewOrderObj();
-$order.Account = Account;
-$order.Symbol  = Symbol;
+$order.Account = $trade.account;
+$order.Symbol  = $trade.symbol;
 $order.Route   = $orderRoute;
 $order.Tif     = "DAY+";
 $order.Side    = "B";      // Buy
@@ -211,11 +214,15 @@ $order.Type    = "L";      // Limit
 $order.Price   = $pxEntry;
 $order.Share   = $addShares;
 $order.Send();
+$trade.entryPending = 1;
+$trade.entryWatch = 0;
+$trade.entryLastPos = $posBefore;
 
 if ($useTimerArming == 1) {
-    $entryPending = 1;
-    $entryStage = 0;
-    $entryTicks = 0;
+    $trade.entryPending = 1;
+    $trade.entryStage = 0;
+    $trade.entryTicks = 0;
+    ExecHotkey("End Trade Action");
     return;
 }
 
@@ -227,15 +234,11 @@ $filledQty = 0;
 while ($i < $maxPolls && $filled == 0) {
     Wait($pollMs);
     $order.GetInfo();                        // refresh order object
-    $filledQty = $order.Share - $order.Open; // how many filled so far
-    if ($order.Open == 0) {
-        $filled = 1; // full fill
-        break;
-    }
-    if ($acceptPartial == 1 && $filledQty >= $minFillShares) {
-        $filled = 2; // partial-accepted
-        break;
-    }
+    ExecHotkey("Read Trade Position");
+    $filledQty = 0;
+    if ($tradePositionValid == 1) { $filledQty = $posNow - $posBefore; }
+    if ($filledQty >= $addShares) { $filled = 1; break; }
+    if ($acceptPartial == 1 && $filledQty >= $minFillShares) { $filled = 2; break; }
     $i = $i + 1;
 }
 
@@ -245,28 +248,32 @@ if ($elapsed < $minDelayMs) {
     Wait($minDelayMs - $elapsed);
 }
 
-// ---- Step 5: If no acceptable fill, cancel and exit ----
-if ($filled == 0) {
-    $order.Cancel();
+// Cancel remaining entry shares before sizing protection from actual fills.
+$order.Cancel();
+ExecHotkey("Read Trade Position");
+$trade.entryPending = 0;
+if ($tradePositionValid != 1) {
+    ExecHotkey("End Trade Action");
     return;
 }
-
-// ---- Single-position guard: lock symbol on fill ----
-if ($singlePositionSymbol == "") { $singlePositionSymbol = $entrySymbol; }
-
-// Optional: freeze size before arming stop when partial accepted
-if ($filled == 2 && $cancelRemainderOnPartial == 1) {
-    $order.Cancel();
-    // brief wait to let the residual cancel
-    Wait(200);
+if ($posNow <= 0) { ExecHotkey("Clear Trade State"); ExecHotkey("End Trade Action"); return; }
+if ($posNow <= $posBefore) {
+    ExecHotkey("End Trade Action");
+    return;
 }
-
+$trade.active = 1;
+$trade.entryWatch = 1;
+$trade.entryLastPos = $posNow;
 // ---- Step 6: Arm unified 1R stop via "Set Auto Stop" ----
 if ($useAutoStop == "Yes") {
     if ($posBefore > 0) {
-        ExecHotKey("Set Auto Stop BE Scale 1/1");
+        SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
+        SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
+        ExecHotkey("Set Auto Stop BE Scale 1/1");
     } else {
-        ExecHotKey("Set Auto Stop");
+        SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
+        SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
+        ExecHotkey("Set Auto Stop");
     }
 }
 
@@ -278,18 +285,24 @@ if ($useTakeProfit == "Yes") {
 
     // If no position beforehand, always set TP (fresh trade)
     if ($posBefore <= 0) {
-        ExecHotKey("Set Take Profit");
+        SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
+        SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
+        ExecHotkey("Set Take Profit");
     } else {
         // We had a long position before this add. Check profitability.
         $bidNow = BID;
 
         // If avgBefore is invalid, be conservative and allow TP reset
         if ($avgBefore <= 0) {
-            ExecHotKey("Set Take Profit");
+            SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
+            SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
+            ExecHotkey("Set Take Profit");
         } else {
             // Only reset TP if NOT yet profitable (bid <= avgBefore)
             if ($bidNow <= $avgBefore) {
-                ExecHotKey("Set Take Profit");
+                SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
+                SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
+                ExecHotkey("Set Take Profit");
             }
             // else: already profitable -> do nothing, keep existing TP
         }
@@ -303,3 +316,8 @@ if ($useTakeProfit == "Yes") {
 
 
 
+
+ExecHotkey("Read Trade Position");
+if ($tradePositionValid == 1) { $trade.entryLastPos = $posNow; }
+
+ExecHotkey("End Trade Action");

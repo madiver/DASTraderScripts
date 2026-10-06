@@ -1,85 +1,71 @@
-// =====================
-// GTFO (EMERGENCY EXIT)
 // Group: Global controls & config
-// =====================
-// Cancels all orders and sends a direction-aware aggressive limit order to flatten.
-// Long: Bid - 0.50. Short: Ask + 0.50. Route: $gtfoRoute.
-FocusWindow Primary_OE;
-$M = GetWindowObj("Primary_OE");
-if (!IsObj($M)) { return; }
-
-$mySym = StrTrim("" + $M.Symb);
-if ($mySym == "") { return; }
-
-$route = $gtfoRoute;
-if ($route == "") { $route = $orderRoute; }
-if ($route == "") {
-    MsgLog("GTFO: no route configured for " + $mySym + ". Aborting.");
-    return;
-}
-
-// Avoid canceling unrelated working orders when GTFO is pressed while flat.
-// Montage .Pos is reliable for flat/non-flat; GetCurrPos() supplies direction.
-$displayPos = $M.Pos;
-$prePos = $M.GetCurrPos();
-if ($displayPos == 0 && $prePos == 0) { return; }
-
-CXL ALL;
-Wait(100);
-
-// GetCurrPos() is signed; montage .Pos and built-in Pos are absolute quantities.
-// Poll briefly after cancels so working protection does not hide the position.
-$posNow = $M.GetCurrPos();
-$i = 0;
-while ($posNow == 0 && $M.Pos != 0 && $i < 10) {
-    Wait(50);
-    $posNow = $M.GetCurrPos();
-    $i = $i + 1;
-}
-if ($posNow == 0) {
-    if ($M.Pos != 0) {
-        MsgLog("GTFO: unable to resolve signed position after cancels for " + $mySym + ". Aborting.");
+// Emergency exit: exact account/symbol, full signed position, $0.50 offset.
+// Preserve a panic request arriving during another action's cancel/fill wait.
+if (GetVar("tradeActionDepth") * 1 > 0) {
+    $gtfoQueueMontage = GetWindowObj("Primary_OE");
+    if (IsObj($gtfoQueueMontage)) {
+        SetVar("GTFO_PENDING_ACCOUNT", $gtfoQueueMontage.Account);
+        SetVar("GTFO_PENDING_SYMBOL", $gtfoQueueMontage.Symb);
+        MsgLog("GTFO queued for " + $gtfoQueueMontage.Account + " " + $gtfoQueueMontage.Symb + "; current action is finishing.");
     }
     return;
 }
-ROUTE=$route;
-TIF=DAY+;
-
-$direction = "LONG";
-$refPx = $M.Bid;
+$tradeActionDepth = 1;
+$tradeActionUntil = GetSecond() + 30;
+ExecHotkey("Load Trade Context");
+if ($tradeContextValid != 1 || $tradePositionValid != 1 || $posNow == 0) {
+    ExecHotkey("End Trade Action");
+    return;
+}
+$gtfoDirection = 1;
+if ($posNow < 0) { $gtfoDirection = -1; }
+$gtfoExecRoute = $gtfoRoute;
+if ($gtfoExecRoute == "") { $gtfoExecRoute = $orderRoute; }
+if ($gtfoExecRoute == "") {
+    ExecHotkey("End Trade Action");
+    return;
+}
+$tradeAccountObj.CancelOrder("BUY|SELL", $trade.symbol, 0);
+ExecHotkey("Invalidate Trade Alerts");
+Wait(100);
+ExecHotkey("Read Trade Position");
+if ($tradePositionValid != 1 || $posNow == 0 || $posNow * $gtfoDirection <= 0) {
+    ExecHotkey("End Trade Action");
+    return;
+}
+$gtfoExecSide = "S";
+$gtfoExecQty = $posNow;
+$gtfoExecPrice = $tradeBid - 0.50;
 if ($posNow < 0) {
-    $direction = "SHORT";
-    $refPx = $M.Ask;
+    $gtfoExecSide = "B";
+    $gtfoExecQty = 0 - $posNow;
+    $gtfoExecPrice = $tradeAsk + 0.50;
 }
-if ($refPx <= 0) { $refPx = $M.Last; }
-if ($refPx <= 0) {
-    MsgLog("GTFO: no valid quote for " + $mySym + ". Aborting.");
+if (($posNow > 0 && $tradeBid <= 0) || ($posNow < 0 && $tradeAsk <= 0)) {
+    $gtfoExecPrice = $tradeLast - 0.50;
+    if ($posNow < 0) { $gtfoExecPrice = $tradeLast + 0.50; }
+    if ($tradeLast <= 0) { $gtfoExecPrice = 0; }
+}
+if ($gtfoExecPrice <= 0) {
+    ExecHotkey("End Trade Action");
     return;
 }
-
-$gtfoOffset = 0.50;
-$px = $refPx - $gtfoOffset;
-if ($posNow < 0) { $px = $refPx + $gtfoOffset; }
-
-if ($px <= 0) {
-    MsgLog("GTFO: calculated price is invalid for " + $mySym + ". Aborting.");
-    return;
-}
-
-// Abort if the position changed sides while the emergency order was prepared.
-$posCheck = $M.GetCurrPos();
-if ($posCheck == 0 || ($posNow > 0 && $posCheck < 0) || ($posNow < 0 && $posCheck > 0)) {
-    MsgLog("GTFO: position changed while preparing exit for " + $mySym + ". Aborting.");
-    return;
-}
-
-Price=$px;
-// Use DAS's montage-native price rounding. Function-based Round() did not
-// alter calculated prices reliably in the Open Ocean DAS build.
-if ($px >= 1) { Price=Round2; }
-if ($px < 1)  { Price=Round3; }
-if ($px < 0.25) { Price=Round4; }
-Share=Pos;
-SEND=Reverse;
-MsgLog("GTFO: submitted " + $direction + " full-position Reverse for " + $mySym + " at " + $px + " via " + $route + ".");
-
+// Arithmetic snapping works without editing the currently selected montage.
+$gtfoExecInc = 0.01;
+if ($gtfoExecPrice < 1) { $gtfoExecInc = 0.001; }
+if ($gtfoExecPrice < 0.25) { $gtfoExecInc = 0.0001; }
+$gtfoExecTicks = ($gtfoExecPrice / $gtfoExecInc) + 0.5;
+$gtfoExecTicks = $gtfoExecTicks - ($gtfoExecTicks % 1);
+$gtfoExecPrice = $gtfoExecTicks * $gtfoExecInc;
+$gtfoExecOrder = NewOrderObj();
+$gtfoExecOrder.Account = $trade.account;
+$gtfoExecOrder.Symbol = $trade.symbol;
+$gtfoExecOrder.Route = $gtfoExecRoute;
+$gtfoExecOrder.Type = "L";
+$gtfoExecOrder.Tif = "DAY+";
+$gtfoExecOrder.Side = $gtfoExecSide;
+$gtfoExecOrder.Price = $gtfoExecPrice;
+$gtfoExecOrder.Share = $gtfoExecQty;
+$gtfoExecOrder.Send();
+MsgLog("GTFO submitted for " + $trade.key + " via " + $gtfoExecRoute + ".");
+ExecHotkey("End Trade Action");

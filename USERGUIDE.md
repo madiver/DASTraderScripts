@@ -2,9 +2,9 @@
 
 ## OVERVIEW
 
-These scripts are the hotkeys I use in DAS Trader for active, discretionary day trading. They focus on fast, repeatable order entry with guard rails and are designed around a single active symbol at a time. I treat the micro ice breaker and ice breaker (Buy MIB/IB) entries as the first tests of a trade thesis; while DAS allows multiple positions, these hotkeys assume one symbol and may behave unpredictably otherwise.
+These scripts are the hotkeys I use in DAS Trader for active, discretionary day trading. They focus on fast, repeatable order entry with guard rails. I treat the micro ice breaker and ice breaker (Buy MIB/IB) entries as the first tests of a trade thesis. Automated long trade state is isolated by account and symbol, so a manually managed short in another symbol can coexist with an automated long. The default single-position guard allows one tracked automated long per account; manual shorts do not occupy that guard.
 
-The automated entry-protection workflow is designed for LONG positions only. Fourteen isolated manual hotkeys support Tier 1–4 shorts at Ask or Bid and full, half, or quarter covers at Bid or Ask plus the exit offset; they do not arm stop loss, take profit, or timer handling.
+The automated entry-protection workflow is designed for LONG positions only. Fourteen manual hotkeys support Tier 1–4 shorts at Ask or Bid and full, half, or quarter covers at Bid or Ask plus the exit offset; they do not arm long stop loss, take profit, or entry staging. All cancellations are scoped to the selected account and symbol. Long buy, sell, stop, TP, and backstop actions reject short positions rather than using absolute montage size as direction. A long buy on the same account/symbol as a short is blocked; use Cover to reduce that short.
 
 Repository structure: the `hotkeys/` folder contains the `.das` hotkey scripts, `keymap.yaml` defines the key bindings and metadata, and `other scripts/` contains support scripts like the timer. A `.das` file is plain text you can paste into the DAS Trader Script Editor. The `keymap.yaml` can be compiled into a `Hotkey.htk` using the DAS Hotkey Tools VS Code extension, or you can skip the compiler and copy the scripts manually.
 
@@ -23,7 +23,7 @@ Regardless of the method you choose, the timer script must be installed manually
    - Optional: `dasHotkeyTools.placeholders.failOnMissing` to block builds when placeholders are unresolved.
 3) Ensure your montage is named `Primary_OE`, the timer script `other scripts/timer.das` is installed under Timer Event Scripts, and the chart used for symbol synchronization is named `Primary_Chart`.
 4) Run `switch_to_sim.das` or `switch_to_live.das` to set the montage account and filters.
-5) Run `set_global_variables.das` to initialize globals.
+5) Run `set_global_variables.das` to initialize globals. On this upgrade, replace the installed Timer Event Script with the new `other scripts/timer.das` as well as recompiling/reloading all hotkeys. Existing symbol-only TP/backstop alerts are ignored by the new executors; recreate those alerts with the updated builders.
 6) Use `show_config.das` to confirm account mode, defaults, and guard states.
 
 Important: update `$TRSIM` and `$LIVEACT` in `hotkeys/set_global_variables.das` with your actual account identifiers if they are not already populated (they are shown in the config display for reference). Hijack protection defaults to off (`$hijackProtection = 0`); set it to `1` to enable it. `$applyLiveGuardsToSim` controls whether enabled live-only guards (hijack, rehab) also apply in SIM; it defaults to `0`. Set it to `1` to apply those enabled guards in SIM. Also verify that any `%%SIMULATED%%` and `%%LIVE%%` placeholders have been replaced in the SIM/LIVE switch scripts (the VS Code extension handles this during build; if you copy scripts manually, you must replace them yourself).
@@ -40,10 +40,12 @@ value, rerun "Set Global Variables" so the globals refresh in DAS.
 Variables by category:
 
 Runtime counters and modes:
-- `$oneSecondScriptCnt`: internal counter used by `other scripts/timer.das`.
+- `$oneSecondScriptCnt`: retained legacy diagnostic counter; the current timer processes each context every tick.
 - `$rehab`: enables rehab mode to block scale-ins and larger entries in LIVE (and SIM when `$applyLiveGuardsToSim = 1`).
 - `$HIJACKED_LOCKED`: runtime lock set when hijack protection triggers.
-- `$singlePositionSymbol`: runtime symbol tracked by the single-position guard.
+- `$tradeStates`: account/symbol registry of runtime trade objects.
+- `$tradeSlots`, `$tradeSlotCount`: timer iteration slots; inactive slots are reused.
+- `$tradeActionDepth`, `$tradeActionUntil`: nested action lease that pauses timer work during cancellation/fill waits. Alerts arriving during those waits are deferred on their own trade.
 - `$trade_ok`: runtime flag set by `Check Global Guards` for buy hotkeys.
 - `$testMode`: when set to 1, buy hotkeys exit after non-market guards (no order sent).
 
@@ -69,6 +71,7 @@ Risk and execution:
 - `$entryBidOffset` / `$entryAskOffset`: independent signed offsets for Bid+ / Ask+ buy scripts (defaults: BID `+0.01`, ASK `-0.01`). Negative values price below the corresponding reference quote.
 - `$exitOffset`: aggression offset for Bid- long exits and Ask+ short covers, and the limit offset for fixed stops.
 - `$orderRoute`: limit order route for entries/exits (buys/sells/TP/BE). Default is `ARCA1L`. `FREE1L` is the free route for ST Global Market/Open Ocean.
+- Route presets are available for `ARCA1L`, `FREE1L`, `BESTL`, and `FLASH1L`.
 - `$gtfoRoute`: emergency exit route for GTFO/backstop/hijack exits. Default is `FLSH1L` (Open Ocean broadcast route).
 - `$stopLossTrigger`: fixed 1R risk per share for all buy tiers.
 - `$backstopBuffer`: trigger buffer below the stop for the manual backstop alert.
@@ -96,13 +99,21 @@ Order fill polling:
 - `$maxPolls`: maximum number of polls before canceling an unfilled order.
   These are used when `$useTimerArming = 0`.
 
-Timer-based entry arming (runtime):
-- `$entryPending`, `$entryStage`, `$entryTicks`, `$entryMaxTicks`: timer state and timeout for arming stops/TP after fills. When the timeout is reached, the handler cancels the working buy order.
-- `$entrySymbol`, `$entryPosBefore`, `$entryAvgBefore`, `$entryScaleIn`: captured entry context used by the timer handler.
-- `$entryRefPx`: entry reference price used as a fallback for stop placement when AvgCost lags.
-- `$entryWatch`, `$entryLastPos`: track position size changes so the handler can re-arm stops/TP when size increases.
-- `$lastStop`, `$lastStopSymbol`: last stop price/symbol set by auto-stop scripts (used by backstop triggers).
-- `$backstopArmed`, `$backstopRetries`, `$backstopStop`, `$backstopSymbol`: runtime backstop state.
+Trade runtime (each `$trade` belongs to exactly one account and symbol):
+- `$trade.account`, `$trade.symbol`, `$trade.key`: immutable order identity.
+- `$trade.entryPending`, `$trade.entryStage`, `$trade.entryTicks`: fill/protection staging; `$entryMaxTicks` is the shared timeout setting.
+- `$trade.entryPosBefore`, `$trade.entryAvgBefore`, `$trade.entryScaleIn`: captured entry context.
+- `$trade.entryRefPx`: submitted entry reference, retained for diagnostics rather than substituting for an unknown average cost.
+- `$trade.entryWatch`, `$trade.entryLastPos`: detect later size increases.
+- `$trade.lastStop`, `$trade.stopArmed`: last submitted stop reference/status for this trade.
+- `$trade.tpName`: exact account-scoped TP alert name.
+- `$trade.backstopArmed`, `$trade.backstopRetries`, `$trade.backstopStop`: independent backstop state.
+- `$trade.generation`: identifies the current trade/alert lifecycle; canceled or old-trade alert payloads cannot act on a new position.
+- `$trade.deferredTp`, `$trade.deferredBackstop`: queued alert actions while another script is waiting.
+
+The timer reads signed `GetAccountObj(account).GetPosition(symbol).Share`, including shares reserved by working orders. Montage `.Pos` and native `Pos` are absolute quantities; `GetCurrPos()` can temporarily be zero while shares are reserved. Missing position data fails closed, and a missing off-montage position record is not assumed flat. A matching Primary/Secondary montage can confirm flat or supply signed fallback data. Stops wait for a valid average cost, and alerts require valid quotes for market-priced exits.
+
+`Set Global Variables` resets configuration and the action lease but preserves initialized trade objects. Restarting DAS clears this client-side registry. Recreate TP/backstop alerts after a restart or upgrading legacy scripts. Existing broker orders are not reconstructed into runtime state automatically; use the stop/alert hotkeys to manage an already-open long.
 
 ### Defaults table
 
@@ -114,29 +125,24 @@ baseline values when you run "Set Global Variables."
 | Runtime | `$oneSecondScriptCnt` | `0` |
 | Runtime | `$rehab` | `0` |
 | Runtime | `$useTimerArming` | `1` |
-| Runtime | `$timerMode` | `1` |
-| Runtime | `$entryPending` | `0` |
-| Runtime | `$entryStage` | `0` |
-| Runtime | `$entryTicks` | `0` |
+| Runtime | `$timerMode` | `0` |
+| Runtime | `$trade.entryPending` | `0` |
+| Runtime | `$trade.entryStage` | `0` |
+| Runtime | `$trade.entryTicks` | `0` |
 | Runtime | `$entryMaxTicks` | `10` |
-| Runtime | `$entryPosBefore` | `0` |
-| Runtime | `$entryAvgBefore` | `0` |
-| Runtime | `$entryScaleIn` | `0` |
-| Runtime | `$entrySymbol` | `""` |
-| Runtime | `$tpSymbol` | `""` |
-| Runtime | `$entryRefPx` | `0` |
-| Runtime | `$lastStop` | `0` |
-| Runtime | `$lastStopSymbol` | `""` |
+| Runtime | `$trade.entryPosBefore` | `0` |
+| Runtime | `$trade.entryAvgBefore` | `0` |
+| Runtime | `$trade.entryScaleIn` | `0` |
+| Runtime | `$trade.entryRefPx` | `0` |
+| Runtime | `$trade.lastStop` | `0` |
 | Runtime | `$HIJACKED_LOCKED` | `0` |
-| Runtime | `$singlePositionSymbol` | `""` |
 | Runtime | `$trade_ok` | `1` |
 | Runtime | `$testMode` | `0` |
-| Runtime | `$entryWatch` | `0` |
-| Runtime | `$entryLastPos` | `0` |
-| Runtime | `$backstopArmed` | `0` |
-| Runtime | `$backstopRetries` | `0` |
-| Runtime | `$backstopStop` | `0` |
-| Runtime | `$backstopSymbol` | `""` |
+| Runtime | `$trade.entryWatch` | `0` |
+| Runtime | `$trade.entryLastPos` | `0` |
+| Runtime | `$trade.backstopArmed` | `0` |
+| Runtime | `$trade.backstopRetries` | `0` |
+| Runtime | `$trade.backstopStop` | `0` |
 | Toggles | `$useSlippageMargin` | `1` |
 | Toggles | `$slipTicksMin` | `2` |
 | Toggles | `$slipSpreadFrac` | `0.25` |
@@ -274,10 +280,15 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Win+G` | `hotkeys/toggle_apply_live_guards_to_sim.das` | Toggle live-only guards in SIM. |
 | `Alt+Ctrl+Win+2` | `hotkeys/set_order_route_arcal.das` | Set limit order route to ARCA1L. |
 | `Alt+Ctrl+Win+3` | `hotkeys/set_order_route_freel.das` | Set limit order route to FREE1L (free route for ST Global Market/Open Ocean). |
+| `Alt+Ctrl+Win+4` | `hotkeys/set_order_route_bestl.das` | Set limit order route to BESTL. |
+| `Alt+Ctrl+Win+F4` | `hotkeys/set_order_route_flash1l.das` | Set limit order route to FLASH1L. |
 | `Alt+Ctrl+Win+M` | `hotkeys/toggle_single_position_guard.das` | Toggle single-symbol entry guard. |
 | `Alt+Ctrl+Win+H` | `hotkeys/enable_rehab_mode.das` | Toggle rehab mode (YES to disable). |
 | Unbound | `hotkeys/hijack_exit.das` | Hijack guard exit/lock enforcement (timer-only). |
 | Unbound | `hotkeys/timer_entry_handler.das` | Timer-driven stop/TP arming for entries. |
+| Unbound | `hotkeys/load_trade_context.das`, `hotkeys/read_trade_position.das` | Select an account/symbol trade and read signed position/quote data. |
+| Unbound | `hotkeys/clear_trade_state.das`, `hotkeys/invalidate_trade_alerts.das` | Clean up one closed trade or suspend its automation for a manual cancel/exit. |
+| Unbound | `hotkeys/build_backstop_alert.das`, `hotkeys/end_trade_action.das` | Account-bound backstop builder and action lease release. |
 
 ## BUY ORDERS
 
@@ -353,15 +364,9 @@ position has moved at least 1R in your favor.
 
 ### Single-position guard
 
-When `$singlePositionGuard = 1` (default), buy hotkeys only allow one active
-symbol at a time. If `$singlePositionSymbol` is set, new entries on a different
-symbol are blocked. The guard also blocks when `$entryPending = 1` for another
-symbol (timer staging), so you cannot start a second entry while a buy is still
-waiting to fill. The pending-entry block clears when the pending entry times
-out/cancels, or when the original symbol is back in Primary_OE and the position
-is flat. If you switch the montage to a different symbol while an entry is
-pending, the timer cancels the working buy and clears the pending state to
-avoid unprotected fills.
+When `$singlePositionGuard = 1` (default), buy hotkeys allow one tracked automated long per account. A manual short in another symbol does not block it. Turning the guard off allows multiple tracked longs; each has independent stop/TP/backstop and timer state. Another pending long entry in the same account blocks a new entry until staging finishes or times out; a duplicate pending buy in the same symbol is also blocked.
+
+Changing or swapping the montage does not cancel a pending entry or clear another trade's state. The timer continues processing the original account and symbol without changing montage focus or selection. Account P&L and buying power remain DAS/broker calculations; these scripts do not maintain a separate accounting ledger.
 
 ## MANUAL SHORT ORDERS
 
@@ -404,7 +409,7 @@ route behavior, and applicable short-sale restrictions with the broker.
 - `Cancel All` uses signed `$M.GetCurrPos()` on `Primary_OE` after cancelling orders. It re-arms
   the automatic stop only for a confirmed long and deliberately skips the
   long stop engine for shorts.
-- `GTFO` cancels orders and uses `$gtfoRoute` with native `SEND=Reverse`. It
+- `GTFO` cancels only its account/symbol orders and uses `$gtfoRoute` with a full-size direction-aware limit order. It
   prices long exits at Bid minus `$0.50` and short covers at Ask plus `$0.50`.
   These are aggressive limit orders, not guaranteed executions.
 
@@ -448,8 +453,7 @@ on the two buy pages are now empty.
 
 `Set Auto Stop` places a stop-limit order at 1R below avg cost for long
 positions. R is `$stopLossTrigger` for all buy tiers. The script
-uses the montage average cost when available and falls back to the entry
-reference price (`$entryRefPx`) or last price if AvgCost is lagging. It cancels
+uses the signed account position and average cost, with a matching montage as a fallback source. If average cost is unavailable, timer staging retries instead of inventing a stop from another symbol or a last-sale price. It cancels
 existing sell orders for the symbol before placing the new stop, except when
 invoked in timer mode (`$timerMode`) where cancels are skipped.
 
@@ -471,7 +475,7 @@ and sends aggressive LIMIT exits for pre-market compatibility.
 - If you are still not flat, it retries up to `$backstopMaxRetries` times.
 - The backstop alert is automatically deleted when you go flat (timer cleanup).
 
-The backstop uses `$lastStop` as its stop reference, so run `Set Auto Stop`
+The backstop uses this account/symbol trade's `$trade.lastStop` as its stop reference, so run `Set Auto Stop`
 before arming the backstop.
 `FLSH1L` (the default `$gtfoRoute`) is the Open Ocean broadcast route; it costs
 more but prioritizes exit speed.
@@ -493,8 +497,7 @@ When the alert fires, `Take Profit Executor`:
   SIM when `$applyLiveGuardsToSim = 1`.
 - Re-arms stops and (if needed) re-establishes the TP alert after the fill.
 
-Stale take-profit alerts are cleaned up by the timer script a few seconds after
-the position is flat.
+TP and backstop alert names include account and symbol. Their scripts carry both identifiers and the trade generation; executors consume that payload, validate a current long, and recheck its signed size after cancellation waits. Cleanup deletes only alerts belonging to a confirmed flat/short trade. An unknown position does not clear another trade's protection.
 
 ## OTHER GUARD RAILS
 
@@ -511,12 +514,7 @@ These controls help prevent low-quality fills and oversized risk.
   shorts cover at `Ask + $exitOffset` through `$gtfoRoute` using native
   `SEND=Reverse`. Re-running `Set Global Variables` clears the script lock;
   montage unlock is manual (see reset instructions below).
-- Single-position guard: when `$singlePositionGuard = 1`, buy hotkeys block
-  entries on a different symbol once a position is tracked. This is
-  script-tracked using the Primary_OE montage; if you close a position while
-  on another symbol, the lock clears when you return to the original symbol or
-  re-run `Set Global Variables`. Positions opened or closed outside the hotkeys
-  may not be detected until the montage returns to the active symbol.
+- Single-position guard: when `$singlePositionGuard = 1`, buy hotkeys block another tracked long in the same account. Manual shorts are independent. The timer checks original account/symbol position records across montage changes. A confirmed flat/short releases the guard; unavailable position data retains it.
 - Per-trade risk cap: blocks entries when projected risk exceeds
   `$riskCapDollars` (`$usePerTradeRiskCap`).
 
@@ -552,17 +550,9 @@ Reset behavior:
 
 ## TIMER SCRIPT
 
-`other scripts/timer.das` does three things:
+`other scripts/timer.das` runs every second. It enforces optional hijack protection on Primary_OE, visits every active account/symbol context for entry staging and cleanup, and executes deferred alerts once cancel/fill actions finish. It does not switch a montage or clear trade state merely because Primary_OE shows another symbol.
 
-1) Enforces hijack protection when `$hijackProtection = 1` (LIVE, and SIM when `$applyLiveGuardsToSim = 1`).
-2) Runs `Timer Entry Handler` each tick to arm stops/TP after fills when
-   `$useTimerArming = 1`.
-3) Clears take-profit and backstop alerts and their tracking state when flat.
-
-Installation: add this script to DAS Trader's timer so it runs every second.
-It is not installed automatically by the hotkey build. Ensure
-`hotkeys/timer_entry_handler.das` is included in your keymap because the timer
-calls it via `ExecHotkey`.
+Installation: replace the Timer Event Script with the complete current `other scripts/timer.das`; the hotkey compiler does not install it automatically. Recompile/reload the entire canonical keymap so all internal helpers exist, then run Set Global Variables. The short action lease pauses timer work during waits and expires after 30 seconds to recover an interrupted script. Pressing a second manual trading action during an active action logs a retry message instead of overwriting its context. GTFO is preserved as a queued emergency request and executes for its saved account/symbol as soon as the running action finishes.
 
 ## UTILITIES & TOGGLES
 
@@ -580,6 +570,9 @@ Safety toggles:
   apply in SIM (`$applyLiveGuardsToSim`).
 - `set_order_route_arcal.das` sets `$orderRoute` to `ARCA1L`.
 - `set_order_route_freel.das` sets `$orderRoute` to `FREE1L` (free route for ST Global Market/Open Ocean).
+- `set_order_route_bestl.das` sets `$orderRoute` to `BESTL`.
+- `set_order_route_flash1l.das` sets `$orderRoute` to `FLASH1L`.
+- On page 4 of both the physical and Virtual Stream Deck profiles, the route button cycles through `ARCA1L`, `FREE1L`, `BESTL`, and `FLASH1L` using Advanced Toggles. FLASH1L uses orange text.
 - `toggle_single_position_guard.das` toggles the single-position guard
   (`$singlePositionGuard`).
 - `enable_rehab_mode.das` toggles rehab mode on/off; disabling requires typing `YES`.
@@ -611,7 +604,7 @@ Fast entry and exit are important to my strategy, so reducing latency matters.
 These scripts still introduce small delays because they wait to confirm fills
 and enforce guard rails. With `$useTimerArming = 1`, entry hotkeys return
 immediately, but stops/TP are armed on the next timer tick, so there can be a
-brief unprotected window (up to ~1 second plus DAS processing). Set
+brief unprotected window (normally up to two timer ticks after the fill, plus DAS processing and any running action). Missing average-cost data postpones arming further. Set
 `$useTimerArming = 0` and tune `$pollMs` and `$maxPolls` if you prefer inline
 polling and more immediate protection.
 
@@ -624,7 +617,7 @@ reset conditions are met. If no fill appears within `$entryMaxTicks`, the handle
 cancels the working buy order and clears pending state. When `$useTimerArming = 0`,
 buy orders poll for fills and can accept partials based on `$acceptPartial` and
 `$minFillShares`. If the fill criteria are not met in time, the order is canceled
-and the script exits without arming stops.
+and protection is armed for any actual shares received; a rejected order with zero open shares is not treated as a fill.
 
 Both modes intentionally wait for a fill before arming protection to avoid
 mismatched AvgCost. Bypassing the fill check risks placing protection against a

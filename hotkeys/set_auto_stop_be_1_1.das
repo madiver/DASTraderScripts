@@ -1,144 +1,89 @@
-// =====================
-// SET AUTO STOP BE (SLP ABOVE BE) - 1/1
+// Serialize manual actions; nested protection calls explicitly bind context.
+if (GetVar("tradeActionDepth") * 1 > 0 && GetVar("TRADE_CONTEXT_ACCOUNT") == "") {
+    MsgLog("Trade action already running; retry after it completes.");
+    return;
+}
+$tradeActionDepth = GetVar("tradeActionDepth") * 1 + 1;
+if ($tradeActionDepth == 1) { $tradeActionUntil = GetSecond() + 30; }
 // Group: Stops
-// =====================
-// Called from Take Profit Executor.
-// Behavior:
-// - Protects partial position (1/denominator)
-// - If not yet +$0.03 in profit -> place BE limit sell
-// - If >= +$0.03 in profit -> place SLP stop-limit above BE
-// Requirements:
-// - Primary_OE montage exists
-// - Uses montage object properties (.Symb, .Account, .Pos, .AvgCost)
-// - Honors $useAutoStop
-
-// ---- Tunables ----
-$portionDenominator = 1;    // 1 = full, 2 = half, 4 = quarter
-$beOffset           = 0.03; // BE trigger offset
-$cancelWaitMs       = 1000; // cancel throttle wait
-
-// ---- Step 1: Load Primary_OE montage ----
-$M = GetWindowObj("Primary_OE");
-if (!IsObj($M)) {
-    MsgBox("Set Auto Stop BE: Primary_OE montage not found.");
+// LONG ONLY. Account/symbol context is independent of the selected montage.
+$stopSubmitted = 0;
+$stopTimer = $timerMode;
+$timerMode = 0;
+ExecHotkey("Load Trade Context");
+if ($tradeContextValid != 1 || $tradePositionValid != 1) {
+    ExecHotkey("End Trade Action");
     return;
 }
-
-// ---- Step 3: Resolve symbol and account ----
-$mySym = $M.Symb;
-$myAcc = $M.Account;
-
-// Optional override from executor
-if ($tpSymbol != "" && $tpSymbol != $mySym) {
-    $M.Symb = $tpSymbol;
-    Wait(300); // allow DAS to fully update
-
-    $mySym = $M.Symb;
-    $myAcc = $M.Account;
-
-    if ($mySym != $tpSymbol) {
-        MsgBox("Set Auto Stop BE: failed to switch montage to " + $tpSymbol);
-        return;
-    }
-}
-
-// Optional entry-symbol safety
-if ($entrySymbol != "" && $entrySymbol != $mySym) {
-    MsgBox("Set Auto Stop BE: symbol mismatch (" + $mySym + " vs " + $entrySymbol + ")");
-    return;
-}
-
-// ---- Step 4: Read position state ----
-$posNow = $M.Pos;
-$avgNow = $M.AvgCost;
-
 if ($posNow <= 0) {
-    return; // flat or short
+    ExecHotkey("End Trade Action");
+    return;
+}
+// Validate price inputs before removing existing protection.
+if ($avgNow <= 0) {
+    ExecHotkey("End Trade Action");
+    return;
+}
+if ($stopTimer != 1) {
+    $trade.stopArmed = 0;
+    $tradeAccountObj.CancelOrder("SELL", $trade.symbol, 0);
+    Wait(350);
+}
+ExecHotkey("Read Trade Position");
+if ($tradePositionValid != 1 || $posNow <= 0) {
+    ExecHotkey("End Trade Action");
+    return;
 }
 if ($avgNow <= 0) {
-    MsgBox("Set Auto Stop BE: AvgCost unavailable for " + $mySym);
+    ExecHotkey("End Trade Action");
     return;
 }
-
-// ---- Step 5: Tick size logic (single source of truth) ----
 $inc = 0.01;
-if ($avgNow < 1)    { $inc = 0.001; }
+if ($avgNow < 1) { $inc = 0.001; }
 if ($avgNow < 0.25) { $inc = 0.0005; }
-
 $avgSnap = Round($avgNow, 102, $inc);
-
-// ---- Step 6: Market state ----
-$bid = $M.Bid;
-if ($bid <= 0) {
-    MsgBox("Set Auto Stop BE: No valid BID for " + $mySym);
+$stop = $avgSnap - $stopLossTrigger;
+$px = $stop - $exitOffset;
+$stopType = "SLP";
+$stopRoute = "STOP";
+if ($tradeBid <= 0) {
+    ExecHotkey("End Trade Action");
     return;
 }
-
-$beStopTrigger = Round($avgSnap + $beOffset, 102, $inc);
-
-// ---- Step 7: Quantity to protect (partial) ----
-$qtyProtect = $posNow / $portionDenominator;
-if ($qtyProtect <= 0) {
+$stop = Round($avgSnap + 0.03, 102, $inc);
+$px = $avgSnap;
+if ($tradeBid < $stop) {
+    $stop = $avgSnap;
+    $stopType = "L";
+    $stopRoute = $orderRoute;
+    $px = Round($avgSnap, 102, 0.01);
+    if ($pegToBid == 1 && $tradeBid > $px) { $px = Round($tradeBid, 102, 0.01); }
+}
+$stop = Round($stop, 102, $inc);
+$px = Round($px, 102, $inc);
+if ($stopType == "SLP" && $px >= $stop) { $px = Round($stop - $inc, 102, $inc); }
+if ($stop <= 0 || $px <= 0) {
+    ExecHotkey("End Trade Action");
     return;
 }
-
-// ---- Step 8: Cancel existing SELL orders (account scoped) ----
-$accObj = GetAccountObj($myAcc);
-$accObj.CancelOrder("SELL", $mySym, 0);
-Wait($cancelWaitMs);
-
-// ---- Step 9: If not yet in profit, place BE limit sell ----
-if ($bid < $beStopTrigger) {
-    // Default ARCA1L uses penny ticks
-    $incBE = 0.01;
-
-    $px = Round($avgSnap, 102, $incBE);
-
-    if ($pegToBid == 1 && $bid > $px) {
-        $px = Round($bid, 102, $incBE);
-    }
-
-    $o = NewOrderObj();
-    $o.Account = $myAcc;
-    $o.Symbol  = $mySym;
-    $o.Route   = $orderRoute;
-    $o.Tif     = "DAY+";
-    $o.Side    = "S";
-    $o.Type    = "L";
-    $o.Price   = $px;
-    $o.Share   = $qtyProtect;
-    $o.Send();
-
-    $lastStop = $avgSnap;
-    $lastStopSymbol = $mySym;
-
-    return;
-}
-
-// ---- Step 10: If in profit, place SLP stop above BE ----
-$stop = Round($avgSnap + $beOffset, 102, $inc);
-$px   = Round($avgSnap, 102, $inc);
-
-// Ensure SLP validity (limit < stop)
-if ($px >= $stop) {
-    $px = Round($stop - $inc, 102, $inc);
-}
-
-$lastStop = $stop;
-$lastStopSymbol = $mySym;
-
+$qtyProtect = $posNow / 1;
+$qtyProtect = $qtyProtect - ($qtyProtect % 1);
+if ($qtyProtect < 1) { $qtyProtect = 1; }
+if ($qtyProtect > $posNow) { $qtyProtect = $posNow; }
 $s = NewOrderObj();
-$s.Account   = $myAcc;
-$s.Symbol    = $mySym;
-$s.Route     = "STOP";
-$s.Tif       = "DAY+";
-$s.Side      = "S";
-$s.Type      = "SLP";
-$s.StopPrice = $stop;
-$s.Price     = $px;
-$s.Share     = $qtyProtect;
+$s.Account = $trade.account;
+$s.Symbol = $trade.symbol;
+$s.Route = $stopRoute;
+$s.Tif = "DAY+";
+$s.Side = "S";
+$s.Type = $stopType;
+if ($stopType == "SLP") { $s.StopPrice = $stop; }
+$s.Price = $px;
+$s.Share = $qtyProtect;
 $s.Send();
+$trade.active = 1;
+$trade.lastStop = $stop;
+$trade.stopArmed = 1;
+$stopSubmitted = 1;
 
-return;
-
-// ---- End Set Auto Stop BE ----
+ExecHotkey("End Trade Action");

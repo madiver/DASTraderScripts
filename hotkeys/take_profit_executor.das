@@ -1,179 +1,115 @@
-// =====================
-// PARTIAL TAKE-PROFIT EXECUTION (SIZE-AWARE, LONG ONLY)
-// Group: Take profit
-// =====================
-// Uses $takeProfitSize (or rehab size when active) to send a partial TP and re-arm stops/TP based on fill.
-
-// ---- Step 1: Focus Primary_OE ----
-FocusWindow Primary_OE;
-
-// ---- Step 2: Load Primary_OE montage ----
-$M = GetWindowObj("Primary_OE");
-if (!IsObj($M)) {
-    MsgBox("Take_Profit_Executor: montage 'Primary_OE' not found.");
-    return;
-}
-
-// Optional: symbol override via TP_SYMBOL from alert
-$mySym = $M.Symb;
-$myAcc = $M.Account;
-
-$tpSym = GetVar("TP_SYMBOL");
-if ($tpSym == "") { $tpSym = $takeProfitSymbol; }
-if ($tpSym == "") { $tpSym = $mySym; }
-
-// If TP symbol is set and differs from current montage symbol, try to switch
-if ($tpSym != "" && $tpSym != $mySym) {
-    $M.Symb = $tpSym;        // attempt to switch montage symbol
-    Wait(100);               // allow DAS to update
-    $mySym = $M.Symb;
-    $myAcc = $M.Account;
-
-    // Safety: if we still aren't on TP symbol, abort to avoid touching wrong symbol
-    if ($mySym != $tpSym) {
-        MsgBox("TP Executor: failed to switch Primary_OE to " + $tpSym +
-               ". Currently on " + $mySym + ". Aborting.");
-        return;
+// Alerts arriving during a cancel/fill wait are queued on their own trade.
+if (GetVar("tradeActionDepth") * 1 > 0) {
+    $deferAcc = GetVar("TP_ACCOUNT");
+    $deferSym = GetVar("TP_SYMBOL");
+    $deferGen = GetVar("TP_GENERATION") * 1;
+    if (IsObj(GetVar("tradeStates"))) {
+        $deferTrade = $tradeStates.Get($deferAcc + "|" + $deferSym);
+        if (IsObj($deferTrade)) {
+            if ($deferTrade.active == 1 && $deferTrade.generation == $deferGen) {
+                $deferTrade.deferredTp = 1;
+            }
+        }
     }
-}
-
-$takeProfitSymbol = $mySym;
-
-// Load position from the (possibly updated) montage
-$posNow = $M.Pos;
-
-// Safety: make sure account is valid
-if ($myAcc == "") {
-    MsgBox("Take_Profit_Executor: Account is blank on Primary_OE. Aborting.");
+    SetVar("TP_ACCOUNT", "");
+    SetVar("TP_SYMBOL", "");
+    SetVar("TP_GENERATION", "");
     return;
 }
-
-// LONG-ONLY: No long position? Exit.
-if ($posNow <= 0) {
+$tradeActionDepth = 1;
+$tradeActionUntil = GetSecond() + 30;
+// Group: Take profit
+// LONG ONLY. Alert payload supplies the account and symbol, never the active montage.
+$execAccount = StrTrim("" + GetVar("TP_ACCOUNT"));
+$execSymbol = StrTrim("" + GetVar("TP_SYMBOL"));
+$execGeneration = GetVar("TP_GENERATION") * 1;
+SetVar("TP_ACCOUNT", "");
+SetVar("TP_SYMBOL", "");
+SetVar("TP_GENERATION", "");
+if ($execAccount == "" || $execSymbol == "" || $execGeneration <= 0) {
+    MsgLog("Alert ignored: missing account/symbol/trade generation. Recreate legacy alerts.");
+    ExecHotkey("End Trade Action");
     return;
 }
-
-// ---- Step 3: Cancel existing SELL orders ----
-$accObj = GetAccountObj($myAcc);
-$accObj.CancelOrder("SELL", $mySym, 0);
-
-// Let cancels register
+SetVar("TRADE_CONTEXT_ACCOUNT", $execAccount);
+SetVar("TRADE_CONTEXT_SYMBOL", $execSymbol);
+ExecHotkey("Load Trade Context");
+if ($tradeContextValid != 1 || $tradePositionValid != 1) {
+    ExecHotkey("End Trade Action");
+    return;
+}
+if ($trade.generation != $execGeneration || $trade.active != 1 || $posNow <= 0) {
+    ExecHotkey("End Trade Action");
+    return;
+}
+$trade.stopArmed = 0;
+$tradeAccountObj.CancelOrder("SELL", $trade.symbol, 0);
 Wait(300);
-
-// Re-read live position after cancels (in case something changed)
-$posNow = $M.Pos;
-if ($posNow <= 0) {
-    // Flat now (maybe stop filled while we were messing around) -> nothing to do
+ExecHotkey("Read Trade Position");
+if ($tradePositionValid != 1 || $posNow <= 0) {
+    ExecHotkey("End Trade Action");
     return;
 }
-
-// ---- Step 4: Compute shares to take ----
-// Resolve TP size (rehab vs normal).
 $tpSize = $takeProfitSize;
 $isLive = 0;
 if (StrLen($myAcc) > 0 && StrFind($myAcc, "TR") != 0) { $isLive = 1; }
-if ($rehab == 1 && ($isLive == 1 || $applyLiveGuardsToSim == 1)) {
-    $tpSize = $takeProfitSizeRehab;
-}
-
-$tpRaw   = ($posNow * $tpSize);
-$takeQty = Round($tpRaw, 102, 1);      // nearest whole share
-
-// Clamp: never more than current position
+if ($rehab == 1 && ($isLive == 1 || $applyLiveGuardsToSim == 1)) { $tpSize = $takeProfitSizeRehab; }
+$takeQty = $posNow * $tpSize;
+$takeQty = $takeQty - ($takeQty % 1);
+if ($takeQty < 1) { $takeQty = 1; }
 if ($takeQty > $posNow) { $takeQty = $posNow; }
-
-// Must take at least 1 share if position exists
-if ($takeQty < 1) { $takeQty = $posNow; }
-
-// ---- Step 5: Compute exit price ----
-$px = $M.Bid;
-
-// Tick-size handling
+if ($tradeBid <= 0) {
+    ExecHotkey("End Trade Action");
+    return;
+}
 $inc = 0.01;
-if ($px < 1)    { $inc = 0.001; }
-if ($px < 0.25) { $inc = 0.0005; }
-$px = Round($px, 102, $inc);
-
-// ---- Step 6: Send TP order ----
+if ($tradeBid < 1) { $inc = 0.001; }
+if ($tradeBid < 0.25) { $inc = 0.0005; }
+$px = Round($tradeBid, 102, $inc);
 $order = NewOrderObj();
-$order.Account = $myAcc;  
-$order.Symbol  = $mySym;
-$order.Side    = "S";     
-$order.Type  = "L";
+$order.Account = $trade.account;
+$order.Symbol = $trade.symbol;
+$order.Side = "S";
+$order.Type = "L";
 $order.Price = $px;
 $order.Share = $takeQty;
-$order.Route = $orderRoute;     
-$order.Tif   = "DAY+";
+$order.Route = $orderRoute;
+$order.Tif = "DAY+";
 $order.Send();
-
-// ---- Step 7: Poll for fill ----
-$pollMs          = 100;
-$maxPolls      = 30;      // up to ~3s total
-$filledState     = 0;       // 0 = none, 1 = full, 2 = partial
-
-$i = 0;
-while ($i < $maxPolls) {
-    Wait($pollMs);
-    $order.GetInfo();    // refresh order object
-
-    // FULL fill: no remaining open shares on this TP order
-    if ($order.Open == 0) {
-        $filledState = 1;
-        break;
-    }
-
-    $i = $i + 1;
+$tpStartPos = $posNow;
+$tpPoll = 0;
+while ($tpPoll < 30) {
+    Wait(100);
+    ExecHotkey("Read Trade Position");
+    if ($tradePositionValid == 1 && $posNow <= $tpStartPos - $takeQty) { break; }
+    $tpPoll = $tpPoll + 1;
 }
-
-// After polling, classify final state based on what we see
-$filledQty = $order.Share - $order.Open;  // how many filled so far
-
-if ($filledState != 1) {
-    if ($filledQty > 0 && $order.Open > 0) {
-        $filledState = 2;   // partial fill
-    } else {
-        $filledState = 0;   // no fill
-    }
+// Cancel any residual sell before re-arming; open=0 alone can mean rejection.
+$order.Cancel();
+ExecHotkey("Read Trade Position");
+if ($tradePositionValid != 1) {
+    ExecHotkey("End Trade Action");
+    return;
 }
-
-// Optional debug
-// MsgBox("FilledState=" + $filledState + "  FilledQty=" + $filledQty +
-//        "  Share=" + $order.Share + "  Open=" + $order.Open);
-
-// Optional: small throttle between orders
-$elapsed = $i * $pollMs;
-if ($elapsed < 200) {
-    Wait(200 - $elapsed);
-}
-
-// ---- Step 8: Re-arm stop and TP trigger ----
-
-// Behavior:
-// - Full fill (filledState == 1): re-arm BE stop only.
-// - No fill or partial fill: re-arm 1R stop and TP trigger (if enabled).
+if ($posNow <= 0) { ExecHotkey("Clear Trade State"); ExecHotkey("End Trade Action"); return; }
+$tpFullFill = 0;
+if ($posNow <= $tpStartPos - $takeQty) { $tpFullFill = 1; }
+$trade.entryLastPos = $posNow;
 if ($useAutoStop == "Yes") {
-
-    if ($filledState == 1) {
-        // FULL TP fill -> lock remaining at BE
-        $tpSymbol = $mySym;
+    if ($tpFullFill == 1) {
+        SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
+        SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
         ExecHotkey("Set Auto Stop BE 1/1");
-        $tpSymbol = "";
     } else {
-        // No fill OR partial fill -> re-arm original 1R stop
+        SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
+        SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
         ExecHotkey("Set Auto Stop");
     }
 }
-
-// ---- Step 9: Re-establish take profit alert (if needed) ----
-// Only when we did NOT get a FULL TP fill
-Wait(2000);
-if ($useTakeProfit == "Yes") {
-    if ($filledState != 1) {
-        ExecHotkey("Set Take Profit");
-    }
+if ($useTakeProfit == "Yes" && $tpFullFill != 1) {
+    SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
+    SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
+    ExecHotkey("Set Take Profit");
 }
 
-// Clear TP symbol marker to avoid stale overrides
-SetVar("TP_SYMBOL", "");
-
-// ---- End Take Profit Executor ----
+ExecHotkey("End Trade Action");
