@@ -2,6 +2,11 @@
 // Only call for a confirmed flat/short context with no pending long entry.
 if ($tradeContextValid != 1 || $tradePositionValid != 1 || $posNow > 0) { return; }
 if ($trade.entryPending == 1 && $posNow == 0) { return; }
+// Stop timer-owned partial exits before a manual cancel/emergency action.
+if ($trade.exitPending == 1 && IsObj($trade.exitOrder)) { $trade.exitOrder.Cancel(); }
+$trade.exitPending = 0;
+$trade.exitStage = 0;
+$trade.exitOrder = 0;
 if ($trade.tpName != "") {
     $cleanupAlert = GetAlertObj($trade.tpName);
     if (IsObj($cleanupAlert)) { $cleanupAlert.Delete(); }

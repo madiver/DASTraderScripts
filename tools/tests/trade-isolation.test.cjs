@@ -34,17 +34,19 @@ function translate(s) {
 }
 function runtime() {
   const r = {positions:new Map(), quotes:new Map(), alerts:new Map(), orders:[], cancels:[], logs:[],
-    missing:new Set(), waitHook:null, sendHook:null, account:'LIVE', symbol:'AAA', secondary:null};
+    missing:new Set(), waitHook:null, sendHook:null, cancelHook:null, account:'LIVE', symbol:'AAA', secondary:null,
+    seconds:36000, waits:[], montageQuotes:new Map(), calls:{window:0,position:0,quote:0}};
+  r.cancel=o=>{o.canceled=true;if(r.cancelHook)r.cancelHook(o);else o.Open=0;};
   const key = (a,s) => a+'|'+s;
   r.position = (a,s,share,avg=10) => r.positions.set(key(a,s),object({Share:share,AvgCost:avg}));
   r.quote = (s,bid=10,ask=10.02,last=10) => r.quotes.set(s,object({Bid:bid,Ask:ask,Last:last}));
   r.select = (a,s) => {r.account=a;r.symbol=s;};
   r.state = (a,s) => r.ctx.$tradeStates.Get(key(a,s));
-  r.bind = (a,s) => {r.ctx.TRADE_CONTEXT_ACCOUNT=a;r.ctx.TRADE_CONTEXT_SYMBOL=s;};
+  r.bind = (a,s) => {r.ctx.SetVar('TRADE_CONTEXT_ACCOUNT',a);r.ctx.SetVar('TRADE_CONTEXT_SYMBOL',s);};
   const montage = secondary => new Proxy({}, {
     get(_t,k) {
       const a=secondary?r.secondary?.account:r.account, s=secondary?r.secondary?.symbol:r.symbol;
-      const p=r.positions.get(key(a,s)), q=r.quotes.get(s);
+      const p=r.positions.get(key(a,s)), q=r.montageQuotes.get(s)||r.quotes.get(s);
       switch(String(k).toLowerCase()) {
         case 'account':return a; case 'symb':return s;
         case 'pos':return Math.abs(p?.Share||0); case 'avgcost':return p?.AvgCost||0;
@@ -60,25 +62,31 @@ function runtime() {
     NewUserObj:userObject, IsObj:v=>v!==null && (typeof v==='object' || typeof v==='function'),
     StrTrim:s=>String(s).trim(), StrLen:s=>String(s).length, StrFind:(s,p)=>String(s).indexOf(p),
     MsgBox:s=>r.logs.push(s), MsgLog:s=>r.logs.push(s), Speak:()=>{}, LockAllMontage:()=>{},
-    GetWindowObj:n=>n==='Primary_OE'?primary:n==='Secondary_OE' && r.secondary?secondary:0,
+    GetWindowObj:n=>{r.calls.window++;return n==='Primary_OE'?primary:n==='Secondary_OE' && r.secondary?secondary:0;},
     GetAccountObj:a=>r.missing.has(a)?0:object({
-      GetPosition:s=>r.missing.has(key(a,s))?0:r.positions.get(key(a,s))||0,
+      GetPosition:s=>{r.calls.position++;return r.missing.has(key(a,s))?0:r.positions.get(key(a,s))||0;},
       CancelOrder:(f,s,p)=>{r.cancels.push({account:a,symbol:s,flag:f});
         for(const o of r.orders) if(o.Account===a && o.Symbol===s &&
-          (f==='BUY|SELL'||f==='BUY'&&o.Side==='B'||f==='SELL'&&o.Side==='S')) o.canceled=true;
+          (f==='BUY|SELL'||f==='BUY'&&o.Side==='B'||f==='SELL'&&o.Side==='S')) r.cancel(o);
       }
     }),
-    GetQuoteObj:s=>r.quotes.get(s)||0, GetSecond:()=>r.seconds ?? 36000,
+    GetQuoteObj:s=>{r.calls.quote++;return r.quotes.get(s)||0;}, GetSecond:()=>Math.floor(r.seconds)%86400,
+    GetOrderObj:filter=>{
+      const fields=Object.fromEntries(filter.split(',').map(s=>s.split('=')));
+      const min=Number(filter.match(/RefNum>(\d+)/)?.[1]||0);
+      return r.orders.filter(o=>o.Account===fields.Acc&&o.Symbol===fields.Symb&&o.RefNum>min)
+        .sort((a,b)=>a.RefNum-b.RefNum)[0]||0;
+    },
     Round:(n,prec,inc)=>prec===102?Math.round(n/inc)*inc:Math.round(n*10**prec)/10**prec,
-    Wait:ms=>{if(r.waitHook) r.waitHook(ms);}, FocusWindow:()=>{},
+    Wait:ms=>{r.waits.push(ms);r.seconds+=ms/1000;if(r.waitHook) r.waitHook(ms);}, FocusWindow:()=>{},
     NativeCancel:()=>{throw new Error('Unscoped native cancellation');},
     NativeReverse:()=>{
       const pos=r.positions.get(key(r.account,r.symbol))?.Share||0;
       r.orders.push(object({Account:r.account,Symbol:r.symbol,Side:pos<0?'B':'S',Share:ctx.Share,Price:ctx.Price,Route:ctx.ROUTE}));
     },
     NewOrderObj:()=>{
-      let o=object({Open:1, Send(){o.Open=o.Share;r.orders.push(o);if(r.sendHook)r.sendHook(o);},
-        Cancel(){o.canceled=true;},GetInfo(){}});return o;
+      let o=object({Open:1, Send(){o.Open=o.Share;o.RefNum=r.orders.length+1;r.orders.push(o);if(r.sendHook)r.sendHook(o);},
+        Cancel(){r.cancel(o);},GetInfo(){}});return o;
     },
     NewAlertObj:()=>{
       let al=object({AddItem(field,op,px){al.condition={field,op,px};},Save(){r.alerts.set(al.Name,al);},Delete(){r.alerts.delete(al.Name);}});
@@ -94,7 +102,7 @@ function runtime() {
   ctx.ExecHotkey=ctx.ExecHotKey=label=>{assert(scripts.has(label),'Unknown hotkey: '+label);r.runFile(scripts.get(label));};
   r.run=ctx.ExecHotkey;
   r.execute=s=>vm.runInContext(translate(s),ctx,{timeout:1000});
-  r.tick=()=>r.runFile('other scripts/timer.das');
+  r.tick=()=>{r.seconds+=1;r.runFile('other scripts/timer.das');};
   r.run('Set Global Variables');r.quote('AAA');r.position('LIVE','AAA',0);
   return r;
 }
@@ -274,6 +282,193 @@ test('queued GTFO keeps its account/symbol even if the montage changes again',()
 test('Show Config reports account shares and does not read removed runtime variables',()=>{
   const r=runtime();r.position('LIVE','AAA',-100);r.availableOverride=0;r.run('Show Config');
   assert(r.logs.some(s=>s.includes('Account signed shares: -100')));assert.equal(r.ctx.$tradeActionDepth,0);
+});
+for(const label of ['Sell 1/2 Ask','Sell 1/4 Ask','Sell 1/2 Bid-','Sell 1/4 Bid-']) {
+  test(label+' yields immediately and protects actual remaining shares on timer',()=>{
+    const r=runtime();r.position('LIVE','AAA',101);r.run(label);
+    const exit=r.orders[0];assert.equal(exit.Share,label.includes('1/2')?50:25);
+    assert.deepEqual(r.waits,[100]);assert.equal(r.ctx.$tradeActionDepth,0);
+    r.position('LIVE','AAA',101-exit.Share);exit.Open=0;
+    r.select('TRSIM','SHORT');r.position('TRSIM','SHORT',-75);r.quote('SHORT');
+    r.tick();const stop=r.orders.at(-1);
+    assert.equal(stop.Type,'SLP');assert.equal(stop.Share,101-exit.Share);
+    assert.equal(stop.Account,'LIVE');assert.equal(stop.Symbol,'AAA');
+    assert.equal(r.state('LIVE','AAA').exitPending,0);assert.deepEqual(r.waits,[100]);
+  });
+}
+test('no-fill partial exit times out without blocking GTFO or timer with Wait',()=>{
+  const r=runtime();r.position('LIVE','AAA',100);r.run('Sell 1/2 Ask');const exit=r.orders[0];
+  r.tick();assert.equal(r.orders.length,1);r.tick();
+  assert(exit.canceled);assert.equal(r.orders.at(-1).Share,100);
+  assert.equal(r.state('LIVE','AAA').exitPending,0);assert.deepEqual(r.waits,[100]);
+});
+test('delayed residual cancellation holds protection until acknowledgment',()=>{
+  const r=runtime();r.position('LIVE','AAA',100);r.run('Sell 1/2 Bid-');const exit=r.orders[0];
+  r.position('LIVE','AAA',80);exit.Open=30;r.cancelHook=()=>{};
+  r.tick();r.tick();r.tick();assert.equal(r.orders.length,1);
+  assert.equal(r.state('LIVE','AAA').exitPending,1);
+  // Late fill while cancel is pending: protection must use the resulting size.
+  r.position('LIVE','AAA',70);exit.Open=0;r.tick();
+  assert.equal(r.orders.at(-1).Share,70);assert.equal(r.state('LIVE','AAA').exitPending,0);
+});
+test('GTFO immediately interrupts a timer-owned partial; it never rearms later',()=>{
+  const r=runtime();r.position('LIVE','AAA',100);r.run('Sell 1/2 Ask');const exit=r.orders[0];
+  r.run('GTFO');assert(exit.canceled);assert.equal(r.orders.at(-1).Share,100);
+  const n=r.orders.length;for(let i=0;i<5;i++)r.tick();assert.equal(r.orders.length,n);
+  assert.equal(r.state('LIVE','AAA').exitPending,0);assert.deepEqual(r.waits,[100,100]);
+});
+test('Cancel All No Stops prevents timer-owned exit from resurrecting protection',()=>{
+  const r=runtime();r.position('LIVE','AAA',100);r.run('Sell 1/2 Bid-');r.run('Cancel All No Stops');
+  const n=r.orders.length;for(let i=0;i<5;i++)r.tick();assert.equal(r.orders.length,n);
+  assert.equal(r.state('LIVE','AAA').exitPending,0);assert.equal(r.alerts.size,0);
+});
+test('backstop supersedes pending TP exit without a later timer rearm',()=>{
+  const r=runtime();r.position('LIVE','AAA',100);r.run('Set Auto Stop');r.run('Set Backstop Trigger');r.run('Set Take Profit');
+  const backstop=r.alerts.get('Backstop LIVE AAA'), tp=[...r.alerts.values()].find(a=>a.Name.startsWith('TP '));
+  r.execute(tp.Script);const partial=r.orders.at(-1);assert.equal(r.state('LIVE','AAA').exitPending,1);
+  r.execute(backstop.Script);assert(partial.canceled);assert.equal(r.orders.at(-1).Share,100);
+  assert.equal(r.state('LIVE','AAA').exitPending,0);
+  const n=r.orders.length;r.tick();r.tick();assert.equal(r.orders.length,n);
+});
+test('unacknowledged exit cancellation logs once and keeps GTFO available',()=>{
+  const r=runtime();r.position('LIVE','AAA',100);r.run('Sell 1/2 Ask');r.cancelHook=()=>{};
+  for(let i=0;i<32;i++)r.tick();
+  assert.equal(r.logs.filter(s=>s.includes('Exit cancellation still pending')).length,1);
+  assert.equal(r.orders.length,1);assert.equal(r.ctx.$tradeActionDepth,0);
+  r.run('GTFO');assert.equal(r.orders.at(-1).Share,100);
+});
+test('pending exit blocks duplicate partial, same-symbol entry and manual stop',()=>{
+  const r=runtime();r.position('LIVE','AAA',100);r.run('Sell 1/2 Ask');
+  const n=r.orders.length,c=r.cancels.length;
+  r.run('Sell 1/4 Bid-');r.run('Buy MIB Bid SL');r.run('Set Auto Stop');r.run('Set Take Profit');
+  assert.equal(r.orders.length,n);assert.equal(r.cancels.length,c);assert.equal(r.ctx.$tradeActionDepth,0);
+});
+test('flat or reversed position during pending exit never receives a new SELL stop',()=>{
+  for(const size of [0,-25]) {
+    const r=runtime();r.position('LIVE','AAA',100);r.run('Sell 1/2 Ask');r.position('LIVE','AAA',size);
+    r.tick();assert.equal(r.orders.length,1);assert.equal(r.state('LIVE','AAA').active,0);
+    assert(r.orders[0].canceled);
+  }
+});
+test('missing position data still cancels a timed-out exit but does not invent protection',()=>{
+  const r=runtime();r.position('LIVE','AAA',100);r.run('Sell 1/2 Ask');
+  r.missing.add('LIVE|AAA');r.select('TRSIM','SHORT');r.position('TRSIM','SHORT',-100);r.quote('SHORT');
+  r.tick();r.tick();assert(r.orders[0].canceled);assert.equal(r.orders.length,1);
+  assert.equal(r.state('LIVE','AAA').exitPending,1);
+  r.missing.clear();r.position('LIVE','AAA',85);r.tick();assert.equal(r.orders.at(-1).Share,85);
+});
+test('timer-owned exits are independent for the same symbol in two accounts',()=>{
+  const r=runtime();r.position('LIVE','AAA',100);r.run('Sell 1/2 Ask');const a=r.orders[0];
+  r.select('TRSIM','AAA');r.position('TRSIM','AAA',200);r.run('Sell 1/4 Bid-');const b=r.orders[1];
+  r.position('LIVE','AAA',50);a.Open=0;r.position('TRSIM','AAA',150);b.Open=0;r.tick();
+  const stops=r.orders.filter(o=>o.Type==='SLP');assert.equal(stops.length,2);
+  assert.equal(stops.find(o=>o.Account==='LIVE').Share,50);assert.equal(stops.find(o=>o.Account==='TRSIM').Share,150);
+});
+test('LOAD CFG retains pending exit order and timer resumes it',()=>{
+  const r=runtime();r.position('LIVE','AAA',100);r.run('Sell 1/2 Ask');const t=r.state('LIVE','AAA');
+  r.run('Set Global Variables');assert.equal(t.exitPending,1);assert.equal(t.exitOrder,r.orders[0]);
+  r.position('LIVE','AAA',50);r.orders[0].Open=0;r.tick();assert.equal(t.exitPending,0);
+});
+test('retained legacy context initializes performance fields on its first timer visit',()=>{
+  const r=runtime();r.position('LIVE','AAA',100);r.run('Set Auto Stop');const t=r.state('LIVE','AAA');
+  t.Del('performanceStateVersion');delete t.exitPending;r.tick();
+  assert.equal(t.exitPending,0);assert.equal(t.Get('performanceStateVersion'),1);
+  assert.equal(t.lastStop,9.8);
+});
+test('cancel acknowledgment with a final fill uses a fresh TP position delta',()=>{
+  const r=runtime();r.position('LIVE','AAA',100);r.quote('AAA',10.5,10.52,10.5);r.run('Set Take Profit');
+  const al=[...r.alerts.values()][0];r.execute(al.Script);r.position('LIVE','AAA',80);
+  r.cancelHook=o=>{o.Open=0;r.position('LIVE','AAA',50);};
+  r.tick();r.tick();r.tick();assert.equal(r.orders.at(-1).Share,50);
+  assert.equal(r.orders.at(-1).StopPrice,10.03);
+});
+test('TP full fill uses BE, while partial fill or rejection restores fixed stop and TP',()=>{
+  for(const remaining of [50,80,100]) {
+    const r=runtime();r.position('LIVE','AAA',100);r.quote('AAA',10.5,10.52,10.5);
+    r.run('Set Take Profit');const al=[...r.alerts.values()][0];r.alerts.delete(al.Name);
+    r.execute(al.Script);const exit=r.orders[0];r.execute(al.Script);assert.equal(r.orders.length,1);
+    assert.deepEqual(r.waits,[300]);assert.equal(r.ctx.$tradeActionDepth,0);
+    r.position('LIVE','AAA',remaining);exit.Open=0;r.tick();
+    assert.equal(r.orders.at(-1).Share,remaining);
+    assert.equal(r.orders.at(-1).StopPrice,remaining===50?10.03:9.8);
+    assert.equal(r.alerts.size,remaining===50?0:1);assert.deepEqual(r.waits,[300]);
+  }
+});
+test('exit timeout handles midnight rollover',()=>{
+  const r=runtime();r.seconds=86399;r.position('LIVE','AAA',100);r.run('Sell 1/2 Ask');
+  r.tick();assert.equal(r.orders.length,1);r.tick();assert(r.orders[0].canceled);
+  assert.equal(r.orders.at(-1).Type,'SLP');
+});
+test('fresh entry arms stop and TP on first fill tick without cancelling SELLs',()=>{
+  const r=runtime();r.run('Buy MIB Bid SL');r.orders[0].Open=0;r.position('LIVE','AAA',100);
+  r.tick();assert.equal(r.orders.at(-1).Type,'SLP');assert.equal(r.alerts.size,1);
+  assert(!r.cancels.some(c=>c.flag==='SELL'));assert.deepEqual(r.waits,[]);
+});
+test('fresh entry with a working manual SELL preserves cancellation staging',()=>{
+  const r=runtime();const old=r.ctx.NewOrderObj();old.Account='LIVE';old.Symbol='AAA';old.Side='S';old.Share=100;old.Send();
+  r.run('Buy MIB Bid SL');r.position('LIVE','AAA',100);r.tick();
+  assert(old.canceled);assert(!r.orders.some(o=>o.Type==='SLP'));r.tick();
+  assert.equal(r.orders.at(-1).Type,'SLP');
+});
+test('scale-in keeps separate cancel and protection ticks',()=>{
+  const r=runtime();r.position('LIVE','AAA',100);r.quote('AAA',10.3,10.32,10.3);r.run('Set Auto Stop');
+  r.run('Buy MIB Bid SL');r.position('LIVE','AAA',200,10.15);const n=r.orders.length;r.tick();
+  assert.equal(r.orders.length,n);r.tick();assert.equal(r.orders.at(-1).Share,200);
+});
+test('bounded order history fails conservatively to normal entry staging',()=>{
+  const r=runtime();for(let i=0;i<201;i++){
+    const o=r.ctx.NewOrderObj();o.Account='LIVE';o.Symbol='AAA';o.Side='B';o.Share=1;o.Send();o.Open=0;
+  }
+  r.run('Buy MIB Bid SL');r.position('LIVE','AAA',100);const n=r.orders.length;r.tick();
+  assert.equal(r.orders.length,n);r.tick();assert.equal(r.orders.at(-1).Type,'SLP');
+});
+test('late entry fill after first fast stop is still detected and resized',()=>{
+  const r=runtime();r.run('Buy MIB Bid SL');r.position('LIVE','AAA',40);r.tick();
+  assert.equal(r.orders.at(-1).Share,40);r.position('LIVE','AAA',100);r.tick();r.tick();
+  assert.equal(r.orders.at(-1).Share,100);
+});
+test('inline entry skips padding but rejects an immediate second entry until cooldown',()=>{
+  const r=runtime();r.ctx.$useTimerArming=0;r.sendHook=o=>{if(o.Side==='B'){r.position('LIVE','AAA',100);o.Open=0;}};
+  r.run('Buy MIB Bid SL');assert.deepEqual(r.waits,[100,350]);
+  r.quote('AAA',10.3,10.32,10.3);r.run('Check Global Guards');assert.equal(r.ctx.$trade_ok,0);
+  r.seconds=36001;r.run('Check Global Guards');assert.equal(r.ctx.$trade_ok,1);
+  assert(!r.waits.includes(1000));
+});
+test('entry cooldown is independent by account and rolls across midnight',()=>{
+  const r=runtime();r.ctx.$useTimerArming=0;r.run('Check Global Guards');r.state('LIVE','AAA').lastEntrySecond=86400;
+  r.seconds=86399;r.run('Check Global Guards');assert.equal(r.ctx.$trade_ok,0);
+  r.select('TRSIM','AAA');r.position('TRSIM','AAA',0);r.run('Check Global Guards');assert.equal(r.ctx.$trade_ok,1);
+  r.select('LIVE','AAA');r.seconds=86400;r.run('Check Global Guards');assert.equal(r.ctx.$trade_ok,1);
+});
+test('ten idle timer ticks fetch only fresh positions; no quote or montage lookups',()=>{
+  const r=runtime();r.position('LIVE','AAA',100);r.run('Set Auto Stop');
+  r.calls={window:0,position:0,quote:0};r.waits=[];
+  for(let i=0;i<10;i++)r.tick();
+  assert.deepEqual(r.calls,{window:0,position:10,quote:0});assert.deepEqual(r.waits,[]);
+});
+test('full reader skips montage fallback for complete account and quote data',()=>{
+  const r=runtime();r.run('Check Global Guards');r.calls={window:0,position:0,quote:0};
+  r.run('Read Trade Position');assert.deepEqual(r.calls,{window:0,position:1,quote:1});
+});
+test('position-only reader clears stale quotes and its mode cannot leak',()=>{
+  const r=runtime();r.run('Check Global Guards');r.run('Read Position Only');assert.equal(r.ctx.$tradeBid,0);
+  r.run('Read Trade Position');assert.equal(r.ctx.$tradeBid,10);
+  r.bind('LIVE','');r.run('Load Position Context');assert.equal(r.ctx.$tradeContextValid,0);
+  r.run('Load Trade Context');assert.equal(r.ctx.$tradeBid,10);
+});
+test('missing quote still uses matching montage fallback without crossing contexts',()=>{
+  const r=runtime();r.run('Check Global Guards');r.quotes.delete('AAA');
+  r.montageQuotes.set('AAA',object({Bid:10.1,Ask:10.12,Last:10.1}));r.run('Read Trade Position');
+  assert.equal(r.ctx.$tradeBid,10.1);assert.equal(r.ctx.$posNow,0);assert.equal(r.ctx.$tradePositionValid,1);
+  r.select('TRSIM','SHORT');r.position('TRSIM','SHORT',-100);r.quote('SHORT',50,50.02,50);
+  r.run('Read Trade Position');assert.equal(r.ctx.$tradeBid,0);assert.equal(r.ctx.$posNow,0);
+});
+for(const label of buyLabels) test(label+' inline protection has no throttle padding',()=>{
+  const r=runtime();r.ctx.$useTimerArming=0;r.sendHook=o=>{
+    if(o.Side==='B'){r.position(o.Account,o.Symbol,o.Share,o.Price);o.Open=0;}
+  };
+  r.run(label);assert.deepEqual(r.waits,[100,350]);
+  assert.equal(r.orders.at(-1).Type,'SLP');assert.equal(r.orders.at(-1).Share,r.orders[0].Share);
 });
 // Syntax-check all mapped scripts after translating native DAS statements.
 for(const f of new Set(scripts.values())) new vm.Script('(function(){'+translate(fs.readFileSync(path.join(root,f),'utf8'))+'})()',{filename:f});

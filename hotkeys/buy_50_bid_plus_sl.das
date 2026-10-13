@@ -41,7 +41,6 @@ $roundedShares = $rawShares + 0.5;
 $addShares = $roundedShares - ($roundedShares % 1);
 if ($addShares < 1) { MsgBox("ABORTED: Invalid buy_50 share size."); ExecHotkey("End Trade Action"); return; }
 $refPx             = BID;             // BID or ASK
-$minDelayMs  = 1000;           // throttle between order sends (ms)
 
 // ---- Max position size guard ----
 if ($maxPositionSize > 0) {
@@ -208,6 +207,7 @@ $order.Side    = "B";      // Buy
 $order.Type    = "L";      // Limit
 $order.Price   = $pxEntry;
 $order.Share   = $addShares;
+$trade.lastEntrySecond = GetSecond() + 1;
 $order.Send();
 $trade.entryPending = 1;
 $trade.entryWatch = 0;
@@ -229,7 +229,7 @@ $filledQty = 0;
 while ($i < $maxPolls && $filled == 0) {
     Wait($pollMs);
     $order.GetInfo();                        // refresh order object
-    ExecHotkey("Read Trade Position");
+    ExecHotkey("Read Position Only");
     $filledQty = 0;
     if ($tradePositionValid == 1) { $filledQty = $posNow - $posBefore; }
     if ($filledQty >= $addShares) { $filled = 1; break; }
@@ -237,11 +237,6 @@ while ($i < $maxPolls && $filled == 0) {
     $i = $i + 1;
 }
 
-// Throttle between orders
-$elapsed = $i * $pollMs;
-if ($elapsed < $minDelayMs) {
-    Wait($minDelayMs - $elapsed);
-}
 
 // Cancel remaining entry shares before sizing protection from actual fills.
 $order.Cancel();

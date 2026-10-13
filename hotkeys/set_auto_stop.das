@@ -19,6 +19,11 @@ if ($posNow <= 0) {
     ExecHotkey("End Trade Action");
     return;
 }
+if ($trade.exitPending == 1 && $stopTimer != 1) {
+    MsgLog("Exit still pending; protection is managed by the timer.");
+    ExecHotkey("End Trade Action");
+    return;
+}
 // Validate price inputs before removing existing protection.
 if ($avgNow <= 0) {
     ExecHotkey("End Trade Action");

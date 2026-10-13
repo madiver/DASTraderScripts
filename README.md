@@ -44,7 +44,7 @@ Serious about day trading? You can find me on Discord here:  https://discord.gg/
 2. Ensure `keymap.yaml` is present at the repo root.
 3. Run `DAS: Build Hotkey File`.
 4. Use the generated `output.htk` in DAS Trader.
-5. For the account/symbol isolation upgrade, also replace the installed Timer Event Script with `other scripts/timer.das`, run Set Global Variables, and recreate existing legacy TP/backstop alerts.
+5. For this performance upgrade, also replace the installed Timer Event Script with `other scripts/timer.das` and run Set Global Variables. The updated timer is required for TP and manual partial exits even when entry arming is inline. Recreate any legacy symbol-only TP/backstop alerts.
 
 ## Momo coordinated swap
 
@@ -62,13 +62,24 @@ Momo uses this fixed shortcut automatically. See [Momo swap setup](USERGUIDE.md#
   section headers in `keymap.yaml` for easier organization).
 - With `$useTimerArming = 1` (default), buy hotkeys return immediately after
   sending the order and the timer calls `Timer Entry Handler` to arm stop/TP on
-  subsequent ticks. If position size increases on later ticks, the handler
+  fill ticks. A clean fresh entry can arm its stop and TP on the first tick
+  that sees a fill; existing SELL orders and scale-ins retain a separate cancel
+  tick before stop submission. If position size increases on later ticks, the handler
   re-arms the stop (cancels existing sells first) and re-arms TP only when the
   TP reset conditions are met.
   If no fill appears within `$entryMaxTicks`, the handler cancels the working
   buy order. Install `other scripts/timer.das` in DAS Trader's Timer Event Scripts and keep
   `hotkeys/timer_entry_handler.das` in your keymap; set `$useTimerArming = 0` to
   revert to inline polling.
+- TP and half/quarter manual sells submit their order, then release the action
+  lease. `Timer Exit Handler` monitors actual fills and cancels residual shares
+  at timeout before resizing protection. GTFO and manual cancellation interrupt
+  that pending work. Timer processing is required in both entry modes.
+- Inline entries use a per-account/symbol second-based cooldown before another
+  entry, instead of padding the wait before protecting a filled position.
+- Routine timer and fill checks read fresh signed positions without fetching
+  quotes. Full price reads use montage fallback only when needed; disabled hijack
+  protection does no timer work.
 - A manual backstop alert can be armed for fast flushes; it uses L1 Bid
   triggers and sends aggressive limit exits via `$gtfoRoute` (see USERGUIDE).
 

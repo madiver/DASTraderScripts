@@ -46,6 +46,12 @@ if ($trade.backstopArmed != 1 || $trade.backstopRetries <= 0) {
     ExecHotkey("End Trade Action");
     return;
 }
+// Stop timer-owned partial exits before a manual cancel/emergency action.
+if ($trade.exitPending == 1 && IsObj($trade.exitOrder)) { $trade.exitOrder.Cancel(); }
+$trade.exitPending = 0;
+$trade.exitStage = 0;
+$trade.exitOrder = 0;
+$trade.entryWatch = 0;
 $trade.backstopRetries = $trade.backstopRetries - 1;
 $trade.stopArmed = 0;
 $tradeAccountObj.CancelOrder("SELL", $trade.symbol, 0);

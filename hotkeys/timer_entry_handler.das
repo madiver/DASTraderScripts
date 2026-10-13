@@ -1,7 +1,8 @@
 // Group: Utilities & toggles
 // Process one explicitly bound trade. The outer timer visits every active context.
-ExecHotkey("Load Trade Context");
+ExecHotkey("Load Position Context");
 if ($tradeContextValid != 1 || $tradePositionValid != 1) { return; }
+if ($trade.exitPending == 1) { return; }
 if ($posNow < 0) {
     // A former long was reversed manually: never arm a SELL against the short.
     if ($trade.entryPending == 1) { $tradeAccountObj.CancelOrder("BUY", $mySym, 0); }
@@ -41,12 +42,22 @@ if ($posNow <= 0) {
     return;
 }
 if ($trade.entryStage == 1) {
+    $entryNeedsCancel = 0;
     if ($useAutoStop == "Yes") {
+        // Fast-path only a fresh entry with no working SELLs. Scale-ins and
+        // late fills retain separate cancellation and stop-submission ticks.
+        $entryNeedsCancel = 1;
+        if ($trade.entryPosBefore == 0 && $trade.entryScaleIn == 0 && $trade.stopArmed == 0) {
+            ExecHotkey("Check Working Sells");
+            if ($workingSells == 0) { $entryNeedsCancel = 0; }
+        }
+    }
+    if ($entryNeedsCancel == 1) {
         $trade.stopArmed = 0;
         $tradeAccountObj.CancelOrder("SELL", $mySym, 0);
     }
     $trade.entryStage = 2;
-    return;
+    if ($entryNeedsCancel == 1) { return; }
 }
 if ($trade.entryStage == 2) {
     if ($useAutoStop == "Yes") {
@@ -65,9 +76,10 @@ if ($trade.entryStage == 2) {
         if ($stopSubmitted != 1) { return; }
     }
     $trade.entryStage = 3;
-    return;
 }
 if ($trade.entryStage == 3) {
+    ExecHotkey("Read Trade Position");
+    if ($tradePositionValid != 1 || $posNow <= 0) { return; }
     if ($useTakeProfit == "Yes") {
         $doTp = 0;
         if ($trade.entryPosBefore <= 0 || $trade.entryAvgBefore <= 0 || $tradeBid <= $trade.entryAvgBefore) { $doTp = 1; }

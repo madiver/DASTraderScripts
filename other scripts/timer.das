@@ -8,7 +8,7 @@ if (GetVar("tradeActionDepth") * 1 > 0) {
     $tradeActionDepth = 0;
     ExecHotkey("End Trade Action");
 }
-ExecHotkey("Hijack Exit");
+if ($hijackProtection == 1) { ExecHotkey("Hijack Exit"); }
 if (!IsObj(GetVar("tradeSlots"))) { return; }
 $timerTradeIndex = 0;
 while ($timerTradeIndex < $tradeSlotCount) {
@@ -17,7 +17,13 @@ while ($timerTradeIndex < $tradeSlotCount) {
         if ($timerTrade.active == 1 || $timerTrade.entryPending == 1) {
             SetVar("TRADE_CONTEXT_ACCOUNT", $timerTrade.account);
             SetVar("TRADE_CONTEXT_SYMBOL", $timerTrade.symbol);
-            ExecHotkey("Timer Entry Handler");
+            // Legacy contexts are migrated by Load Trade Context; do not read
+            // a newly introduced property before that migration has run.
+            $timerHasExit = 0;
+            if ($timerTrade.Get("performanceStateVersion") == 1) { $timerHasExit = $timerTrade.exitPending; }
+            if ($timerHasExit == 1) {
+                ExecHotkey("Timer Exit Handler");
+            } else { ExecHotkey("Timer Entry Handler"); }
             if ($timerTrade.deferredTp == 1) {
                 $timerTrade.deferredTp = 0;
                 SetVar("TP_ACCOUNT", $timerTrade.account);

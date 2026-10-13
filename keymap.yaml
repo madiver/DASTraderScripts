@@ -402,3 +402,23 @@
   key:
   label: Invalidate Trade Alerts
   scriptPath: hotkeys/invalidate_trade_alerts.das
+
+- id: load_position_context
+  key:
+  label: Load Position Context
+  scriptPath: hotkeys/load_position_context.das
+
+- id: read_position_only
+  key:
+  label: Read Position Only
+  scriptPath: hotkeys/read_position_only.das
+
+- id: check_working_sells
+  key:
+  label: Check Working Sells
+  scriptPath: hotkeys/check_working_sells.das
+
+- id: timer_exit_handler
+  key:
+  label: Timer Exit Handler
+  scriptPath: hotkeys/timer_exit_handler.das

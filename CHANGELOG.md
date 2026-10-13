@@ -4,6 +4,12 @@ All notable changes to this repository will be documented in this file.
 
 ## 0.3.3 - Unreleased
 
+### Performance
+- Move TP and half/quarter manual-exit fill polling to account/symbol-scoped timer stages. Preserve the initial cancellation settling waits (TP 300 ms, manual partial 100 ms), confirm residual-order closure before replacing protection, and size replacement stops from fresh signed positions. GTFO, cancellation, full exits, and backstop actions interrupt pending partial-exit automation.
+- Arm clean fresh entries on the first filled-position timer tick when no working SELL is found. Keep separate cancellation staging for existing SELLs and scale-ins, and continue retrying missing position/average data.
+- Remove the inline-entry 1,000 ms padding wait before stop arming. Enforce a configurable per-account/symbol entry cooldown before a subsequent inline buy using the DAS second clock, including midnight rollover.
+- Add position-only reads for routine timer and entry-fill polling, skip unnecessary montage fallback, and skip disabled hijack checks. Expand the in-memory regression model to cover asynchronous exits, cancellation acknowledgments, timeout rollover, and lookup/wait counts.
+
 ### Features
 - Add a FLASH1L limit order route preset, bound to `Alt+Ctrl+Win+F4`, and a fourth option with orange text on the existing route button in both Stream Deck profiles.
 - Add a BESTL limit order route preset, bound to `Alt+Ctrl+Win+4`, alongside ARCA1L and FREE1L. Update the existing route button on both physical and Virtual Stream Deck profiles to cycle through all three routes.

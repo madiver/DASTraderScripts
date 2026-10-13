@@ -18,6 +18,18 @@ if ($trade.entryPending == 1) {
     MsgBox("Entry already pending for " + $myAcc + " " + $mySym + ".");
     return;
 }
+if ($trade.exitPending == 1) {
+    MsgLog("Entry blocked: partial exit still pending for " + $trade.key + ".");
+    return;
+}
+if ($useTimerArming != 1 && $entryCooldownSeconds > 0 && $trade.lastEntrySecond > 0) {
+    $entryElapsed = GetSecond() - ($trade.lastEntrySecond - 1);
+    if ($entryElapsed < 0) { $entryElapsed = $entryElapsed + 86400; }
+    if ($entryElapsed < $entryCooldownSeconds) {
+        MsgLog("Entry cooldown active for " + $trade.key + "; retry next second.");
+        return;
+    }
+}
 $guardIndex = 0;
 while ($guardIndex < $tradeSlotCount) {
     $guardOther = $tradeSlots.Get($guardIndex);

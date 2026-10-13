@@ -17,6 +17,11 @@ if ($posNow <= 0) {
     ExecHotkey("End Trade Action");
     return;
 }
+if ($trade.exitPending == 1) {
+    MsgLog("Partial exit already pending; use GTFO or Cancel All to interrupt.");
+    ExecHotkey("End Trade Action");
+    return;
+}
 ExecHotkey("Invalidate Trade Alerts");
 $trade.stopArmed = 0;
 $tradeAccountObj.CancelOrder("BUY|SELL", $trade.symbol, 0);
@@ -50,33 +55,17 @@ $order.Type = "L";
 $order.Price = $px;
 $order.Share = $qty;
 $order.Send();
-// Partial exits cancel the residual before resizing long protection.
-$sellPoll = 0;
-$sellStartPos = $posNow;
-while ($sellPoll < $maxPolls) {
-    Wait($pollMs);
-    ExecHotkey("Read Trade Position");
-    if ($tradePositionValid == 1 && $posNow <= $sellStartPos - $qty) { break; }
-    $sellPoll = $sellPoll + 1;
-}
-$order.Cancel();
-ExecHotkey("Read Trade Position");
-if ($tradePositionValid != 1) {
-    ExecHotkey("End Trade Action");
-    return;
-}
-if ($posNow <= 0) { ExecHotkey("Clear Trade State"); ExecHotkey("End Trade Action"); return; }
-$trade.entryLastPos = $posNow;
-$trade.entryWatch = 1;
-if ($useAutoStop == "Yes") {
-    SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
-    SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
-    ExecHotkey("Set Auto Stop");
-}
-if ($useTakeProfit == "Yes") {
-    SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
-    SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
-    ExecHotkey("Set Take Profit");
-}
-
+// Monitor fills on timer ticks; release the action lease immediately.
+$trade.exitPending = 1;
+$trade.exitStage = 1;
+$trade.exitOrder = $order;
+$trade.exitGeneration = $trade.generation;
+$trade.exitStartPos = $posNow;
+$trade.exitQty = $qty;
+$trade.exitStarted = GetSecond();
+$trade.exitTimeout = ($maxPolls * $pollMs) / 1000;
+$trade.exitIsTp = 0;
+$trade.exitFullFill = 0;
+$trade.exitCancelWarned = 0;
+$trade.active = 1;
 ExecHotkey("End Trade Action");

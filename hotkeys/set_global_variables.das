@@ -22,6 +22,7 @@ $useTimerArming = 1;
 $tradeActionDepth = 0; // recover any interrupted action when configuration is loaded
 $tradeActionUntil = 0;
 $timerMode = 0;         // internal flag for timer-triggered hotkeys
+$entryCooldownSeconds = 1; // inline entry pacing; GetSecond has 1-second resolution
 $entryMaxTicks = 10;    // timeout while waiting for a fill
 $HIJACKED_LOCKED = 0;
 $trade_ok = 1;
@@ -32,6 +33,7 @@ if (!IsObj(GetVar("tradeStates"))) {
     $tradeSlots = NewUserObj();
     $tradeSlotCount = 0;
 }
+SetVar("TRADE_POSITION_ONLY", 0);
 SetVar("TRADE_CONTEXT_ACCOUNT", "");
 SetVar("TRADE_CONTEXT_SYMBOL", "");
 

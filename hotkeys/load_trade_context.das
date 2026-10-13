@@ -1,6 +1,8 @@
 // Group: Utilities & toggles
 // Internal context selector. Overrides are consumed once; never changes a montage.
 $tradeContextValid = 0;
+$tcPositionOnly = GetVar("TRADE_POSITION_ONLY") * 1;
+SetVar("TRADE_POSITION_ONLY", 0);
 $tcAccount = StrTrim("" + GetVar("TRADE_CONTEXT_ACCOUNT"));
 $tcSymbol = StrTrim("" + GetVar("TRADE_CONTEXT_SYMBOL"));
 SetVar("TRADE_CONTEXT_ACCOUNT", "");
@@ -45,6 +47,22 @@ if (!IsObj($trade)) {
     $trade.backstopStop = 0;
     $tradeStates.Set($tcKey, $trade);
 }
+// Initialize new fields once, including contexts retained by LOAD CFG.
+if ($trade.Get("performanceStateVersion") != 1) {
+    $trade.exitPending = 0;
+    $trade.exitStage = 0;
+    $trade.exitOrder = 0;
+    $trade.exitGeneration = 0;
+    $trade.exitStartPos = 0;
+    $trade.exitQty = 0;
+    $trade.exitStarted = 0;
+    $trade.exitTimeout = 0;
+    $trade.exitIsTp = 0;
+    $trade.exitFullFill = 0;
+    $trade.exitCancelWarned = 0;
+    $trade.lastEntrySecond = 0;
+    $trade.Set("performanceStateVersion", 1);
+}
 // Reuse inactive slots; DAS limits each while loop to 200 iterations.
 if ($trade.listed != 1) {
     $tcSlot = 0;
@@ -69,4 +87,5 @@ if ($trade.listed != 1) {
 $myAcc = $trade.account;
 $mySym = $trade.symbol;
 $tradeContextValid = 1;
+SetVar("TRADE_POSITION_ONLY", $tcPositionOnly);
 ExecHotkey("Read Trade Position");

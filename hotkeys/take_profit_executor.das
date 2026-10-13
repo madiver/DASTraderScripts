@@ -42,6 +42,7 @@ if ($trade.generation != $execGeneration || $trade.active != 1 || $posNow <= 0) 
     ExecHotkey("End Trade Action");
     return;
 }
+if ($trade.exitPending == 1) { ExecHotkey("End Trade Action"); return; }
 $trade.stopArmed = 0;
 $tradeAccountObj.CancelOrder("SELL", $trade.symbol, 0);
 Wait(300);
@@ -76,40 +77,18 @@ $order.Share = $takeQty;
 $order.Route = $orderRoute;
 $order.Tif = "DAY+";
 $order.Send();
-$tpStartPos = $posNow;
-$tpPoll = 0;
-while ($tpPoll < 30) {
-    Wait(100);
-    ExecHotkey("Read Trade Position");
-    if ($tradePositionValid == 1 && $posNow <= $tpStartPos - $takeQty) { break; }
-    $tpPoll = $tpPoll + 1;
-}
-// Cancel any residual sell before re-arming; open=0 alone can mean rejection.
-$order.Cancel();
-ExecHotkey("Read Trade Position");
-if ($tradePositionValid != 1) {
-    ExecHotkey("End Trade Action");
-    return;
-}
-if ($posNow <= 0) { ExecHotkey("Clear Trade State"); ExecHotkey("End Trade Action"); return; }
-$tpFullFill = 0;
-if ($posNow <= $tpStartPos - $takeQty) { $tpFullFill = 1; }
-$trade.entryLastPos = $posNow;
-if ($useAutoStop == "Yes") {
-    if ($tpFullFill == 1) {
-        SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
-        SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
-        ExecHotkey("Set Auto Stop BE 1/1");
-    } else {
-        SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
-        SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
-        ExecHotkey("Set Auto Stop");
-    }
-}
-if ($useTakeProfit == "Yes" && $tpFullFill != 1) {
-    SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
-    SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
-    ExecHotkey("Set Take Profit");
-}
-
+// Monitor the submitted order without holding the global action lease.
+$trade.exitPending = 1;
+$trade.exitStage = 1;
+$trade.exitOrder = $order;
+$trade.exitGeneration = $trade.generation;
+$trade.exitStartPos = $posNow;
+$trade.exitQty = $takeQty;
+$trade.exitStarted = GetSecond();
+$trade.exitTimeout = 3;
+$trade.exitIsTp = 1;
+$trade.exitFullFill = 0;
+$trade.exitCancelWarned = 0;
+$trade.entryPending = 0;
+$trade.entryWatch = 0;
 ExecHotkey("End Trade Action");

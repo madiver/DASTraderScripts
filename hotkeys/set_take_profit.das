@@ -8,6 +8,7 @@ if ($tradeActionDepth == 1) { $tradeActionUntil = GetSecond() + 30; }
 // Group: Take profit
 // Account-bound, generation-bound LONG take-profit alert. Never changes UI focus.
 $tpCreated = 0;
+$tpTimer = $timerMode;
 $timerMode = 0;
 ExecHotkey("Load Trade Context");
 if ($tradeContextValid != 1 || $tradePositionValid != 1) {
@@ -15,6 +16,10 @@ if ($tradeContextValid != 1 || $tradePositionValid != 1) {
     return;
 }
 if ($posNow <= 0 || $avgNow <= 0) {
+    ExecHotkey("End Trade Action");
+    return;
+}
+if ($trade.exitPending == 1 && $tpTimer != 1) {
     ExecHotkey("End Trade Action");
     return;
 }

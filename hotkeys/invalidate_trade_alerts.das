@@ -1,6 +1,11 @@
 // Group: Utilities & toggles
 // Internal: suspend entry staging and invalidate alerts for a manual cancel/exit.
 if ($tradeContextValid != 1 || !IsObj($trade)) { return; }
+// Stop timer-owned partial exits before a manual cancel/emergency action.
+if ($trade.exitPending == 1 && IsObj($trade.exitOrder)) { $trade.exitOrder.Cancel(); }
+$trade.exitPending = 0;
+$trade.exitStage = 0;
+$trade.exitOrder = 0;
 if ($trade.tpName != "") {
     $invalidateAlert = GetAlertObj($trade.tpName);
     if (IsObj($invalidateAlert)) { $invalidateAlert.Delete(); }

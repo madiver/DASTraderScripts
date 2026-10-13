@@ -28,7 +28,9 @@ Regardless of the method you choose, the timer script must be installed manually
 
 Important: update `$TRSIM` and `$LIVEACT` in `hotkeys/set_global_variables.das` with your actual account identifiers if they are not already populated (they are shown in the config display for reference). Hijack protection defaults to off (`$hijackProtection = 0`); set it to `1` to enable it. `$applyLiveGuardsToSim` controls whether enabled live-only guards (hijack, rehab) also apply in SIM; it defaults to `0`. Set it to `1` to apply those enabled guards in SIM. Also verify that any `%%SIMULATED%%` and `%%LIVE%%` placeholders have been replaced in the SIM/LIVE switch scripts (the VS Code extension handles this during build; if you copy scripts manually, you must replace them yourself).
 
-By default (`$useTimerArming = 1`), a buy hotkey sends the limit order, records entry context, and returns immediately. A timer-driven handler then waits for a fill and arms stop loss / take profit on subsequent 1-second ticks. If position size increases on later ticks, the handler cancels existing sell orders, re-arms the stop, and only re-arms TP when the TP reset conditions are met. If no fill appears within `$entryMaxTicks`, the handler cancels the working buy order and clears the pending state. If `$useTimerArming = 0`, the buy hotkey polls for a fill up to `$maxPolls * $pollMs`; if nothing fills, the order is canceled and the script exits without arming any protection. If a partial fill meets `$minFillShares`, the remainder is canceled (when enabled) and the scripts proceed as if the trade is active, using the average entry price for subsequent calculations.
+By default (`$useTimerArming = 1`), a buy hotkey sends the limit order, records entry context, and returns immediately. A timer-driven handler arms stop loss / take profit on the first 1-second tick that sees a clean fresh fill. If there are working SELLs, or this is a scale-in, it cancels existing SELLs and submits replacement protection on a subsequent tick. A bounded order-history check falls back to ordinary cancellation staging if it cannot prove that no working SELL exists. If position size increases on later ticks, the handler resizes the stop and only re-arms TP when the TP reset conditions are met. If no fill appears within `$entryMaxTicks`, it cancels the working buy order and clears pending state. With `$useTimerArming = 0`, buy hotkeys poll for actual fills up to `$maxPolls * $pollMs` and cancel any remainder before protecting shares received. They do not add the former 1,000 ms padding wait before protection. A second inline buy in the same account/symbol is blocked during `$entryCooldownSeconds` instead; this uses whole-second clock values, not millisecond precision.
+
+TP and half/quarter manual exits always use timer-managed fill monitoring, regardless of `$useTimerArming`. Keep the current Timer Event Script installed and enabled in both entry modes.
 
 Stops are placed as STOP/SLP orders routed to the broker, which means the stop logic lives on the broker side once submitted. Take-profit is implemented with DAS alerts that fire when price reaches the configured R target and then execute the Take Profit hotkey; those alerts are client-side and require DAS to remain open with live data.
 
@@ -97,7 +99,11 @@ Sizing and risk limits:
 Order fill polling:
 - `$pollMs`: polling interval in milliseconds.
 - `$maxPolls`: maximum number of polls before canceling an unfilled order.
-  These are used when `$useTimerArming = 0`.
+  Inline buys use these directly; manual partial exits use their product as a
+  timeout in seconds, checked on timer ticks. TP has a fixed three-second timeout.
+- `$entryCooldownSeconds`: minimum difference between whole-second send timestamps
+  for inline entries in the same account/symbol (default `1`; `0` disables it).
+  This guard returns immediately and does not delay stop arming.
 
 Trade runtime (each `$trade` belongs to exactly one account and symbol):
 - `$trade.account`, `$trade.symbol`, `$trade.key`: immutable order identity.
@@ -110,8 +116,16 @@ Trade runtime (each `$trade` belongs to exactly one account and symbol):
 - `$trade.backstopArmed`, `$trade.backstopRetries`, `$trade.backstopStop`: independent backstop state.
 - `$trade.generation`: identifies the current trade/alert lifecycle; canceled or old-trade alert payloads cannot act on a new position.
 - `$trade.deferredTp`, `$trade.deferredBackstop`: queued alert actions while another script is waiting.
+- `$trade.exitPending`, `$trade.exitStage`, `$trade.exitOrder`: timer-owned partial
+  exit, canceled by GTFO or a manual full exit/cancellation.
+- `$trade.exitStartPos`, `$trade.exitQty`, `$trade.exitGeneration`: actual starting
+  position, requested reduction, and lifecycle identity for that exit.
+- `$trade.exitStarted`, `$trade.exitTimeout`: second-clock fill deadline, including
+  midnight rollover. Timeout is acted on at the next available timer tick.
+- `$trade.lastEntrySecond`: encoded inline-entry send timestamp, retained through
+  flat cleanup and configuration reload so rapid retries still honor cooldown.
 
-The timer reads signed `GetAccountObj(account).GetPosition(symbol).Share`, including shares reserved by working orders. Montage `.Pos` and native `Pos` are absolute quantities; `GetCurrPos()` can temporarily be zero while shares are reserved. Missing position data fails closed, and a missing off-montage position record is not assumed flat. A matching Primary/Secondary montage can confirm flat or supply signed fallback data. Stops wait for a valid average cost, and alerts require valid quotes for market-priced exits.
+The timer reads signed `GetAccountObj(account).GetPosition(symbol).Share`, including shares reserved by working orders. Routine checks fetch position/average data without quotes; order pricing fetches fresh quotes when needed. Montage `.Pos` and native `Pos` are absolute quantities; `GetCurrPos()` can temporarily be zero while shares are reserved. Missing position data fails closed, and a missing off-montage position record is not assumed flat. Primary/Secondary montages are examined only when required data is missing, and must match both account and symbol. Stops wait for a valid average cost, and alerts require valid quotes for market-priced exits.
 
 `Set Global Variables` resets configuration and the action lease but preserves initialized trade objects. Restarting DAS clears this client-side registry. Recreate TP/backstop alerts after a restart or upgrading legacy scripts. Existing broker orders are not reconstructed into runtime state automatically; use the stop/alert hotkeys to manage an already-open long.
 
@@ -181,6 +195,7 @@ baseline values when you run "Set Global Variables."
 | Limits | `$riskCapDollars` | `2000.00` |
 | Polling | `$pollMs` | `100` |
 | Polling | `$maxPolls` | `20` |
+| Polling | `$entryCooldownSeconds` | `1` (inline entries, whole-second clock) |
 
 For manual SIM diagnostics, set `$testMode = 1` to run buy hotkeys through
 non-market guard checks only (no order is sent). Set it back to `0` or run
@@ -286,6 +301,9 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Win+H` | `hotkeys/enable_rehab_mode.das` | Toggle rehab mode (YES to disable). |
 | Unbound | `hotkeys/hijack_exit.das` | Hijack guard exit/lock enforcement (timer-only). |
 | Unbound | `hotkeys/timer_entry_handler.das` | Timer-driven stop/TP arming for entries. |
+| Unbound | `hotkeys/timer_exit_handler.das` | Monitor partial exits and restore protection after confirmed residual cancellation. |
+| Unbound | `hotkeys/load_position_context.das`, `hotkeys/read_position_only.das` | Fresh context/position reads without quotes. |
+| Unbound | `hotkeys/check_working_sells.das` | Bounded working-order check for clean fresh-entry stop arming. |
 | Unbound | `hotkeys/load_trade_context.das`, `hotkeys/read_trade_position.das` | Select an account/symbol trade and read signed position/quote data. |
 | Unbound | `hotkeys/clear_trade_state.das`, `hotkeys/invalidate_trade_alerts.das` | Clean up one closed trade or suspend its automation for a manual cancel/exit. |
 | Unbound | `hotkeys/build_backstop_alert.das`, `hotkeys/end_trade_action.das` | Account-bound backstop builder and action lease release. |
@@ -417,16 +435,23 @@ route behavior, and applicable short-sale restrictions with the broker.
 
 Sell hotkeys are designed for manual partials and exits on long positions. They
 cancel existing orders for the symbol to avoid conflicting routes, then send a
-limit order. Partial sell hotkeys re-arm stops/TP after a full fill so the
-remaining position stays protected.
+limit order. Half/quarter sell hotkeys retain their 100 ms cancellation-settle
+wait, submit the order, and return. The timer watches actual fills, cancels any
+residual shares at timeout, and waits for that order's open quantity to reach zero
+before re-arming stops/TP for the actual remaining long. An order with zero open
+shares alone is not proof of a fill. Missing position/average data postpones
+protection rather than inventing a quantity or price.
 
 ### Standard sell orders
 
 - Ask sells place a limit order at the current Ask (price first).
 - Bid- sells place a limit order at Bid minus `$exitOffset` (fill priority).
 - Bid- prices are snapped to valid tick sizes and clamped to non-negative values.
-- After a full fill on partial sells, the scripts re-arm `Set Auto Stop` and
-  `Set Take Profit` if those features are enabled.
+- After a full fill, partial fill, rejection, or timeout on half/quarter sells,
+  the timer restores `Set Auto Stop` and `Set Take Profit` when enabled and a
+  remaining long is confirmed. These stages never use `Wait`.
+- Another partial, buy, or manual stop/TP adjustment in the same context is
+  blocked until the exit finishes. GTFO, full exits, and Cancel All interrupt it.
 
 ### Break-even stop losses / sell orders
 
@@ -495,7 +520,11 @@ When the alert fires, `Take Profit Executor`:
 - Sells a partial position sized by `$takeProfitSize` (default 50%), or
   `$takeProfitSizeRehab` (also default 50%) when rehab is active in LIVE and in
   SIM when `$applyLiveGuardsToSim = 1`.
-- Re-arms stops and (if needed) re-establishes the TP alert after the fill.
+- Returns after submission, retaining only its initial 300 ms cancellation wait.
+  The timer monitors fills for three seconds and confirms residual cancellation
+  before resizing protection. A full requested reduction moves protection to BE;
+  a partial fill, rejection, or timeout restores the fixed stop and TP alert for
+  the remaining long. GTFO or manual cancellation can interrupt these stages.
 
 TP and backstop alert names include account and symbol. Their scripts carry both identifiers and the trade generation; executors consume that payload, validate a current long, and recheck its signed size after cancellation waits. Cleanup deletes only alerts belonging to a confirmed flat/short trade. An unknown position does not clear another trade's protection.
 
@@ -550,7 +579,7 @@ Reset behavior:
 
 ## TIMER SCRIPT
 
-`other scripts/timer.das` runs every second. It enforces optional hijack protection on Primary_OE, visits every active account/symbol context for entry staging and cleanup, and executes deferred alerts once cancel/fill actions finish. It does not switch a montage or clear trade state merely because Primary_OE shows another symbol.
+`other scripts/timer.das` runs every second. It enforces hijack protection on Primary_OE only when enabled, visits every active account/symbol context for entry or partial-exit staging and cleanup, and executes deferred alerts once cancel/fill actions finish. Pending exits suspend entry-watch rearming until they finish or are interrupted. It does not switch a montage or clear trade state merely because Primary_OE shows another symbol.
 
 Installation: replace the Timer Event Script with the complete current `other scripts/timer.das`; the hotkey compiler does not install it automatically. Recompile/reload the entire canonical keymap so all internal helpers exist, then run Set Global Variables. The short action lease pauses timer work during waits and expires after 30 seconds to recover an interrupted script. Pressing a second manual trading action during an active action logs a retry message instead of overwriting its context. GTFO is preserved as a queued emergency request and executes for its saved account/symbol as soon as the running action finishes.
 
@@ -603,10 +632,20 @@ UI and convenience:
 Fast entry and exit are important to my strategy, so reducing latency matters.
 These scripts still introduce small delays because they wait to confirm fills
 and enforce guard rails. With `$useTimerArming = 1`, entry hotkeys return
-immediately, but stops/TP are armed on the next timer tick, so there can be a
-brief unprotected window (normally up to two timer ticks after the fill, plus DAS processing and any running action). Missing average-cost data postpones arming further. Set
+immediately. A clean fresh fill can arm stops/TP on the first timer tick that
+observes it; replacing existing SELLs or scaling in takes a separate cancel tick.
+There remains an unprotected window during staging, plus DAS processing and any
+running action. Missing average-cost data postpones arming further. Set
 `$useTimerArming = 0` and tune `$pollMs` and `$maxPolls` if you prefer inline
 polling and more immediate protection.
+
+Half/quarter exits and TP monitor fills on timer ticks instead of holding the
+global action lease for two or three seconds. The timer interval still affects
+when residual orders are canceled and remaining shares receive protection.
+Delayed cancellation acknowledgment extends that window; after 30 seconds the
+handler logs it once and continues waiting. GTFO remains available between ticks.
+These performance changes were verified with the in-memory regression model;
+check order status, stop acceptance, and route behavior in DAS SIM separately.
 
 ### Waiting for fills on buy orders
 
