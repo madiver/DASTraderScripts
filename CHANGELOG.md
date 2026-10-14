@@ -11,6 +11,7 @@ All notable changes to this repository will be documented in this file.
 - Add position-only reads for routine timer and entry-fill polling, skip unnecessary montage fallback, and skip disabled hijack checks. Expand the in-memory regression model to cover asynchronous exits, cancellation acknowledgments, timeout rollover, and lookup/wait counts.
 
 ### Features
+- Insert a duplicate of short-entry page 3 as page 4 in the physical and Virtual Stream Deck profiles, moving settings to page 5. Replace the copied Bid shorts with Tier 1–4 Bid- hotkeys (`Alt+Ctrl+Shift+Win+H/J/K/L`) using the signed `$entryBidOffset`, preserving all five quantity states and the original page.
 - Add a FLASH1L limit order route preset, bound to `Alt+Ctrl+Win+F4`, and a fourth option with orange text on the existing route button in both Stream Deck profiles.
 - Add a BESTL limit order route preset, bound to `Alt+Ctrl+Win+4`, alongside ARCA1L and FREE1L. Update the existing route button on both physical and Virtual Stream Deck profiles to cycle through all three routes.
 - Add Tier 1–4 short-at-Bid hotkeys (`Alt+Ctrl+Shift+H/J/K/L`) and full/half/quarter cover-at-Bid hotkeys (`Alt+Ctrl+Shift+N/B/V`), all with no offset. Add matching buttons to page 3 of both Stream Deck profiles, including all five multiplier states for Bid shorts.

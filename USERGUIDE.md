@@ -4,7 +4,7 @@
 
 These scripts are the hotkeys I use in DAS Trader for active, discretionary day trading. They focus on fast, repeatable order entry with guard rails. I treat the micro ice breaker and ice breaker (Buy MIB/IB) entries as the first tests of a trade thesis. Automated long trade state is isolated by account and symbol, so a manually managed short in another symbol can coexist with an automated long. The default single-position guard allows one tracked automated long per account; manual shorts do not occupy that guard.
 
-The automated entry-protection workflow is designed for LONG positions only. Fourteen manual hotkeys support Tier 1–4 shorts at Ask or Bid and full, half, or quarter covers at Bid or Ask plus the exit offset; they do not arm long stop loss, take profit, or entry staging. All cancellations are scoped to the selected account and symbol. Long buy, sell, stop, TP, and backstop actions reject short positions rather than using absolute montage size as direction. A long buy on the same account/symbol as a short is blocked; use Cover to reduce that short.
+The automated entry-protection workflow is designed for LONG positions only. Eighteen manual hotkeys support Tier 1–4 shorts at Ask, Bid, or Bid minus the entry offset and full, half, or quarter covers at Bid or Ask plus the exit offset; they do not arm long stop loss, take profit, or entry staging. All cancellations are scoped to the selected account and symbol. Long buy, sell, stop, TP, and backstop actions reject short positions rather than using absolute montage size as direction. A long buy on the same account/symbol as a short is blocked; use Cover to reduce that short.
 
 Repository structure: the `hotkeys/` folder contains the `.das` hotkey scripts, `keymap.yaml` defines the key bindings and metadata, and `other scripts/` contains support scripts like the timer. A `.das` file is plain text you can paste into the DAS Trader Script Editor. The `keymap.yaml` can be compiled into a `Hotkey.htk` using the DAS Hotkey Tools VS Code extension, or you can skip the compiler and copy the scripts manually.
 
@@ -70,7 +70,7 @@ Feature toggles and entry guards:
 - `$useTimerArming`: uses timer-based entry arming (1) or inline polling (0).
 
 Risk and execution:
-- `$entryBidOffset` / `$entryAskOffset`: independent signed offsets for Bid+ / Ask+ buy scripts (defaults: BID `+0.01`, ASK `-0.01`). Negative values price below the corresponding reference quote.
+- `$entryBidOffset` / `$entryAskOffset`: independent signed offsets for Bid+ / Ask+ buys and Bid- shorts (defaults: BID `+0.01`, ASK `-0.01`). Negative values price below the reference quote for buys; Bid- shorts subtract the signed BID offset, so positive values price below Bid and negative values price above it.
 - `$exitOffset`: aggression offset for Bid- long exits and Ask+ short covers, and the limit offset for fixed stops.
 - `$orderRoute`: limit order route for entries/exits (buys/sells/TP/BE). Default is `ARCA1L`. `FREE1L` is the free route for ST Global Market/Open Ocean.
 - Route presets are available for `ARCA1L`, `FREE1L`, `BESTL`, and `FLASH1L`.
@@ -263,6 +263,10 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Shift+J` | `hotkeys/short_tier2_bid.das` | Sell short Tier 2 at bid with no offset or automatic protection. |
 | `Alt+Ctrl+Shift+K` | `hotkeys/short_tier3_bid.das` | Sell short Tier 3 at bid with no offset or automatic protection. |
 | `Alt+Ctrl+Shift+L` | `hotkeys/short_tier4_bid.das` | Sell short Tier 4 at bid with no offset or automatic protection. |
+| `Alt+Ctrl+Shift+Win+H` | `hotkeys/short_tier1_bid_minus.das` | Sell short Tier 1 at bid minus the signed BID entry offset, with no automatic protection. |
+| `Alt+Ctrl+Shift+Win+J` | `hotkeys/short_tier2_bid_minus.das` | Sell short Tier 2 at bid minus the signed BID entry offset, with no automatic protection. |
+| `Alt+Ctrl+Shift+Win+K` | `hotkeys/short_tier3_bid_minus.das` | Sell short Tier 3 at bid minus the signed BID entry offset, with no automatic protection. |
+| `Alt+Ctrl+Shift+Win+L` | `hotkeys/short_tier4_bid_minus.das` | Sell short Tier 4 at bid minus the signed BID entry offset, with no automatic protection. |
 | `Alt+Ctrl+Shift+C` | `hotkeys/cover_1_1_ask.das` | Cover the full short position at ask plus `$exitOffset` using DAS Reverse. |
 | `Alt+Ctrl+Shift+X` | `hotkeys/cover_1_2_ask.das` | Cover half the current position at ask plus `$exitOffset` using DAS Reverse. |
 | `Alt+Ctrl+Shift+Z` | `hotkeys/cover_1_4_ask.das` | Cover a quarter of the current position at ask plus `$exitOffset` using DAS Reverse. |
@@ -347,8 +351,8 @@ the display; order quantities remain the same.
   `$entryAskOffset` to ask. Positive offsets price above the reference quote;
   negative offsets price below it, before tick rounding.
 - Each side has presets for `-0.03`, `-0.02`, `-0.01`, `+0.01`, and `+0.03`. Selecting
-  a preset changes only that side's offset for subsequent buy entries.
-- In the local **DAS Trader** Stream Deck profile, page 4, column 6, the
+  a preset changes that side's offset for subsequent buys; BID OFFSET also sets Bid- short pricing.
+- In the local **DAS Trader** Stream Deck profile, page 5, column 6, the
   Advanced Toggles **BID OFFSET** (row 1) and **ASK OFFSET** (row 2) buttons
   use green and red microchip outlines, respectively, on black backgrounds.
   Both buttons
@@ -399,6 +403,11 @@ route behavior, and applicable short-sale restrictions with the broker.
   `round($tierNShareSize * $qtyMult)` shares. Each hotkey can open a short while
   flat or add its tier to an existing short, but aborts if the current position
   is long or its direction cannot be resolved safely.
+- Page 4 of both Stream Deck profiles duplicates page 3, with the four Bid shorts
+  replaced by `Short T1/T2/T3/T4 Bid-`. These send at `Bid - $entryBidOffset`
+  (default `+0.01`) and share the signed BID OFFSET preset on settings page 5.
+  Positive offsets price below Bid; negative offsets price above it. All five quantity states, Ask shorts, covers,
+  and other controls are copied from page 3. Original plain-Bid shorts remain on page 3.
 - `Cover 1/1 Ask+` cancels working orders for the montage symbol, then uses the
   native `Share=Pos; SEND=Reverse` command at `Ask + $exitOffset`. DAS resolves the position
   quantity and direction internally; for a short it sends a buy for the full
@@ -601,7 +610,7 @@ Safety toggles:
 - `set_order_route_freel.das` sets `$orderRoute` to `FREE1L` (free route for ST Global Market/Open Ocean).
 - `set_order_route_bestl.das` sets `$orderRoute` to `BESTL`.
 - `set_order_route_flash1l.das` sets `$orderRoute` to `FLASH1L`.
-- On page 4 of both the physical and Virtual Stream Deck profiles, the route button cycles through `ARCA1L`, `FREE1L`, `BESTL`, and `FLASH1L` using Advanced Toggles. FLASH1L uses orange text.
+- On page 5 of both the physical and Virtual Stream Deck profiles, the route button cycles through `ARCA1L`, `FREE1L`, `BESTL`, and `FLASH1L` using Advanced Toggles. FLASH1L uses orange text.
 - `toggle_single_position_guard.das` toggles the single-position guard
   (`$singlePositionGuard`).
 - `enable_rehab_mode.das` toggles rehab mode on/off; disabling requires typing `YES`.

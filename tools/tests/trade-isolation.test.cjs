@@ -470,6 +470,40 @@ for(const label of buyLabels) test(label+' inline protection has no throttle pad
   r.run(label);assert.deepEqual(r.waits,[100,350]);
   assert.equal(r.orders.at(-1).Type,'SLP');assert.equal(r.orders.at(-1).Share,r.orders[0].Share);
 });
+
+for(let tier=1;tier<=4;tier++) for(const offset of [-0.03,-0.02,-0.01,0.01,0.03]) {
+  test('Bid- short tier '+tier+' applies signed offset '+offset+' and multiplier',()=>{
+    const r=runtime();r.ctx.$entryBidOffset=offset;r.ctx.$qtyMult=1.5;
+    r.run('Short T'+tier+' Bid-');
+    assert.equal(r.orders.length,1);const o=r.orders[0];
+    assert.equal(o.Side,'SS');assert.equal(o.Type,'L');
+    assert.equal(o.Account,'LIVE');assert.equal(o.Symbol,'AAA');
+    assert.equal(o.Share,[100,200,300,500][tier-1]*1.5);
+    assert(Math.abs(o.Price-(10-offset))<1e-8);
+    assert.equal(r.alerts.size,0);assert.equal(r.ctx.$tradeActionDepth,0);
+  });
+}
+for(let tier=1;tier<=4;tier++) {
+  test('Bid- short tier '+tier+' rejects long before cancellation',()=>{
+    const r=runtime();r.position('LIVE','AAA',100);r.run('Short T'+tier+' Bid-');
+    assert.equal(r.orders.length,0);assert.equal(r.cancels.length,0);
+  });
+}
+test('Bid- short adds to an existing short and uses the quote after cancellation',()=>{
+  const r=runtime();r.position('LIVE','AAA',-50);r.ctx.$entryBidOffset=0.02;
+  r.waitHook=()=>r.quote('AAA',9.9,9.92);r.run('Short T1 Bid-');
+  assert.equal(r.orders.length,1);assert(Math.abs(r.orders[0].Price-9.88)<1e-8);
+});
+test('Bid- short rejects invalid adjusted price and changed montage',()=>{
+  const r=runtime();r.quote('AAA',0.01,0.02);r.ctx.$entryBidOffset=0.03;
+  r.run('Short T1 Bid-');assert.equal(r.orders.length,0);
+  const other=runtime();other.waitHook=()=>other.select('LIVE','BBB');
+  other.run('Short T1 Bid-');assert.equal(other.orders.length,0);
+});
+test('Bid- short rejects missing bid even when a negative offset gives a positive price',()=>{
+  const r=runtime();r.ctx.$entryBidOffset=-0.01;r.waitHook=()=>r.quote('AAA',0,0.02);r.run('Short T1 Bid-');assert.equal(r.orders.length,0);
+});
+
 // Syntax-check all mapped scripts after translating native DAS statements.
 for(const f of new Set(scripts.values())) new vm.Script('(function(){'+translate(fs.readFileSync(path.join(root,f),'utf8'))+'})()',{filename:f});
 console.log(`${count} trade-isolation regression scenarios passed; ${scripts.size} hotkeys parsed.`);

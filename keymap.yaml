@@ -200,6 +200,24 @@
   label: Short T4 Bid
   scriptPath: hotkeys/short_tier4_bid.das
 
+# Short orders: Bid-
+- id: short_tier1_bid_minus
+  key: Alt+Ctrl+Shift+Win+H
+  label: Short T1 Bid-
+  scriptPath: hotkeys/short_tier1_bid_minus.das
+- id: short_tier2_bid_minus
+  key: Alt+Ctrl+Shift+Win+J
+  label: Short T2 Bid-
+  scriptPath: hotkeys/short_tier2_bid_minus.das
+- id: short_tier3_bid_minus
+  key: Alt+Ctrl+Shift+Win+K
+  label: Short T3 Bid-
+  scriptPath: hotkeys/short_tier3_bid_minus.das
+- id: short_tier4_bid_minus
+  key: Alt+Ctrl+Shift+Win+L
+  label: Short T4 Bid-
+  scriptPath: hotkeys/short_tier4_bid_minus.das
+
 # Cover orders: Ask+
 - id: cover_1_1_ask
   key: Alt+Ctrl+Shift+C

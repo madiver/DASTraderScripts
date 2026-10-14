@@ -99,7 +99,7 @@ Example:
 Current groups used in `hotkeys/`:
 Buy orders: Ask SL, Buy orders: Ask+ SL, Buy orders: Bid SL, Buy orders: Bid+ SL,
 Cover orders: Ask+, Global controls & config, Sell orders: Ask, Sell orders: Bid-,
-Short orders: Ask, Stops, Take profit, Utilities & toggles.
+Short orders: Ask, Short orders: Bid, Short orders: Bid-, Stops, Take profit, Utilities & toggles.
 
 ## Scaling Behavior
 
@@ -112,6 +112,7 @@ Short orders: Ask, Stops, Take profit, Utilities & toggles.
 ## Manual Shorting
 
 - `Short T1/T2/T3/T4 Ask/Bid` sends `round($tierNShareSize * $qtyMult)` shares as an explicit sell-short limit order at the selected quote, with no offset. These hotkeys can open a short or add to an existing short, but reject long positions.
+- New page 4 duplicates page 3 on both Stream Deck profiles, with Tier 1–4 `BID-` short buttons using `Bid - $entryBidOffset` (default `+0.01`, placing the limit one cent below Bid). Plain-Bid shorts stay on page 3, and the settings page moves to page 5. The new short buttons retain all five quantity states.
 - `Cover 1/1 Ask+` cancels current-symbol orders and uses DAS `Share=Pos; SEND=Reverse` at `Ask + $exitOffset`. For a short position, DAS resolves the full quantity and sends a buy without adding past flat.
 - `Cover 1/2 Ask+` and `Cover 1/4 Ask+` use the same pricing and native Reverse behavior for half or a quarter of the current position, rounded down to whole shares with a minimum of one share. Page 3 has Cover 1/4, Cover 1/2, and Cover 1/1 from left to right on both Stream Deck profiles.
 - `Cover 1/1`, `Cover 1/2`, and `Cover 1/4 Bid` use plain Bid with no offset and the same native Reverse quantity behavior. Page 3 places Tier 1–4 Bid shorts across the top right, with quarter/half/full Bid covers on the second row at the left.
