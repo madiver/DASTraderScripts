@@ -33,15 +33,6 @@ if (!IsObj(GetVar("tradeStates"))) {
     $tradeSlots = NewUserObj();
     $tradeSlotCount = 0;
 }
-// Pending exits/requests survive configuration reloads.
-if (!IsObj(GetVar("exitRequests"))) {
-    $exitRequests = NewUserObj();
-    $exitRequestKeys = NewUserObj();
-    $exitRequestCount = 0;
-}
-$exitDraining = 0;
-$exitPollMs = 25;       // responsive cancellation checks; at most 100 ms per action
-$exitPollCount = 4;
 SetVar("TRADE_POSITION_ONLY", 0);
 SetVar("TRADE_CONTEXT_ACCOUNT", "");
 SetVar("TRADE_CONTEXT_SYMBOL", "");

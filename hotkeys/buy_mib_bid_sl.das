@@ -213,7 +213,6 @@ $order.Type    = "L";      // Limit
 $order.Price   = $pxEntry;
 $order.Share   = $addShares;
 $trade.lastEntrySecond = GetSecond() + 1;
-$trade.entryOrder = $order;
 $order.Send();
 $trade.entryPending = 1;
 $trade.entryWatch = 0;

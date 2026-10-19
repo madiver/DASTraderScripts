@@ -3,16 +3,6 @@
 ExecHotkey("Load Position Context");
 if ($tradeContextValid != 1 || $tradePositionValid != 1) { return; }
 if ($trade.exitPending == 1) { return; }
-// Retry a manual stop replacement only after its earlier order is terminal.
-$retryStop = $trade.Get("stopRetry");
-if (StrLen("" + $retryStop) > 1 && $posNow > 0) {
-    $timerMode = 1;
-    SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
-    SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
-    ExecHotkey($retryStop);
-    if ($stopSubmitted == 1) { $trade.Set("stopRetry", ""); }
-    return;
-}
 if ($posNow < 0) {
     // A former long was reversed manually: never arm a SELL against the short.
     if ($trade.entryPending == 1) { $tradeAccountObj.CancelOrder("BUY", $mySym, 0); }

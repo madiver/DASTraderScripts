@@ -440,28 +440,3 @@
   key:
   label: Timer Exit Handler
   scriptPath: hotkeys/timer_exit_handler.das
-
-- id: request_exit
-  key:
-  label: Request Exit
-  scriptPath: hotkeys/request_exit.das
-
-- id: drain_exit_requests
-  key:
-  label: Drain Exit Requests
-  scriptPath: hotkeys/drain_exit_requests.das
-
-- id: process_exit
-  key:
-  label: Process Exit
-  scriptPath: hotkeys/process_exit.das
-
-- id: check_exit_orders
-  key:
-  label: Check Exit Orders
-  scriptPath: hotkeys/check_exit_orders.das
-
-- id: check_order_closed
-  key:
-  label: Check Order Closed
-  scriptPath: hotkeys/check_order_closed.das

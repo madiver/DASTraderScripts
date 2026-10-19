@@ -5,19 +5,20 @@ All notable changes to this repository will be documented in this file.
 ## 0.3.3 - Unreleased
 
 ### Fixes
-- Guard optional exit/request objects in separate blocks so DAS cannot evaluate fields on an idle `0` value. Cover exit prioritization, empty queues, and short-entry checks; make the regression model evaluate both logical operands and report scalar object-field errors.
+- Restore the trading behavior in the supplied `Hotkey-20261015-062456.htk` baseline. Remove the subsequently added overlap coordinator and its tracking/recovery paths, which let rejected `NewOrder` templates block exits from later manual positions. Preserve the baseline $0.50 stop, Bid-minus shorts, public bindings, Stream Deck page work, and earlier performance improvements. Repeated exits again have the baseline overlap risk.
+- Retain the history lookup correction verified on DAS 5.8.4.4: use `RefNum>=nextReference` and initialize the result before each search.
 
 ### Performance
-- Coordinate all manual sells/covers, TP, backstop, hijack, GTFO, and cancellations by account/symbol. Submit immediately when prior orders are confirmed closed; poll cancellation briefly (four 25 ms waits by default), then resume on timer ticks. Retain pending submissions and require terminal status plus zero open quantity before replacement. Repeated presses reprice the outstanding partial target; full exits and GTFO can supersede it without overlapping orders. Covers are short-only, entries are blocked during exits, and delayed stop replacements retry safely.
+- Move TP and half/quarter manual-exit fill polling to account/symbol-scoped timer stages. Preserve the initial cancellation settling waits (TP 300 ms, manual partial 100 ms), confirm residual-order closure before replacing protection, and size replacement stops from fresh signed positions. GTFO, cancellation, full exits, and backstop actions interrupt pending partial-exit automation.
 - Arm clean fresh entries on the first filled-position timer tick when no working SELL is found. Keep separate cancellation staging for existing SELLs and scale-ins, and continue retrying missing position/average data.
 - Remove the inline-entry 1,000 ms padding wait before stop arming. Enforce a configurable per-account/symbol entry cooldown before a subsequent inline buy using the DAS second clock, including midnight rollover.
 - Add position-only reads for routine timer and entry-fill polling, skip unnecessary montage fallback, and skip disabled hijack checks. Expand the in-memory regression model to cover asynchronous exits, cancellation acknowledgments, timeout rollover, and lookup/wait counts.
 
 ### Features
-- Insert a duplicate of short-entry page 3 as page 4 in the physical and Virtual Stream Deck profiles, moving settings to page 5. Replace the copied Bid shorts with Tier 1–4 Bid- hotkeys (`Alt+Ctrl+Shift+Win+H/J/K/L`) using the signed `$entryBidOffset`, preserving all five quantity states and the original page.
+- Insert a duplicate of short-entry page 3 as page 4 in the physical and Virtual Stream Deck profiles, moving settings to page 5. Replace the copied Bid shorts with Tier 1â€“4 Bid- hotkeys (`Alt+Ctrl+Shift+Win+H/J/K/L`) using the signed `$entryBidOffset`, preserving all five quantity states and the original page.
 - Add a FLASH1L limit order route preset, bound to `Alt+Ctrl+Win+F4`, and a fourth option with orange text on the existing route button in both Stream Deck profiles.
 - Add a BESTL limit order route preset, bound to `Alt+Ctrl+Win+4`, alongside ARCA1L and FREE1L. Update the existing route button on both physical and Virtual Stream Deck profiles to cycle through all three routes.
-- Add Tier 1–4 short-at-Bid hotkeys (`Alt+Ctrl+Shift+H/J/K/L`) and full/half/quarter cover-at-Bid hotkeys (`Alt+Ctrl+Shift+N/B/V`), all with no offset. Add matching buttons to page 3 of both Stream Deck profiles, including all five multiplier states for Bid shorts.
+- Add Tier 1â€“4 short-at-Bid hotkeys (`Alt+Ctrl+Shift+H/J/K/L`) and full/half/quarter cover-at-Bid hotkeys (`Alt+Ctrl+Shift+N/B/V`), all with no offset. Add matching buttons to page 3 of both Stream Deck profiles, including all five multiplier states for Bid shorts.
 - Add half and quarter Ask+ cover hotkeys (`Alt+Ctrl+Shift+X` / `Alt+Ctrl+Shift+Z`) with whole-share sizing, and place their buttons to the left of Cover 1/1 on page 3 of both physical and Virtual Stream Deck profiles.
 - Update route codes from `ARCAL` to `ARCA1L`, `FLASHL` to `FLSH1L`, and `FREEL` to `FREE1L`, including route preset hotkeys and physical/Virtual Stream Deck labels.
 - Display full entry-button quantities exceeding three digits on their own line on both physical and Virtual Stream Deck profiles.
@@ -26,10 +27,10 @@ All notable changes to this repository will be documented in this file.
 - Disable position-size hijack protection by default (`$hijackProtection = 0`); set it to `1` to opt in.
 - Add independent Bid+ and Ask+ buy-entry offsets, each with `-0.03`, `-0.02`, `-0.01`, `+0.01`, and `+0.03` presets and a separate five-state Stream Deck toggle reset by LOAD CFG. Defaults are BID `+0.01` and ASK `-0.01` in the scripts and Stream Deck reset actions.
 - Bind the new -2-cent presets to `Alt+Ctrl+Shift+Win+5` (BID) and `Alt+Ctrl+Shift+Win+F5` (ASK), and insert them between -3 and -1 cents on the page 4 Stream Deck buttons.
-- Add configurable tier base sizes—`$tier1ShareSize` 100 (MIB), `$tier2ShareSize` 200 (IB), `$tier3ShareSize` 300 (`buy_25_*`), and `$tier4ShareSize` 500 (`buy_50_*`)—scaled together by `$qtyMult` (default `1.0`).
+- Add configurable tier base sizesâ€”`$tier1ShareSize` 100 (MIB), `$tier2ShareSize` 200 (IB), `$tier3ShareSize` 300 (`buy_25_*`), and `$tier4ShareSize` 500 (`buy_50_*`)â€”scaled together by `$qtyMult` (default `1.0`).
 - Add hotkey presets for setting `$qtyMult` to `0.5x`, `1.0x`, `1.5x`, `2.0x`, or `3.0x`.
 - Derive `$maxPositionSize` from `$tier4ShareSize * $qtyMult` and recalculate it whenever a multiplier preset changes.
-- Add isolated manual hotkeys to sell short Tiers 1–4 at Ask and cover 100% at Ask without arming long-side stops, take profit, or entry state.
+- Add isolated manual hotkeys to sell short Tiers 1â€“4 at Ask and cover 100% at Ask without arming long-side stops, take profit, or entry state.
 - Default `$applyLiveGuardsToSim` to `0` so hijack and rehab guards remain live-only unless explicitly enabled in SIM.
 - Add a `$0.30` fixed stop-loss preset bound to `Alt+Ctrl+Win+=`.
 - Add a `$0.50` fixed stop-loss preset bound to `Alt+Ctrl+Win+5`.
@@ -40,7 +41,7 @@ All notable changes to this repository will be documented in this file.
 ### Bug Fixes
 - Isolate automated long entry, stop, TP, backstop, and timer state by account and symbol. Reject shorts in long-only workflows, keep protection tied to its original trade across montage/account swaps, and give alerts account identity plus a trade generation. Scope all order cancellations to the selected account/symbol, defer alerts during active cancel/fill actions, preserve a queued GTFO request for its original account/symbol, and preserve trade state when configuration is reloaded.
 - Interpret the single-position guard as one tracked automated long per account; manual shorts do not occupy it. Validate fills and exit quantities from signed position data and recheck after cancellation waits.
-- Correct the physical and Virtual Stream Deck plain-ASK buttons to use the matching Tier 1–4 Ask hotkeys in every multiplier state.
+- Correct the physical and Virtual Stream Deck plain-ASK buttons to use the matching Tier 1â€“4 Ask hotkeys in every multiplier state.
 - Correct all five size states of the local Stream Deck MIB Bid+ button (including **BUY 25 BID+** at `0.5x`) to send `Alt+Ctrl+Shift+Win+0`; the previous plain-Bid shortcut skipped the configured offset.
 - Bind all `GetCurrPos()` reads to the `Primary_OE` montage object so timer-triggered Hijack Exit and other hotkeys do not rely on the caller's window context.
 - Make hijack exits direction-aware so oversized longs sell at `Bid - $exitOffset` and oversized shorts cover at `Ask + $exitOffset` using native `SEND=Reverse`.

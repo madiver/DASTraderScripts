@@ -8,7 +8,6 @@ if (GetVar("tradeActionDepth") * 1 > 0) {
     $tradeActionDepth = 0;
     ExecHotkey("End Trade Action");
 }
-ExecHotkey("Drain Exit Requests");
 if ($hijackProtection == 1) { ExecHotkey("Hijack Exit"); }
 if (!IsObj(GetVar("tradeSlots"))) { return; }
 $timerTradeIndex = 0;

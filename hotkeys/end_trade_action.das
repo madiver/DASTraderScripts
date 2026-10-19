@@ -10,10 +10,8 @@ if (GetVar("tradeActionDepth") * 1 == 0) {
     SetVar("GTFO_PENDING_ACCOUNT", "");
     SetVar("GTFO_PENDING_SYMBOL", "");
     if ($gtfoReleaseAccount != "" && $gtfoReleaseSymbol != "") {
-        SetVar("EXIT_REQUEST_ACCOUNT", $gtfoReleaseAccount);
-        SetVar("EXIT_REQUEST_SYMBOL", $gtfoReleaseSymbol);
+        SetVar("TRADE_CONTEXT_ACCOUNT", $gtfoReleaseAccount);
+        SetVar("TRADE_CONTEXT_SYMBOL", $gtfoReleaseSymbol);
         ExecHotkey("GTFO");
     }
 }
-
-if (GetVar("tradeActionDepth") * 1 == 0) { ExecHotkey("Drain Exit Requests"); }

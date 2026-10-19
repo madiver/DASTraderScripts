@@ -1,17 +1,75 @@
 // Group: Utilities & toggles
-// Process one explicitly bound exit. Slow acknowledgment checks never wait here.
+// Internal: monitor one account/symbol's partial exit. Never waits or changes UI.
 ExecHotkey("Load Position Context");
-if ($tradeContextValid != 1) { return; }
-if ($trade.exitPending != 1) { return; }
-if ($trade.closeManaged != 1) {
-    if ($trade.Get("legacyExitWarned") != 1) {
-        MsgLog("Exit has no usable tracking state for " + $trade.key + "; use Cancel All to reconcile orders.");
-        $trade.Set("legacyExitWarned", 1);
+if ($tradeContextValid != 1 || $trade.exitPending != 1) { return; }
+if ($trade.exitGeneration != $trade.generation) { return; }
+if (!IsObj($trade.exitOrder)) { return; }
+// Refresh order status even when position data is temporarily unavailable.
+$trade.exitOrder.GetInfo();
+$teElapsed = GetSecond() - $trade.exitStarted;
+if ($teElapsed < 0) { $teElapsed = $teElapsed + 86400; }
+if ($trade.exitStage == 1) {
+    $teFinished = 0;
+    if ($tradePositionValid == 1) {
+        if ($posNow <= $trade.exitStartPos - $trade.exitQty) { $teFinished = 1; }
     }
-    return;
+    if ($trade.exitOrder.Open == 0 || $teElapsed >= $trade.exitTimeout) { $teFinished = 1; }
+    if ($teFinished != 1) { return; }
+    // Open=0 can be rejection/cancel: actual position delta decides TP success.
+    $trade.exitOrder.Cancel();
+    $trade.exitStage = 2;
+    $trade.exitOrder.GetInfo();
 }
-$tradeActionDepth = 1;
-$tradeActionUntil = GetSecond() + 30;
-SetVar("EXIT_FROM_TIMER", 1);
-ExecHotkey("Process Exit");
-ExecHotkey("End Trade Action");
+if ($trade.exitStage == 2) {
+    // Do not overlap protection with an unacknowledged residual SELL.
+    if ($trade.exitOrder.Open != 0) {
+        $trade.exitOrder.Cancel();
+        if ($teElapsed >= 30 && $trade.exitCancelWarned != 1) {
+            MsgLog("Exit cancellation still pending for " + $trade.key + "; protection waits for confirmation. Use GTFO if needed.");
+            $trade.exitCancelWarned = 1;
+        }
+        return;
+    }
+    // Cancellation may include a final fill; refresh the signed size before
+    // classifying TP success or deciding that this trade is flat.
+    ExecHotkey("Read Position Only");
+    if ($tradePositionValid != 1) { return; }
+    if ($posNow <= 0) { ExecHotkey("Clear Trade State"); return; }
+    $trade.exitFullFill = 0;
+    if ($posNow <= $trade.exitStartPos - $trade.exitQty) { $trade.exitFullFill = 1; }
+    $trade.exitStage = 3;
+}
+if ($trade.exitStage == 3) {
+    if ($tradePositionValid != 1) { return; }
+    if ($posNow <= 0) { ExecHotkey("Clear Trade State"); return; }
+    if ($useAutoStop == "Yes") {
+        $timerMode = 1;
+        SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
+        SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
+        if ($trade.exitIsTp == 1 && $trade.exitFullFill == 1) {
+            ExecHotkey("Set Auto Stop BE 1/1");
+        } else { ExecHotkey("Set Auto Stop"); }
+        if ($stopSubmitted != 1) { return; }
+    }
+    // Keep the quantity actually protected; a later fill must remain visible
+    // to entryWatch rather than being hidden by a newer position snapshot.
+    $trade.entryLastPos = $posNow;
+    $trade.exitStage = 4;
+}
+if ($trade.exitStage == 4) {
+    // TP builder may retry if average data is missing; never duplicate the stop.
+    if ($useTakeProfit == "Yes" && ($trade.exitIsTp != 1 || $trade.exitFullFill != 1)) {
+        $timerMode = 1;
+        SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
+        SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
+        ExecHotkey("Set Take Profit");
+        if ($tpCreated != 1) { return; }
+    }
+    ExecHotkey("Read Position Only");
+    if ($tradePositionValid != 1) { return; }
+    if ($posNow <= 0) { ExecHotkey("Clear Trade State"); return; }
+    $trade.entryWatch = 1;
+    $trade.exitPending = 0;
+    $trade.exitStage = 0;
+    $trade.exitOrder = 0;
+}

@@ -2,15 +2,7 @@
 // Only call for a confirmed flat/short context with no pending long entry.
 if ($tradeContextValid != 1 || $tradePositionValid != 1 || $posNow > 0) { return; }
 if ($trade.entryPending == 1 && $posNow == 0) { return; }
-// Do not discard an outstanding coordinated exit, even when position reads flat.
-if ($trade.closeManaged == 1 && $trade.exitPending == 1) {
-    if (IsObj($trade.exitOrder)) { $trade.exitOrder.Cancel(); }
-    $trade.active = 1;
-    $trade.closeStage = 3;
-    $trade.closeScanRef = 0;
-    return;
-}
-// Stop legacy timer-owned partial exits before a manual action.
+// Stop timer-owned partial exits before a manual cancel/emergency action.
 if ($trade.exitPending == 1 && IsObj($trade.exitOrder)) { $trade.exitOrder.Cancel(); }
 $trade.exitPending = 0;
 $trade.exitStage = 0;
@@ -22,7 +14,6 @@ if ($trade.tpName != "") {
 $cleanupAlert = GetAlertObj("Backstop " + $trade.account + " " + $trade.symbol);
 if (IsObj($cleanupAlert)) { $cleanupAlert.Delete(); }
 if ($trade.active == 1) { $trade.generation = $trade.generation + 1; }
-$trade.Set("stopRetry", "");
 $trade.active = 0;
 $trade.entryPending = 0;
 $trade.entryStage = 0;

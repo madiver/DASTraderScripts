@@ -69,16 +69,6 @@ if (Bid <= 0) {
     return;
 }
 
-// Do not add a short while a coordinated cover or emergency exit is outstanding.
-$shortExitState = $tradeStates.Get($myAcc + "|" + $mySym);
-if (IsObj($shortExitState)) {
-    if ($shortExitState.Get("performanceStateVersion") == 1) {
-        if ($shortExitState.exitPending == 1) {
-            MsgLog("Short entry blocked: exit pending for " + $myAcc + " " + $mySym + ".");
-            ExecHotkey("End Trade Action"); return;
-        }
-    }
-}
 // Remove current-symbol orders so an older order cannot conflict with entry.
 $scopedAccountObj = GetAccountObj($myAcc);
 if (!IsObj($scopedAccountObj)) {
@@ -137,7 +127,6 @@ $order.Side    = "SS";
 $order.Type    = "L";
 $order.Price   = $px;
 $order.Share   = $qty;
-if ($tradeContextValid == 1) { $trade.entryOrder = $order; }
 $order.Send();
 
 MsgLog("Short Tier 3 Bid-: sent " + $qty + " " + $mySym + " at Bid- " + $px + " via " + $orderRoute + ".");
