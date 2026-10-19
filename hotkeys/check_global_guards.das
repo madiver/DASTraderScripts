@@ -19,7 +19,7 @@ if ($trade.entryPending == 1) {
     return;
 }
 if ($trade.exitPending == 1) {
-    MsgLog("Entry blocked: partial exit still pending for " + $trade.key + ".");
+    MsgLog("Entry blocked: exit still pending for " + $trade.key + ".");
     return;
 }
 if ($useTimerArming != 1 && $entryCooldownSeconds > 0 && $trade.lastEntrySecond > 0) {

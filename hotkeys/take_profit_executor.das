@@ -43,52 +43,16 @@ if ($trade.generation != $execGeneration || $trade.active != 1 || $posNow <= 0) 
     return;
 }
 if ($trade.exitPending == 1) { ExecHotkey("End Trade Action"); return; }
-$trade.stopArmed = 0;
-$tradeAccountObj.CancelOrder("SELL", $trade.symbol, 0);
-Wait(300);
-ExecHotkey("Read Trade Position");
-if ($tradePositionValid != 1 || $posNow <= 0) {
-    ExecHotkey("End Trade Action");
-    return;
-}
 $tpSize = $takeProfitSize;
 $isLive = 0;
 if (StrLen($myAcc) > 0 && StrFind($myAcc, "TR") != 0) { $isLive = 1; }
 if ($rehab == 1 && ($isLive == 1 || $applyLiveGuardsToSim == 1)) { $tpSize = $takeProfitSizeRehab; }
-$takeQty = $posNow * $tpSize;
-$takeQty = $takeQty - ($takeQty % 1);
-if ($takeQty < 1) { $takeQty = 1; }
-if ($takeQty > $posNow) { $takeQty = $posNow; }
-if ($tradeBid <= 0) {
-    ExecHotkey("End Trade Action");
-    return;
-}
-$inc = 0.01;
-if ($tradeBid < 1) { $inc = 0.001; }
-if ($tradeBid < 0.25) { $inc = 0.0005; }
-$px = Round($tradeBid, 102, $inc);
-$order = NewOrderObj();
-$order.Account = $trade.account;
-$order.Symbol = $trade.symbol;
-$order.Side = "S";
-$order.Type = "L";
-$order.Price = $px;
-$order.Share = $takeQty;
-$order.Route = $orderRoute;
-$order.Tif = "DAY+";
-$order.Send();
-// Monitor the submitted order without holding the global action lease.
-$trade.exitPending = 1;
-$trade.exitStage = 1;
-$trade.exitOrder = $order;
-$trade.exitGeneration = $trade.generation;
-$trade.exitStartPos = $posNow;
-$trade.exitQty = $takeQty;
-$trade.exitStarted = GetSecond();
-$trade.exitTimeout = 3;
-$trade.exitIsTp = 1;
-$trade.exitFullFill = 0;
-$trade.exitCancelWarned = 0;
-$trade.entryPending = 0;
-$trade.entryWatch = 0;
+SetVar("EXIT_REQUEST_ACCOUNT", $trade.account);
+SetVar("EXIT_REQUEST_SYMBOL", $trade.symbol);
+SetVar("EXIT_REQUEST_GENERATION", $execGeneration);
+SetVar("EXIT_REQUEST_KIND", "TP");
+SetVar("EXIT_REQUEST_DIRECTION", 1);
+SetVar("EXIT_REQUEST_FRACTION", $tpSize);
+SetVar("EXIT_REQUEST_PRIORITY", 10);
+ExecHotkey("Request Exit");
 ExecHotkey("End Trade Action");

@@ -99,8 +99,10 @@ Sizing and risk limits:
 Order fill polling:
 - `$pollMs`: polling interval in milliseconds.
 - `$maxPolls`: maximum number of polls before canceling an unfilled order.
-  Inline buys use these directly; manual partial exits use their product as a
-  timeout in seconds, checked on timer ticks. TP has a fixed three-second timeout.
+  Inline buys use these directly; partial sells/covers use their product as a
+  timeout in seconds, checked on timer ticks. Full manual exits remain working until
+  filled, rejected, canceled, or superseded. TP has a fixed three-second timeout.
+- `$exitPollMs` / `$exitPollCount`: short cancellation polling (defaults `25` ms and `4` waits). A first exit with no conflicting orders does not wait. Slow acknowledgments resume on timer ticks; the global action lease is released between attempts.
 - `$entryCooldownSeconds`: minimum difference between whole-second send timestamps
   for inline entries in the same account/symbol (default `1`; `0` disables it).
   This guard returns immediately and does not delay stop arming.
@@ -116,10 +118,10 @@ Trade runtime (each `$trade` belongs to exactly one account and symbol):
 - `$trade.backstopArmed`, `$trade.backstopRetries`, `$trade.backstopStop`: independent backstop state.
 - `$trade.generation`: identifies the current trade/alert lifecycle; canceled or old-trade alert payloads cannot act on a new position.
 - `$trade.deferredTp`, `$trade.deferredBackstop`: queued alert actions while another script is waiting.
-- `$trade.exitPending`, `$trade.exitStage`, `$trade.exitOrder`: timer-owned partial
-  exit, canceled by GTFO or a manual full exit/cancellation.
-- `$trade.exitStartPos`, `$trade.exitQty`, `$trade.exitGeneration`: actual starting
-  position, requested reduction, and lifecycle identity for that exit.
+- `$trade.exitPending` / `$trade.exitOrder`: one tracked exit order for the account/symbol, including full sells, covers, TP, and emergency exits. Entry/protection submission objects are retained separately until terminal acknowledgment.
+- `$trade.closeRequest`, `$trade.closeStage`, `$trade.closePriority`: requested pricing, direction, portion, and cancellation/submission/protection stages. GTFO has priority over normal repricing; Cancel All can explicitly stop it.
+- `$trade.closeTargetAbs`: remaining absolute position targeted by a partial. Repricing the same portion preserves this target rather than applying another fraction to a smaller position.
+- `$trade.exitStartPos` / `$trade.exitQty`: position and requested quantity at the latest submission.
 - `$trade.exitStarted`, `$trade.exitTimeout`: second-clock fill deadline, including
   midnight rollover. Timeout is acted on at the next available timer tick.
 - `$trade.lastEntrySecond`: encoded inline-entry send timestamp, retained through
@@ -177,7 +179,7 @@ baseline values when you run "Set Global Variables."
 | Risk | `$exitOffset` | `0.10` |
 | Risk | `$orderRoute` | `"ARCA1L"` |
 | Risk | `$gtfoRoute` | `"FLSH1L"` |
-| Risk | `$stopLossTrigger` | `0.20` |
+| Risk | `$stopLossTrigger` | `0.50` |
 | Risk | `$takeProfitFactor` | `1.0` |
 | Risk | `$takeProfitSize` | `0.50` |
 | Risk | `$takeProfitSizeRehab` | `0.50` |
@@ -267,12 +269,12 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Shift+Win+J` | `hotkeys/short_tier2_bid_minus.das` | Sell short Tier 2 at bid minus the signed BID entry offset, with no automatic protection. |
 | `Alt+Ctrl+Shift+Win+K` | `hotkeys/short_tier3_bid_minus.das` | Sell short Tier 3 at bid minus the signed BID entry offset, with no automatic protection. |
 | `Alt+Ctrl+Shift+Win+L` | `hotkeys/short_tier4_bid_minus.das` | Sell short Tier 4 at bid minus the signed BID entry offset, with no automatic protection. |
-| `Alt+Ctrl+Shift+C` | `hotkeys/cover_1_1_ask.das` | Cover the full short position at ask plus `$exitOffset` using DAS Reverse. |
-| `Alt+Ctrl+Shift+X` | `hotkeys/cover_1_2_ask.das` | Cover half the current position at ask plus `$exitOffset` using DAS Reverse. |
-| `Alt+Ctrl+Shift+Z` | `hotkeys/cover_1_4_ask.das` | Cover a quarter of the current position at ask plus `$exitOffset` using DAS Reverse. |
-| `Alt+Ctrl+Shift+N` | `hotkeys/cover_1_1_bid.das` | Cover the full position at bid with no offset using DAS Reverse. |
-| `Alt+Ctrl+Shift+B` | `hotkeys/cover_1_2_bid.das` | Cover half the position at bid with no offset using DAS Reverse. |
-| `Alt+Ctrl+Shift+V` | `hotkeys/cover_1_4_bid.das` | Cover a quarter of the position at bid with no offset using DAS Reverse. |
+| `Alt+Ctrl+Shift+C` | `hotkeys/cover_1_1_ask.das` | Cover the full short position at ask plus `$exitOffset` using the tracked exit coordinator. |
+| `Alt+Ctrl+Shift+X` | `hotkeys/cover_1_2_ask.das` | Cover half the current position at ask plus `$exitOffset` using the tracked exit coordinator. |
+| `Alt+Ctrl+Shift+Z` | `hotkeys/cover_1_4_ask.das` | Cover a quarter of the current position at ask plus `$exitOffset` using the tracked exit coordinator. |
+| `Alt+Ctrl+Shift+N` | `hotkeys/cover_1_1_bid.das` | Cover the full position at bid with no offset using the tracked exit coordinator. |
+| `Alt+Ctrl+Shift+B` | `hotkeys/cover_1_2_bid.das` | Cover half the position at bid with no offset using the tracked exit coordinator. |
+| `Alt+Ctrl+Shift+V` | `hotkeys/cover_1_4_bid.das` | Cover a quarter of the position at bid with no offset using the tracked exit coordinator. |
 | `Ctrl+A` | `hotkeys/sell_1_1_ask.das` | Sell full position at ask. |
 | `Ctrl+S` | `hotkeys/sell_1_2_ask.das` | Sell half position at ask. |
 | `Ctrl+D` | `hotkeys/sell_1_4_ask.das` | Sell quarter position at ask. |
@@ -305,7 +307,7 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Win+H` | `hotkeys/enable_rehab_mode.das` | Toggle rehab mode (YES to disable). |
 | Unbound | `hotkeys/hijack_exit.das` | Hijack guard exit/lock enforcement (timer-only). |
 | Unbound | `hotkeys/timer_entry_handler.das` | Timer-driven stop/TP arming for entries. |
-| Unbound | `hotkeys/timer_exit_handler.das` | Monitor partial exits and restore protection after confirmed residual cancellation. |
+| Unbound | `hotkeys/timer_exit_handler.das` | Monitor all coordinated exits, replacements, and confirmed cancellation before restoring protection. |
 | Unbound | `hotkeys/load_position_context.das`, `hotkeys/read_position_only.das` | Fresh context/position reads without quotes. |
 | Unbound | `hotkeys/check_working_sells.das` | Bounded working-order check for clean fresh-entry stop arming. |
 | Unbound | `hotkeys/load_trade_context.das`, `hotkeys/read_trade_position.das` | Select an account/symbol trade and read signed position/quote data. |
@@ -408,48 +410,46 @@ route behavior, and applicable short-sale restrictions with the broker.
   (default `+0.01`) and share the signed BID OFFSET preset on settings page 5.
   Positive offsets price below Bid; negative offsets price above it. All five quantity states, Ask shorts, covers,
   and other controls are copied from page 3. Original plain-Bid shorts remain on page 3.
-- `Cover 1/1 Ask+` cancels working orders for the montage symbol, then uses the
-  native `Share=Pos; SEND=Reverse` command at `Ask + $exitOffset`. DAS resolves the position
-  quantity and direction internally; for a short it sends a buy for the full
-  short without adding past flat. If invoked while long, `SEND=Reverse` closes
-  the long with a sell, so treat this as a full-position close hotkey.
-- `Cover 1/2 Ask+` and `Cover 1/4 Ask+` use the same native Reverse command
-  and Ask + `$exitOffset` pricing for half or a quarter of the current position.
-  Quantities are calculated after cancelling older orders, rounded down to
-  whole shares, and clamped to at least one share and at most the current position.
-  They do nothing while flat and abort if the montage account or symbol changes.
-  Like Cover 1/1, they reduce a long if invoked while long.
-  On page 3 of both Stream Deck profiles, the buttons are arranged
-  Cover 1/4, Cover 1/2, Cover 1/1 from left to right.
-- `Cover 1/1 Bid`, `Cover 1/2 Bid`, and `Cover 1/4 Bid` use plain Bid
-  with no offset. They use native Reverse and the same whole-share quantity
-  calculation as the partial Ask+ covers, including flat, quote, and montage checks.
-  They reduce a short with a buy, or a long with a sell if invoked while long.
-  Page 3 places Tier 1–4 Bid short buttons across the top right, and quarter,
-  half, and full Bid cover buttons across the left of the second row on both decks.
-  The Bid short buttons follow the same five quantity-multiplier states as Ask shorts.
+- `Cover 1/1 Ask+`, `Cover 1/2 Ask+`, and `Cover 1/4 Ask+` submit tracked buy-to-cover limits at `Ask + $exitOffset` for the full, half, or quarter short position. Sizes are rounded down to whole shares, with a one-share minimum bounded by the position. Covers are short-only and do nothing while flat or long.
+- The matching `Cover 1/1 Bid`, `Cover 1/2 Bid`, and `Cover 1/4 Bid` buttons use plain Bid with no offset. Page 3 places Tier 1–4 Bid shorts across the top right, and full/half/quarter Bid covers on the second row at the left. Page 4 copies those covers.
+- All covers use the exit coordinator described below: cancellation acknowledgment and a fresh signed position are required before a replacement buy. Repeated presses of the same portion reprice its unfilled target. Short entries in that account/symbol are blocked while the cover is pending. Covers never arm long-side stops or TP.
 - Bid shorts and covers are limit orders. Bid covers may wait for a seller
   and remain unfilled; monitor the working order and resulting position.
 - Ask orders are limit orders. A short entry can remain unfilled if Ask moves
   away, and an Ask+ cover can remain unfilled if Ask rises beyond its limit before execution. Monitor
   working orders and the resulting position directly in DAS.
-- `Cancel All` uses signed `$M.GetCurrPos()` on `Primary_OE` after cancelling orders. It re-arms
-  the automatic stop only for a confirmed long and deliberately skips the
-  long stop engine for shorts.
+- `Cancel All` cancels scoped orders through the coordinator, retaining their tracking until cancellation is acknowledged. It re-arms the automatic stop only for a confirmed remaining long when `$resetStopOnCancel` and `$useAutoStop` are enabled; shorts receive no long-side protection.
 - `GTFO` cancels only its account/symbol orders and uses `$gtfoRoute` with a full-size direction-aware limit order. It
   prices long exits at Bid minus `$0.50` and short covers at Ask plus `$0.50`.
   These are aggressive limit orders, not guaranteed executions.
 
 ## SELL ORDERS
 
-Sell hotkeys are designed for manual partials and exits on long positions. They
-cancel existing orders for the symbol to avoid conflicting routes, then send a
-limit order. Half/quarter sell hotkeys retain their 100 ms cancellation-settle
-wait, submit the order, and return. The timer watches actual fills, cancels any
-residual shares at timeout, and waits for that order's open quantity to reach zero
-before re-arming stops/TP for the actual remaining long. An order with zero open
-shares alone is not proof of a fill. Missing position/average data postpones
-protection rather than inventing a quantity or price.
+Sell hotkeys reduce long positions only. Full, half, and quarter sells and all short
+covers share one exit coordinator per account and symbol. The coordinator cancels
+conflicting orders and checks terminal status plus zero open quantity before
+submitting a replacement. It retains entry, stop, and exit submission objects so
+an order awaiting its first acknowledgment cannot be missed by a history search.
+Unknown status, quantity, position, or quote data leaves the request pending.
+
+The first exit submits immediately when the barrier is already clear. Otherwise,
+there are up to four 25 ms cancellation checks before returning control; timer
+recovery does not hold the global action lease while waiting for a slow broker.
+A repeated press of the same portion reprices its unfilled target. Selecting a
+different portion changes the intent using the position remaining after confirmed
+cancellation. A full exit supersedes a partial. GTFO supersedes normal requests,
+but still waits for the previous order to be confirmed closed. Cancel All can
+explicitly cancel the pending intent, and a subsequent exit can supersede that
+cancellation-only request. Requests arriving during another action's wait retain
+the account and symbol selected at the press rather than following later montage changes.
+
+For example, a half sell of 100 shares targets 50 remaining. If 20 shares fill
+before a repeat press, the replacement sells the remaining 30 of that request;
+it does not sell half of the new 80-share position.
+
+This coordinates orders submitted through this script library. Independent orders
+submitted afterward outside the library and inconsistent broker data remain
+outside its control; validate order status and cancellation behavior in DAS SIM.
 
 ### Standard sell orders
 
@@ -459,8 +459,7 @@ protection rather than inventing a quantity or price.
 - After a full fill, partial fill, rejection, or timeout on half/quarter sells,
   the timer restores `Set Auto Stop` and `Set Take Profit` when enabled and a
   remaining long is confirmed. These stages never use `Wait`.
-- Another partial, buy, or manual stop/TP adjustment in the same context is
-  blocked until the exit finishes. GTFO, full exits, and Cancel All interrupt it.
+- Buy/short entries and manual stop/TP adjustments in the same context are blocked while an exit is pending. Repeated exit presses request a safe replacement. Delayed stop replacements retry on timer ticks without overlapping the prior stop.
 
 ### Break-even stop losses / sell orders
 
@@ -486,7 +485,7 @@ on the two buy pages are now empty.
 ### Fixed stop losses
 
 `Set Auto Stop` places a stop-limit order at 1R below avg cost for long
-positions. R is `$stopLossTrigger` for all buy tiers. The script
+positions. R is `$stopLossTrigger` for all buy tiers (default `$0.50` per share). The script
 uses the signed account position and average cost, with a matching montage as a fallback source. If average cost is unavailable, timer staging retries instead of inventing a stop from another symbol or a last-sale price. It cancels
 existing sell orders for the symbol before placing the new stop, except when
 invoked in timer mode (`$timerMode`) where cancels are skipped.
@@ -529,13 +528,13 @@ When the alert fires, `Take Profit Executor`:
 - Sells a partial position sized by `$takeProfitSize` (default 50%), or
   `$takeProfitSizeRehab` (also default 50%) when rehab is active in LIVE and in
   SIM when `$applyLiveGuardsToSim = 1`.
-- Returns after submission, retaining only its initial 300 ms cancellation wait.
+- Uses the same cancellation barrier as manual exits, with no fixed 300 ms settling wait.
   The timer monitors fills for three seconds and confirms residual cancellation
   before resizing protection. A full requested reduction moves protection to BE;
   a partial fill, rejection, or timeout restores the fixed stop and TP alert for
   the remaining long. GTFO or manual cancellation can interrupt these stages.
 
-TP and backstop alert names include account and symbol. Their scripts carry both identifiers and the trade generation; executors consume that payload, validate a current long, and recheck its signed size after cancellation waits. Cleanup deletes only alerts belonging to a confirmed flat/short trade. An unknown position does not clear another trade's protection.
+TP and backstop alert names include account and symbol. Their scripts carry both identifiers and the trade generation; executors consume that payload, validate a current long, and recheck its signed size after confirmed cancellation. Cleanup deletes only alerts belonging to a confirmed flat/short trade. An unknown position does not clear another trade's protection.
 
 ## OTHER GUARD RAILS
 
@@ -549,8 +548,7 @@ These controls help prevent low-quality fills and oversized risk.
   SIM when `$applyLiveGuardsToSim = 1`), the timer submits a direction-aware
   full-position emergency exit, locks all montage order buttons, and sets
   `$HIJACKED_LOCKED` to block new buys. Longs exit at `Bid - $exitOffset` and
-  shorts cover at `Ask + $exitOffset` through `$gtfoRoute` using native
-  `SEND=Reverse`. Re-running `Set Global Variables` clears the script lock;
+  shorts cover at `Ask + $exitOffset` through `$gtfoRoute` using tracked, direction-checked orders. Re-running `Set Global Variables` clears the script lock;
   montage unlock is manual (see reset instructions below).
 - Single-position guard: when `$singlePositionGuard = 1`, buy hotkeys block another tracked long in the same account. Manual shorts are independent. The timer checks original account/symbol position records across montage changes. A confirmed flat/short releases the guard; unavailable position data retains it.
 - Per-trade risk cap: blocks entries when projected risk exceeds
@@ -576,7 +574,7 @@ Disabling it does not clear a lock that has already triggered. To clear that
 lock explicitly, run `$HIJACKED_LOCKED = 0; LockAllMontage Unlock;`.
 
 If the timer detects a position larger than `$maxPositionSize`, it:
-- Submits a full-position native `Reverse` through `$gtfoRoute`: sells a long at
+- Requests a tracked full-position exit through `$gtfoRoute`: sells a long at
   `Bid - $exitOffset` or covers a short at `Ask + $exitOffset`.
 - Locks all montage order buttons via `LockAllMontage Lock`.
 - Sets `$HIJACKED_LOCKED` to block new buys.
@@ -588,9 +586,9 @@ Reset behavior:
 
 ## TIMER SCRIPT
 
-`other scripts/timer.das` runs every second. It enforces hijack protection on Primary_OE only when enabled, visits every active account/symbol context for entry or partial-exit staging and cleanup, and executes deferred alerts once cancel/fill actions finish. Pending exits suspend entry-watch rearming until they finish or are interrupted. It does not switch a montage or clear trade state merely because Primary_OE shows another symbol.
+`other scripts/timer.das` runs every second. It enforces hijack protection on Primary_OE only when enabled, visits every active account/symbol context for entry or coordinated-exit staging and cleanup, and executes deferred alerts once cancel/fill actions finish. Pending exits suspend entry-watch rearming until they finish or are interrupted. It does not switch a montage or clear trade state merely because Primary_OE shows another symbol.
 
-Installation: replace the Timer Event Script with the complete current `other scripts/timer.das`; the hotkey compiler does not install it automatically. Recompile/reload the entire canonical keymap so all internal helpers exist, then run Set Global Variables. The short action lease pauses timer work during waits and expires after 30 seconds to recover an interrupted script. Pressing a second manual trading action during an active action logs a retry message instead of overwriting its context. GTFO is preserved as a queued emergency request and executes for its saved account/symbol as soon as the running action finishes.
+Installation: replace the Timer Event Script with the complete current `other scripts/timer.das`; the hotkey compiler does not install it automatically. Recompile/reload the entire canonical keymap so all internal helpers exist, then run Set Global Variables. The short action lease pauses timer work during waits and expires after 30 seconds to recover an interrupted script. Sell, cover, GTFO, and cancellation requests during an active action are queued with their own account/symbol and priority. They are adopted during short exit polls or drained as soon as the action releases its lease. Other trading actions retain the retry guard. Full sells/covers and emergency exits remain tracked until completion; cancellation never drops an unresolved order reference.
 
 ## UTILITIES & TOGGLES
 
@@ -642,7 +640,7 @@ Fast entry and exit are important to my strategy, so reducing latency matters.
 These scripts still introduce small delays because they wait to confirm fills
 and enforce guard rails. With `$useTimerArming = 1`, entry hotkeys return
 immediately. A clean fresh fill can arm stops/TP on the first timer tick that
-observes it; replacing existing SELLs or scaling in takes a separate cancel tick.
+observes it; replacing existing SELLs or scaling in requires cancellation staging and confirmed terminal status.
 There remains an unprotected window during staging, plus DAS processing and any
 running action. Missing average-cost data postpones arming further. Set
 `$useTimerArming = 0` and tune `$pollMs` and `$maxPolls` if you prefer inline
@@ -652,7 +650,7 @@ Half/quarter exits and TP monitor fills on timer ticks instead of holding the
 global action lease for two or three seconds. The timer interval still affects
 when residual orders are canceled and remaining shares receive protection.
 Delayed cancellation acknowledgment extends that window; after 30 seconds the
-handler logs it once and continues waiting. GTFO remains available between ticks.
+handler logs it once and continues waiting. GTFO can supersede a pending request between ticks and waits for confirmed cancellation before its replacement is sent.
 These performance changes were verified with the in-memory regression model;
 check order status, stop acceptance, and route behavior in DAS SIM separately.
 

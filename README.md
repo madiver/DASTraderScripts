@@ -44,7 +44,7 @@ Serious about day trading? You can find me on Discord here:  https://discord.gg/
 2. Ensure `keymap.yaml` is present at the repo root.
 3. Run `DAS: Build Hotkey File`.
 4. Use the generated `output.htk` in DAS Trader.
-5. For this performance upgrade, also replace the installed Timer Event Script with `other scripts/timer.das` and run Set Global Variables. The updated timer is required for TP and manual partial exits even when entry arming is inline. Recreate any legacy symbol-only TP/backstop alerts.
+5. For this performance upgrade, also replace the installed Timer Event Script with `other scripts/timer.das` and run Set Global Variables. The updated timer is required for all coordinated exits and cancellation recovery, even when entry arming is inline. Recreate any legacy symbol-only TP/backstop alerts.
 
 ## Momo coordinated swap
 
@@ -71,10 +71,12 @@ Momo uses this fixed shortcut automatically. See [Momo swap setup](USERGUIDE.md#
   buy order. Install `other scripts/timer.das` in DAS Trader's Timer Event Scripts and keep
   `hotkeys/timer_entry_handler.das` in your keymap; set `$useTimerArming = 0` to
   revert to inline polling.
-- TP and half/quarter manual sells submit their order, then release the action
-  lease. `Timer Exit Handler` monitors actual fills and cancels residual shares
-  at timeout before resizing protection. GTFO and manual cancellation interrupt
-  that pending work. Timer processing is required in both entry modes.
+- All sell/cover buttons, TP, backstop, and GTFO share an account/symbol exit coordinator.
+  With no conflicting orders, submission has no fixed wait. Repeated presses reprice
+  the unfilled target after confirmed cancellation; GTFO takes priority. Cancellation
+  is checked immediately and with up to four 25 ms waits, then resumed by the timer.
+  Stops and entries are also checked before a replacement exit is sent. Timer
+  processing is required in both entry modes.
 - Inline entries use a per-account/symbol second-based cooldown before another
   entry, instead of padding the wait before protecting a filled position.
 - Routine timer and fill checks read fresh signed positions without fetching
@@ -113,15 +115,15 @@ Short orders: Ask, Short orders: Bid, Short orders: Bid-, Stops, Take profit, Ut
 
 - `Short T1/T2/T3/T4 Ask/Bid` sends `round($tierNShareSize * $qtyMult)` shares as an explicit sell-short limit order at the selected quote, with no offset. These hotkeys can open a short or add to an existing short, but reject long positions.
 - New page 4 duplicates page 3 on both Stream Deck profiles, with Tier 1–4 `BID-` short buttons using `Bid - $entryBidOffset` (default `+0.01`, placing the limit one cent below Bid). Plain-Bid shorts stay on page 3, and the settings page moves to page 5. The new short buttons retain all five quantity states.
-- `Cover 1/1 Ask+` cancels current-symbol orders and uses DAS `Share=Pos; SEND=Reverse` at `Ask + $exitOffset`. For a short position, DAS resolves the full quantity and sends a buy without adding past flat.
-- `Cover 1/2 Ask+` and `Cover 1/4 Ask+` use the same pricing and native Reverse behavior for half or a quarter of the current position, rounded down to whole shares with a minimum of one share. Page 3 has Cover 1/4, Cover 1/2, and Cover 1/1 from left to right on both Stream Deck profiles.
-- `Cover 1/1`, `Cover 1/2`, and `Cover 1/4 Bid` use plain Bid with no offset and the same native Reverse quantity behavior. Page 3 places Tier 1–4 Bid shorts across the top right, with quarter/half/full Bid covers on the second row at the left.
-- These scripts use `$orderRoute` and `DAY+`, but deliberately do not use the long-side entry guards, stop loss, take profit, or timer arming. Confirm locate availability, broker routing, and short-sale restrictions before use.
+- `Cover 1/1 Ask+` requests a tracked buy-to-cover at `Ask + $exitOffset`, sized from the fresh signed short after prior orders are confirmed closed. Covers do nothing while flat or long; they never switch into a sell.
+- `Cover 1/2 Ask+` and `Cover 1/4 Ask+` use the same pricing and tracked buy-to-cover behavior for half or a quarter of the current position, rounded down to whole shares with a minimum of one share. Page 3 has Cover 1/4, Cover 1/2, and Cover 1/1 from left to right on both Stream Deck profiles.
+- `Cover 1/1`, `Cover 1/2`, and `Cover 1/4 Bid` use plain Bid with no offset and the same tracked, signed-position sizing. Page 3 places Tier 1–4 Bid shorts across the top right, with quarter/half/full Bid covers on the second row at the left.
+- Short entries and covers use `$orderRoute` and `DAY+`, but deliberately do not use the long-side entry guards, stop loss, take profit, or timer arming. Confirm locate availability, broker routing, and short-sale restrictions before use.
 - `Cancel All` cancels short-side working orders without invoking the long stop engine. `GTFO` uses signed position direction to sell longs at Bid minus $0.50 or cover shorts at Ask plus $0.50 through `$gtfoRoute`.
 
 ## Fixed Stops
 
-- All buy tiers use `$stopLossTrigger` as their 1R stop distance (default `$0.20`).
+- All buy tiers use `$stopLossTrigger` as their 1R stop distance (default `$0.50`).
 - `Set Auto Stop` places a full-position stop-limit at average cost minus 1R,
   with its limit price a further `$exitOffset` below the trigger.
 - The fixed-stop presets select `$0.10`, `$0.20`, `$0.30`, or `$0.50`.

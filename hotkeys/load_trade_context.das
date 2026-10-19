@@ -63,13 +63,53 @@ if ($trade.Get("performanceStateVersion") != 1) {
     $trade.lastEntrySecond = 0;
     $trade.Set("performanceStateVersion", 1);
 }
+// Preserve live orders across LOAD CFG and coordinator upgrades.
+if ($trade.Get("exitCoordinatorVersion") != 1) {
+    $trade.closeManaged = 0;
+    $trade.entryOrder = 0;
+    $trade.protectionOrder = 0;
+    $trade.closeRequest = 0;
+    $trade.closePriority = 0;
+    $trade.closeStage = 0;
+    $trade.closeScanRef = 0;
+    $trade.closeTargetSet = 0;
+    $trade.closeTargetAbs = 0;
+    $trade.closeWarned = 0;
+    // Upgrade a retained legacy partial without dropping its working order.
+    if ($trade.exitPending == 1 && IsObj($trade.exitOrder) && $trade.exitStartPos > 0 && $trade.exitQty > 0) {
+        $migrateExit = NewUserObj();
+        $migrateExit.account = $trade.account;
+        $migrateExit.symbol = $trade.symbol;
+        $migrateExit.kind = "ASK";
+        $migrateExit.priority = 20;
+        if ($trade.exitIsTp == 1) { $migrateExit.kind = "TP"; $migrateExit.priority = 10; }
+        $migrateExit.direction = 1;
+        $migrateExit.fraction = $trade.exitQty / $trade.exitStartPos;
+        $migrateExit.route = $trade.exitOrder.Route;
+        $migrateExit.offset = 0;
+        $migrateExit.generation = $trade.generation;
+        $trade.closeRequest = $migrateExit;
+        $trade.closePriority = $migrateExit.priority;
+        $trade.closeManaged = 1;
+        $trade.closeStage = 2;
+        if ($trade.exitStage >= 2) { $trade.closeStage = 3; }
+        $trade.closeTargetAbs = $trade.exitStartPos - $trade.exitQty;
+        $trade.closeTargetSet = 1;
+        $trade.active = 1;
+    }
+    $trade.Set("exitCoordinatorVersion", 1);
+}
 // Reuse inactive slots; DAS limits each while loop to 200 iterations.
 if ($trade.listed != 1) {
     $tcSlot = 0;
     $tcFound = 0;
     while ($tcSlot < $tradeSlotCount && $tcFound == 0) {
         $tcOld = $tradeSlots.Get($tcSlot);
-        if (IsObj($tcOld) && $tcOld.active == 0 && $tcOld.entryPending == 0) {
+        $tcReusable = 0;
+        if (IsObj($tcOld)) {
+            if ($tcOld.active == 0 && $tcOld.entryPending == 0) { $tcReusable = 1; }
+        }
+        if ($tcReusable == 1) {
             $tcOld.listed = 0;
             $tcFound = 1;
         } else { $tcSlot = $tcSlot + 1; }

@@ -4,8 +4,11 @@ All notable changes to this repository will be documented in this file.
 
 ## 0.3.3 - Unreleased
 
+### Fixes
+- Guard optional exit/request objects in separate blocks so DAS cannot evaluate fields on an idle `0` value. Cover exit prioritization, empty queues, and short-entry checks; make the regression model evaluate both logical operands and report scalar object-field errors.
+
 ### Performance
-- Move TP and half/quarter manual-exit fill polling to account/symbol-scoped timer stages. Preserve the initial cancellation settling waits (TP 300 ms, manual partial 100 ms), confirm residual-order closure before replacing protection, and size replacement stops from fresh signed positions. GTFO, cancellation, full exits, and backstop actions interrupt pending partial-exit automation.
+- Coordinate all manual sells/covers, TP, backstop, hijack, GTFO, and cancellations by account/symbol. Submit immediately when prior orders are confirmed closed; poll cancellation briefly (four 25 ms waits by default), then resume on timer ticks. Retain pending submissions and require terminal status plus zero open quantity before replacement. Repeated presses reprice the outstanding partial target; full exits and GTFO can supersede it without overlapping orders. Covers are short-only, entries are blocked during exits, and delayed stop replacements retry safely.
 - Arm clean fresh entries on the first filled-position timer tick when no working SELL is found. Keep separate cancellation staging for existing SELLs and scale-ins, and continue retrying missing position/average data.
 - Remove the inline-entry 1,000 ms padding wait before stop arming. Enforce a configurable per-account/symbol entry cooldown before a subsequent inline buy using the DAS second clock, including midnight rollover.
 - Add position-only reads for routine timer and entry-fill polling, skip unnecessary montage fallback, and skip disabled hijack checks. Expand the in-memory regression model to cover asynchronous exits, cancellation acknowledgments, timeout rollover, and lookup/wait counts.
@@ -30,7 +33,7 @@ All notable changes to this repository will be documented in this file.
 - Default `$applyLiveGuardsToSim` to `0` so hijack and rehab guards remain live-only unless explicitly enabled in SIM.
 - Add a `$0.30` fixed stop-loss preset bound to `Alt+Ctrl+Win+=`.
 - Add a `$0.50` fixed stop-loss preset bound to `Alt+Ctrl+Win+5`.
-- Change the default fixed stop loss from `$0.10` to `$0.20` per share.
+- Change the default fixed stop loss from `$0.10` to `$0.50` per share.
 - Increase the default take-profit partial from 25% to 50% of the position.
 - Increase the default per-trade risk cap from `$100` to `$2,000`.
 

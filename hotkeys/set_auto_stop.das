@@ -30,6 +30,8 @@ if ($avgNow <= 0) {
     return;
 }
 if ($stopTimer != 1) {
+    $trade.Set("stopRetry", "Set Auto Stop");
+    $trade.active = 1;
     $trade.stopArmed = 0;
     $tradeAccountObj.CancelOrder("SELL", $trade.symbol, 0);
     Wait(350);
@@ -58,6 +60,12 @@ if ($stop <= 0 || $px <= 0) {
     ExecHotkey("End Trade Action");
     return;
 }
+ExecHotkey("Check Working Sells");
+if ($workingSells != 0) {
+    if ($stopTimer != 1) { $trade.Set("stopRetry", "Set Auto Stop"); $trade.active = 1; }
+    MsgLog("Protection awaits cancellation acknowledgment for " + $trade.key + ".");
+    ExecHotkey("End Trade Action"); return;
+}
 $qtyProtect = $posNow / 1;
 $qtyProtect = $qtyProtect - ($qtyProtect % 1);
 if ($qtyProtect < 1) { $qtyProtect = 1; }
@@ -72,10 +80,12 @@ $s.Type = $stopType;
 if ($stopType == "SLP") { $s.StopPrice = $stop; }
 $s.Price = $px;
 $s.Share = $qtyProtect;
+$trade.protectionOrder = $s;
 $s.Send();
 $trade.active = 1;
 $trade.lastStop = $stop;
 $trade.stopArmed = 1;
 $stopSubmitted = 1;
+$trade.Set("stopRetry", "");
 
 ExecHotkey("End Trade Action");

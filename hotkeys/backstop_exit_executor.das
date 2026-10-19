@@ -46,60 +46,13 @@ if ($trade.backstopArmed != 1 || $trade.backstopRetries <= 0) {
     ExecHotkey("End Trade Action");
     return;
 }
-// Stop timer-owned partial exits before a manual cancel/emergency action.
-if ($trade.exitPending == 1 && IsObj($trade.exitOrder)) { $trade.exitOrder.Cancel(); }
-$trade.exitPending = 0;
-$trade.exitStage = 0;
-$trade.exitOrder = 0;
-$trade.entryWatch = 0;
 $trade.backstopRetries = $trade.backstopRetries - 1;
-$trade.stopArmed = 0;
-$tradeAccountObj.CancelOrder("SELL", $trade.symbol, 0);
-Wait(200);
-ExecHotkey("Read Trade Position");
-if ($tradePositionValid != 1 || $posNow <= 0) {
-    ExecHotkey("End Trade Action");
-    return;
-}
-$refPx = $tradeBid;
-if ($refPx <= 0) { $refPx = $tradeLast; }
-if ($refPx <= 0) {
-    ExecHotkey("End Trade Action");
-    return;
-}
-$inc = 0.01;
-if ($refPx < 1) { $inc = 0.001; }
-if ($refPx < 0.25) { $inc = 0.0005; }
-$px = Round($refPx - $backstopBidOffset, 102, $inc);
-if ($px < $inc) { $px = $inc; }
-$route = $gtfoRoute;
-if ($route == "") { $route = $orderRoute; }
-if ($route == "") {
-    ExecHotkey("End Trade Action");
-    return;
-}
-$o = NewOrderObj();
-$o.Account = $trade.account;
-$o.Symbol = $trade.symbol;
-$o.Route = $route;
-$o.Tif = "DAY+";
-$o.Side = "S";
-$o.Type = "L";
-$o.Price = $px;
-$o.Share = $posNow;
-$o.Send();
-Wait(300);
-ExecHotkey("Read Trade Position");
-if ($tradePositionValid != 1) {
-    ExecHotkey("End Trade Action");
-    return;
-}
-if ($posNow <= 0) { ExecHotkey("Clear Trade State"); ExecHotkey("End Trade Action"); return; }
-if ($trade.backstopRetries > 0) {
-    ExecHotkey("Build Backstop Alert");
-} else {
-    $trade.backstopArmed = 0;
-    MsgLog("Backstop retries exhausted: " + $trade.key + ".");
-}
-
+SetVar("EXIT_REQUEST_ACCOUNT", $trade.account);
+SetVar("EXIT_REQUEST_SYMBOL", $trade.symbol);
+SetVar("EXIT_REQUEST_GENERATION", $execGeneration);
+SetVar("EXIT_REQUEST_KIND", "BACKSTOP");
+SetVar("EXIT_REQUEST_DIRECTION", 1);
+SetVar("EXIT_REQUEST_FRACTION", 1);
+SetVar("EXIT_REQUEST_PRIORITY", 40);
+ExecHotkey("Request Exit");
 ExecHotkey("End Trade Action");
