@@ -79,7 +79,7 @@ Risk and execution:
 - `$entryBidOffset` / `$entryAskOffset`: independent signed offsets for Bid+ / Ask+ buys and Bid- shorts (defaults: BID `+0.01`, ASK `-0.01`). Negative values price below the reference quote for buys; Bid- shorts subtract the signed BID offset, so positive values price below Bid and negative values price above it.
 - `$exitOffset`: aggression offset for Bid- long exits and Ask+ short covers, and the limit offset for fixed stops.
 - `$orderRoute`: limit order route for entries/exits (buys/sells/TP/BE). Default is `ARCA1L`. `FREE1L` is the free route for ST Global Market/Open Ocean.
-- Route presets are available for `ARCA1L`, `FREE1L`, `BESTL`, and `FLASH1L`.
+- Route presets are available for `ARCA1L`, `FREE1L`, `BESTL`, `FLASH1L`, and `SMARTL`.
 - `$gtfoRoute`: emergency exit route for GTFO/backstop/hijack exits. Default is `FLSH1L` (Open Ocean broadcast route).
 - `$stopLossTrigger`: fixed 1R risk per share for all buy tiers.
 - `$backstopBuffer`: trigger buffer below the stop for the manual backstop alert.
@@ -307,6 +307,7 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Win+3` | `hotkeys/set_order_route_freel.das` | Set limit order route to FREE1L (free route for ST Global Market/Open Ocean). |
 | `Alt+Ctrl+Win+4` | `hotkeys/set_order_route_bestl.das` | Set limit order route to BESTL. |
 | `Alt+Ctrl+Win+F4` | `hotkeys/set_order_route_flash1l.das` | Set limit order route to FLASH1L. |
+| `Alt+Ctrl+Win+6` | `hotkeys/set_order_route_smartl.das` | Set limit order route to SMARTL. |
 | `Alt+Ctrl+Win+M` | `hotkeys/toggle_single_position_guard.das` | Toggle single-symbol entry guard. |
 | `Alt+Ctrl+Win+H` | `hotkeys/enable_rehab_mode.das` | Toggle rehab mode (YES to disable). |
 | Unbound | `hotkeys/hijack_exit.das` | Hijack guard exit/lock enforcement (timer-only). |
@@ -623,7 +624,8 @@ Safety toggles:
 - `set_order_route_freel.das` sets `$orderRoute` to `FREE1L` (free route for ST Global Market/Open Ocean).
 - `set_order_route_bestl.das` sets `$orderRoute` to `BESTL`.
 - `set_order_route_flash1l.das` sets `$orderRoute` to `FLASH1L`.
-- On page 5 of both the physical and Virtual Stream Deck profiles, the route button cycles through `ARCA1L`, `FREE1L`, `BESTL`, and `FLASH1L` using Advanced Toggles. FLASH1L uses orange text.
+- `set_order_route_smartl.das` sets `$orderRoute` to `SMARTL`.
+- On page 5 of both the physical and Virtual Stream Deck profiles, the route button cycles through `ARCA1L`, `FREE1L`, `BESTL`, `FLASH1L`, and `SMARTL` using Advanced Toggles. FLASH1L uses orange text; SMARTL uses white text.
 - `toggle_single_position_guard.das` toggles the single-position guard
   (`$singlePositionGuard`).
 - `enable_rehab_mode.das` toggles rehab mode on/off; disabling requires typing `YES`.

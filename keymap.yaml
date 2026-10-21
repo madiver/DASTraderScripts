@@ -368,6 +368,10 @@
   key: Alt+Ctrl+Win+F4
   label: Set Order Route FLASH1L
   scriptPath: hotkeys/set_order_route_flash1l.das
+- id: set_order_route_smartl
+  key: Alt+Ctrl+Win+6
+  label: Set Order Route SMARTL
+  scriptPath: hotkeys/set_order_route_smartl.das
 - id: toggle_single_position_guard
   key: Alt+Ctrl+Win+M
   label: Toggle Single-Position Guard
