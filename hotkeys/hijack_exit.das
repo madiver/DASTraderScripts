@@ -77,6 +77,19 @@ if ($myAcc == "" || $mySym == "") {
 
 $route = $gtfoRoute;
 if ($route == "") { $route = $orderRoute; }
+// Resolve AUTOL immediately before this submission; manual routes pass through.
+$routeRequest = $route;
+$routeSide = "S";
+$routeLimit = 0;
+$routeBid = 0;
+$routeAsk = 0;
+$routeUrgent = 1;
+ExecHotkey("Resolve Order Route");
+if ($resolvedOrderRoute == "") {
+    ExecHotkey("End Trade Action");
+    return;
+}
+$route = $resolvedOrderRoute;
 if ($route == "") {
     MsgLog("Hijack Exit: no route configured for " + $mySym + ". Aborting.");
     ExecHotkey("End Trade Action");

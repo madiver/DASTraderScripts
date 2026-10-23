@@ -118,10 +118,22 @@ if ($px < 1)    { $inc = 0.001; }
 if ($px < 0.25) { $inc = 0.0005; }
 $px = Round($px, 102, $inc);
 
+// Resolve AUTOL immediately before this submission; manual routes pass through.
+$routeRequest = $orderRoute;
+$routeSide = "SS";
+$routeLimit = $px;
+$routeBid = Bid;
+$routeAsk = Ask;
+$routeUrgent = 0;
+ExecHotkey("Resolve Order Route");
+if ($resolvedOrderRoute == "") {
+    ExecHotkey("End Trade Action");
+    return;
+}
 $order = NewOrderObj();
 $order.Account = $myAcc;
 $order.Symbol  = $mySym;
-$order.Route   = $orderRoute;
+$order.Route   = $resolvedOrderRoute;
 $order.Tif     = "DAY+";
 $order.Side    = "SS";
 $order.Type    = "L";
@@ -129,6 +141,6 @@ $order.Price   = $px;
 $order.Share   = $qty;
 $order.Send();
 
-MsgLog("Short Tier 2 Bid-: sent " + $qty + " " + $mySym + " at Bid- " + $px + " via " + $orderRoute + ".");
+MsgLog("Short Tier 2 Bid-: sent " + $qty + " " + $mySym + " at Bid- " + $px + " via " + $resolvedOrderRoute + ".");
 
 ExecHotkey("End Trade Action");

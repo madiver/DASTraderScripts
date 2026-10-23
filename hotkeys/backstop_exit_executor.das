@@ -74,6 +74,19 @@ $px = Round($refPx - $backstopBidOffset, 102, $inc);
 if ($px < $inc) { $px = $inc; }
 $route = $gtfoRoute;
 if ($route == "") { $route = $orderRoute; }
+// Resolve AUTOL immediately before this submission; manual routes pass through.
+$routeRequest = $route;
+$routeSide = "S";
+$routeLimit = 0;
+$routeBid = 0;
+$routeAsk = 0;
+$routeUrgent = 1;
+ExecHotkey("Resolve Order Route");
+if ($resolvedOrderRoute == "") {
+    ExecHotkey("End Trade Action");
+    return;
+}
+$route = $resolvedOrderRoute;
 if ($route == "") {
     ExecHotkey("End Trade Action");
     return;

@@ -551,6 +551,91 @@ test('a newly rejected scripted short cannot lock a later manual long sell',()=>
   assert.equal(r.orders.length,1);assert.equal(r.orders[0].Side,'S');assert.equal(r.orders[0].Share,10);
 });
 
+function resolveRoute(r,{side='B',limit=1,bid=1,ask=1,urgent=0,request=r.ctx.$orderRoute}={}) {
+  Object.assign(r.ctx,{$routeRequest:request,$routeSide:side,$routeLimit:limit,$routeBid:bid,$routeAsk:ask,$routeUrgent:urgent});
+  r.run('Resolve Order Route');return r.ctx.$resolvedOrderRoute;
+}
+for(const price of [0.1,0.4166,5/12,0.4167,0.75,0.9999,1,1.01,100]) {
+  for(const side of ['B','S','SS']) test('AUTOL fee band '+price+' '+side,()=>{
+    const r=runtime();r.run('Set Order Route AUTOL');
+    const expected=price>=1?'FREE1L':price<=5/12?'BESTL':'SMARTL';
+    assert.equal(resolveRoute(r,{side,limit:price,bid:price,ask:price}),expected);
+    assert.equal(r.ctx.$orderRoute,'AUTOL');assert.equal(r.orders.length,0);
+  });
+}
+test('AUTOL uses opposite quote for marketable orders and limit for resting orders',()=>{
+  const r=runtime();r.run('Set Order Route AUTOL');
+  assert.equal(resolveRoute(r,{limit:1.1,bid:0.97,ask:0.98}),'SMARTL');
+  assert.equal(resolveRoute(r,{side:'S',limit:0.9,bid:1.02,ask:1.03}),'FREE1L');
+  assert.equal(resolveRoute(r,{limit:0.4,bid:0.49,ask:0.5}),'BESTL');
+  assert.equal(resolveRoute(r,{side:'SS',limit:1.01,bid:0.98,ask:0.99}),'FREE1L');
+});
+test('AUTOL invalid quotes clear the last result instead of choosing a fallback',()=>{
+  const r=runtime();r.run('Set Order Route AUTOL');resolveRoute(r);
+  assert.equal(resolveRoute(r,{ask:0}),'');assert.equal(resolveRoute(r,{bid:0}),'');
+  assert.equal(resolveRoute(r,{limit:0}),'');assert.equal(resolveRoute(r,{side:'unknown'}),'');
+  assert.equal(r.ctx.$orderRoute,'AUTOL');
+});
+test('manual route presets disable AUTOL and pass through without quotes',()=>{
+  const r=runtime();
+  for(const name of ['ARCA1L','FREE1L','BESTL','FLASH1L','SMARTL']) {
+    r.run('Set Order Route AUTOL');r.run('Set Order Route '+name);
+    assert.equal(resolveRoute(r,{bid:0,ask:0,limit:0}),name);
+  }
+});
+for(const label of [...buyLabels,...manualExits,...scripts.keys()].filter((v,i,a)=>a.indexOf(v)===i&&/^(Buy .* SL|Sell |Cover |Short T)/.test(v))) {
+  test(label+' submits a concrete AUTOL route and retains the mode',()=>{
+    const r=runtime();r.quote('AAA',0.75,0.76,0.75);
+    r.position('LIVE','AAA',label.startsWith('Sell ')?100:label.startsWith('Cover ')?-100:0,0.75);
+    r.run('Set Order Route AUTOL');r.run(label);
+    assert.equal(r.orders.length,1);assert.equal(r.orders[0].Route,'SMARTL');
+    assert.equal(r.ctx.$orderRoute,'AUTOL');assert.equal(r.ctx.$tradeActionDepth,0);
+  });
+}
+test('AUTOL sell uses bid above one dollar even with a sub-dollar exit limit',()=>{
+  const r=runtime();r.position('LIVE','AAA',100,1.02);r.quote('AAA',1.02,1.03,1.02);
+  r.run('Set Order Route AUTOL');r.run('Sell 1/1 Bid-');
+  assert(r.orders[0].Price<1);assert.equal(r.orders[0].Route,'FREE1L');
+});
+test('AUTOL cover resolves using the final natively rounded limit',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,0.99);r.quote('AAA',0.9996,1.01,1);
+  r.run('Set Order Route AUTOL');r.run('Cover 1/1 Bid');
+  assert.equal(r.orders[0].Price,1);assert.equal(r.orders[0].Route,'FREE1L');
+});
+test('AUTOL TP resolves the alert symbol instead of the active montage',()=>{
+  const r=runtime();r.position('LIVE','AAA',100,0.75);r.quote('AAA',0.75,0.76,0.75);
+  r.run('Set Take Profit');const al=[...r.alerts.values()][0];
+  r.select('TRSIM','OTHER');r.position('TRSIM','OTHER',-100,10);r.quote('OTHER');
+  r.run('Set Order Route AUTOL');r.execute(al.Script);
+  assert.equal(r.orders[0].Symbol,'AAA');assert.equal(r.orders[0].Route,'SMARTL');
+});
+for(const share of [100,-100]) test('AUTOL GTFO uses BEST for signed position '+share,()=>{
+  const r=runtime();r.position('LIVE','AAA',share,10);r.run('Set Order Route AUTOL');r.run('GTFO');
+  assert.equal(r.orders.length,1);assert.equal(r.orders[0].Route,'BESTL');
+  assert.equal(r.ctx.$gtfoRoute,'FLSH1L');assert.equal(r.ctx.$orderRoute,'AUTOL');
+});
+test('AUTOL backstop and hijack use BEST, manual emergency route stays independent',()=>{
+  const r=runtime();r.position('LIVE','AAA',100,10);r.run('Set Auto Stop');r.run('Set Backstop Trigger');
+  r.run('Set Order Route AUTOL');r.execute(r.alerts.get('Backstop LIVE AAA').Script);
+  assert.equal(r.orders.at(-1).Route,'BESTL');
+  const h=runtime();h.position('LIVE','AAA',1000,10);h.ctx.$hijackProtection=1;
+  h.run('Set Order Route AUTOL');h.run('Hijack Exit');assert.equal(h.orders.at(-1).Route,'BESTL');
+  const m=runtime();m.position('LIVE','AAA',100,10);m.run('GTFO');assert.equal(m.orders[0].Route,'FLSH1L');
+});
+test('AUTOL preserves STOP and resolves immediate breakeven limit exits',()=>{
+  const r=runtime();r.position('LIVE','AAA',100,0.75);r.quote('AAA',0.75,0.76,0.75);
+  r.run('Set Order Route AUTOL');r.run('Set Auto Stop BE 1/1');
+  assert.equal(r.orders[0].Type,'L');assert.equal(r.orders[0].Route,'SMARTL');
+  r.position('LIVE','AAA',100,10);r.quote('AAA',11,11.02,11);r.run('Set Auto Stop');
+  assert.equal(r.orders.at(-1).Route,'STOP');
+});
+test('AUTOL never reroutes or retries a rejected submission',()=>{
+  const r=runtime();r.run('Set Order Route AUTOL');
+  r.sendHook=o=>{o.Open=0;o.Status='Rejected';};r.run('Buy MIB Ask SL');
+  for(let i=0;i<12;i++)r.tick();
+  assert.equal(r.orders.length,1);assert.equal(r.orders[0].Route,'FREE1L');
+});
+
 // Syntax-check all mapped scripts after translating native DAS statements.
 for(const f of new Set(scripts.values())) new vm.Script('(function(){'+translate(fs.readFileSync(path.join(root,f),'utf8'))+'})()',{filename:f});
 console.log(`${count} trade-isolation regression scenarios passed; ${scripts.size} hotkeys parsed.`);

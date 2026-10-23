@@ -66,7 +66,8 @@ $entryAskOffset = -0.01;
 // Example: 0.01 = exit 1 cent(s) below BID (or above ASK)
 $exitOffset = 0.10;
 
-// Limit order route for entries/exits (buys/sells/TP/BE). Default: ARCA1L.
+// Limit order route/mode for entries/exits (buys/sells/TP/BE). Default: ARCA1L.
+// AUTOL resolves each submission; urgent exits then use BESTL.
 $orderRoute = "ARCA1L";
 // Emergency exit route (GTFO/backstop). Default: FLSH1L.
 $gtfoRoute = "FLSH1L";

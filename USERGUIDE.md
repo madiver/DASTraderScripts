@@ -79,7 +79,7 @@ Risk and execution:
 - `$entryBidOffset` / `$entryAskOffset`: independent signed offsets for Bid+ / Ask+ buys and Bid- shorts (defaults: BID `+0.01`, ASK `-0.01`). Negative values price below the reference quote for buys; Bid- shorts subtract the signed BID offset, so positive values price below Bid and negative values price above it.
 - `$exitOffset`: aggression offset for Bid- long exits and Ask+ short covers, and the limit offset for fixed stops.
 - `$orderRoute`: limit order route for entries/exits (buys/sells/TP/BE). Default is `ARCA1L`. `FREE1L` is the free route for ST Global Market/Open Ocean.
-- Route presets are available for `ARCA1L`, `FREE1L`, `BESTL`, `FLASH1L`, and `SMARTL`.
+- Route presets are available for `AUTOL`, `ARCA1L`, `FREE1L`, `BESTL`, `FLASH1L`, and `SMARTL`.
 - `$gtfoRoute`: emergency exit route for GTFO/backstop/hijack exits. Default is `FLSH1L` (Open Ocean broadcast route).
 - `$stopLossTrigger`: fixed 1R risk per share for all buy tiers.
 - `$backstopBuffer`: trigger buffer below the stop for the manual backstop alert.
@@ -303,6 +303,7 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Win+/` | `hotkeys/toggle_tp_feature.das` | Toggle take-profit alerts. |
 | `Alt+Ctrl+Win+'` | `hotkeys/toggle_spread_check_feature.das` | Toggle spread safety guard. |
 | `Alt+Ctrl+Win+G` | `hotkeys/toggle_apply_live_guards_to_sim.das` | Toggle live-only guards in SIM. |
+| `Alt+Ctrl+Win+7` | `hotkeys/set_order_route_autol.das` | Enable AUTOL fee-based routing; urgent exits use BESTL. |
 | `Alt+Ctrl+Win+2` | `hotkeys/set_order_route_arcal.das` | Set limit order route to ARCA1L. |
 | `Alt+Ctrl+Win+3` | `hotkeys/set_order_route_freel.das` | Set limit order route to FREE1L (free route for ST Global Market/Open Ocean). |
 | `Alt+Ctrl+Win+4` | `hotkeys/set_order_route_bestl.das` | Set limit order route to BESTL. |
@@ -313,6 +314,7 @@ scripts rather than direct invocation.
 | Unbound | `hotkeys/hijack_exit.das` | Hijack guard exit/lock enforcement (timer-only). |
 | Unbound | `hotkeys/timer_entry_handler.das` | Timer-driven stop/TP arming for entries. |
 | Unbound | `hotkeys/timer_exit_handler.das` | Monitor partial exits and restore protection after confirmed residual cancellation. |
+| Unbound | `hotkeys/resolve_order_route.das` | Resolve a concrete route for each AUTOL submission. |
 | Unbound | `hotkeys/load_position_context.das`, `hotkeys/read_position_only.das` | Fresh context/position reads without quotes. |
 | Unbound | `hotkeys/check_working_sells.das` | Bounded working-order check for clean fresh-entry stop arming. |
 | Unbound | `hotkeys/load_trade_context.das`, `hotkeys/read_trade_position.das` | Select an account/symbol trade and read signed position/quote data. |
@@ -625,7 +627,12 @@ Safety toggles:
 - `set_order_route_bestl.das` sets `$orderRoute` to `BESTL`.
 - `set_order_route_flash1l.das` sets `$orderRoute` to `FLASH1L`.
 - `set_order_route_smartl.das` sets `$orderRoute` to `SMARTL`.
-- On page 5 of both the physical and Virtual Stream Deck profiles, the route button cycles through `ARCA1L`, `FREE1L`, `BESTL`, `FLASH1L`, and `SMARTL` using Advanced Toggles. FLASH1L uses orange text; SMARTL uses white text.
+- `set_order_route_autol.das` selects `AUTOL`, bound to `Alt+Ctrl+Win+7`.
+- On page 5 of both the physical and Virtual Stream Deck profiles, the route button cycles through `AUTOL`, `FREE1L`, `BESTL`, `SMRTL`, `ARCA1L`, and `FLSH1L`. AUTOL is green, the next three are white, and the last two are red. This requires the local six-state Advanced Toggles update. `SMRTL` and `FLSH1L` are display labels; the existing manual presets still send `SMARTL` and `FLASH1L` respectively.
+- AUTOL is a script mode, never a broker route. `Resolve Order Route` selects a concrete route immediately before each submission, without changing `$orderRoute`: FREE1L for expected prices at/above $1; SMARTL below $1 when `price * 0.0036 > 0.0015`; BESTL otherwise, including equality. SMRT's $0.0015/share flat fee at all prices is based on broker confirmation. Aggressive buys/covers use Ask, aggressive sells/shorts use Bid, and resting orders use the final limit price. This is a routing-fee estimate, not a guarantee of execution price or the cheapest passive-order fee.
+- In AUTOL mode, urgent GTFO, backstop, and hijack submissions use BESTL regardless of price. Manual route selections retain the existing independent `$gtfoRoute`. Native STOP orders remain STOP; breakeven exits that become ordinary limit orders use AUTOL. Missing required quotes prevent ordinary AUTOL submissions.
+- AUTOL adds no route fallback, rejection retry, or automatic rerouting. Existing timer fill monitoring, cancellation, and backstop retry behavior remains in place. Route availability is 04:00-20:00 ET; the operator monitors this window and executions. AUTOL performs no clock/timezone conversion or session gating. The same fee bands apply in regular and extended hours.
+- Rebuild and load the complete keymap, including the unbound `Resolve Order Route` helper, before using the new button. Existing ARCA1L startup behavior remains; select AUTOL to enable it.
 - `toggle_single_position_guard.das` toggles the single-position guard
   (`$singlePositionGuard`).
 - `enable_rehab_mode.das` toggles rehab mode on/off; disabling requires typing `YES`.

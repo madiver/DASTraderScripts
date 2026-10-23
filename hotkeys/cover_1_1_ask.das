@@ -66,17 +66,31 @@ if ($px <= 0) {
     ExecHotkey("End Trade Action");
     return;
 }
-ROUTE=$orderRoute;
+
 Price=$px;
 // Use DAS's montage-native price rounding. Function-based Round() did not
 // alter calculated prices reliably in the Open Ocean DAS build.
 if ($px >= 1) { Price=Round2; }
 if ($px < 1)  { Price=Round3; }
 if ($px < 0.25) { Price=Round4; }
+// Resolve AUTOL immediately before this submission; manual routes pass through.
+$routeRequest = $orderRoute;
+$routeSide = "B";
+if ($posNow > 0) { $routeSide = "S"; }
+$routeLimit = Price;
+$routeBid = Bid;
+$routeAsk = Ask;
+$routeUrgent = 0;
+ExecHotkey("Resolve Order Route");
+if ($resolvedOrderRoute == "") {
+    ExecHotkey("End Trade Action");
+    return;
+}
+ROUTE=$resolvedOrderRoute;
 Share=Pos;
 TIF=DAY+;
 SEND=Reverse;
 
-MsgLog("Cover 1/1: submitted full-position Reverse for " + $mySym + " at Ask+ " + $px + " via " + $orderRoute + ".");
+MsgLog("Cover 1/1: submitted full-position Reverse for " + $mySym + " at Ask+ " + $px + " via " + $resolvedOrderRoute + ".");
 
 ExecHotkey("End Trade Action");

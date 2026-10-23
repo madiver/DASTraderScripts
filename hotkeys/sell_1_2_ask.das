@@ -45,10 +45,22 @@ if ($px < 1) { $inc = 0.001; }
 if ($px < 0.25) { $inc = 0.0005; }
 $px = Round($px, 102, $inc);
 if ($px < $inc) { $px = $inc; }
+// Resolve AUTOL immediately before this submission; manual routes pass through.
+$routeRequest = $orderRoute;
+$routeSide = "S";
+$routeLimit = $px;
+$routeBid = $tradeBid;
+$routeAsk = $tradeAsk;
+$routeUrgent = 0;
+ExecHotkey("Resolve Order Route");
+if ($resolvedOrderRoute == "") {
+    ExecHotkey("End Trade Action");
+    return;
+}
 $order = NewOrderObj();
 $order.Account = $trade.account;
 $order.Symbol = $trade.symbol;
-$order.Route = $orderRoute;
+$order.Route = $resolvedOrderRoute;
 $order.Tif = "DAY+";
 $order.Side = "S";
 $order.Type = "L";

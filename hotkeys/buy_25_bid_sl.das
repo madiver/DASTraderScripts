@@ -198,10 +198,22 @@ $trade.active = 1;
 // ---- Step 3: Cancel BUY working orders (keep protection until fill) ----
 $acc = GetAccountObj($trade.account);
 $acc.CancelOrder("BUY", $trade.symbol, 0);
+// Resolve AUTOL immediately before this submission; manual routes pass through.
+$routeRequest = $orderRoute;
+$routeSide = "B";
+$routeLimit = $pxEntry;
+$routeBid = $tradeBid;
+$routeAsk = $tradeAsk;
+$routeUrgent = 0;
+ExecHotkey("Resolve Order Route");
+if ($resolvedOrderRoute == "") {
+    ExecHotkey("End Trade Action");
+    return;
+}
 $order = NewOrderObj();
 $order.Account = $trade.account;
 $order.Symbol  = $trade.symbol;
-$order.Route   = $orderRoute;
+$order.Route   = $resolvedOrderRoute;
 $order.Tif     = "DAY+";
 $order.Side    = "B";      // Buy
 $order.Type    = "L";      // Limit

@@ -75,6 +75,21 @@ $qtyProtect = $posNow / 1;
 $qtyProtect = $qtyProtect - ($qtyProtect % 1);
 if ($qtyProtect < 1) { $qtyProtect = 1; }
 if ($qtyProtect > $posNow) { $qtyProtect = $posNow; }
+if ($stopType == "L") {
+// Resolve AUTOL immediately before this submission; manual routes pass through.
+$routeRequest = $stopRoute;
+$routeSide = "S";
+$routeLimit = $px;
+$routeBid = $tradeBid;
+$routeAsk = $tradeAsk;
+$routeUrgent = 0;
+ExecHotkey("Resolve Order Route");
+if ($resolvedOrderRoute == "") {
+    ExecHotkey("End Trade Action");
+    return;
+}
+    $stopRoute = $resolvedOrderRoute;
+}
 $s = NewOrderObj();
 $s.Account = $trade.account;
 $s.Symbol = $trade.symbol;

@@ -15,6 +15,7 @@ All notable changes to this repository will be documented in this file.
 - Add position-only reads for routine timer and entry-fill polling, skip unnecessary montage fallback, and skip disabled hijack checks. Expand the in-memory regression model to cover asynchronous exits, cancellation acknowledgments, timeout rollover, and lookup/wait counts.
 
 ### Features
+- Add AUTOL (`Alt+Ctrl+Win+7`): resolve every limit submission using FREE1L at $1+, SMARTL above the $0.0015/0.0036 crossover and below $1, and BESTL at/below the crossover. Marketable orders use the opposite quote; resting orders use the limit. Urgent GTFO/backstop/hijack exits use BESTL in AUTOL mode. Preserve native STOP routing and manual presets; add no route retry or fallback. Put green AUTOL first on page 5 of both Stream Deck profiles, followed by white FREE1L/BESTL/SMRTL and red ARCA1L/FLSH1L, using the local six-state Advanced Toggles update.
 - Add a SMARTL limit order route preset, bound to `Alt+Ctrl+Win+6`, and enable the fifth option on the existing route button in both Stream Deck profiles.
 - Insert a duplicate of short-entry page 3 as page 4 in the physical and Virtual Stream Deck profiles, moving settings to page 5. Replace the copied Bid shorts with Tier 1â€“4 Bid- hotkeys (`Alt+Ctrl+Shift+Win+H/J/K/L`) using the signed `$entryBidOffset`, preserving all five quantity states and the original page.
 - Add a FLASH1L limit order route preset, bound to `Alt+Ctrl+Win+F4`, and a fourth option with orange text on the existing route button in both Stream Deck profiles.

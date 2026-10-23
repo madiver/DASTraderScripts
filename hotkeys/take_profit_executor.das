@@ -67,6 +67,18 @@ $inc = 0.01;
 if ($tradeBid < 1) { $inc = 0.001; }
 if ($tradeBid < 0.25) { $inc = 0.0005; }
 $px = Round($tradeBid, 102, $inc);
+// Resolve AUTOL immediately before this submission; manual routes pass through.
+$routeRequest = $orderRoute;
+$routeSide = "S";
+$routeLimit = $px;
+$routeBid = $tradeBid;
+$routeAsk = $tradeAsk;
+$routeUrgent = 0;
+ExecHotkey("Resolve Order Route");
+if ($resolvedOrderRoute == "") {
+    ExecHotkey("End Trade Action");
+    return;
+}
 $order = NewOrderObj();
 $order.Account = $trade.account;
 $order.Symbol = $trade.symbol;
@@ -74,7 +86,7 @@ $order.Side = "S";
 $order.Type = "L";
 $order.Price = $px;
 $order.Share = $takeQty;
-$order.Route = $orderRoute;
+$order.Route = $resolvedOrderRoute;
 $order.Tif = "DAY+";
 $order.Send();
 // Monitor the submitted order without holding the global action lease.

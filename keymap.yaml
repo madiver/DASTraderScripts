@@ -352,6 +352,10 @@
   key: Alt+Ctrl+Win+G
   label: Toggle Live Guards in SIM
   scriptPath: hotkeys/toggle_apply_live_guards_to_sim.das
+- id: set_order_route_autol
+  key: Alt+Ctrl+Win+7
+  label: Set Order Route AUTOL
+  scriptPath: hotkeys/set_order_route_autol.das
 - id: set_order_route_arcal
   key: Alt+Ctrl+Win+2
   label: Set Order Route ARCA1L
@@ -444,3 +448,8 @@
   key:
   label: Timer Exit Handler
   scriptPath: hotkeys/timer_exit_handler.das
+
+- id: resolve_order_route
+  key:
+  label: Resolve Order Route
+  scriptPath: hotkeys/resolve_order_route.das

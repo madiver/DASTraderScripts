@@ -21,6 +21,19 @@ $gtfoDirection = 1;
 if ($posNow < 0) { $gtfoDirection = -1; }
 $gtfoExecRoute = $gtfoRoute;
 if ($gtfoExecRoute == "") { $gtfoExecRoute = $orderRoute; }
+// Resolve AUTOL immediately before this submission; manual routes pass through.
+$routeRequest = $gtfoExecRoute;
+$routeSide = "S";
+$routeLimit = 0;
+$routeBid = 0;
+$routeAsk = 0;
+$routeUrgent = 1;
+ExecHotkey("Resolve Order Route");
+if ($resolvedOrderRoute == "") {
+    ExecHotkey("End Trade Action");
+    return;
+}
+$gtfoExecRoute = $resolvedOrderRoute;
 if ($gtfoExecRoute == "") {
     ExecHotkey("End Trade Action");
     return;
