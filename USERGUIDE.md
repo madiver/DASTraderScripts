@@ -4,7 +4,7 @@
 
 These scripts are the hotkeys I use in DAS Trader for active, discretionary day trading. They focus on fast, repeatable order entry with guard rails. I treat the micro ice breaker and ice breaker (Buy MIB/IB) entries as the first tests of a trade thesis. Automated long trade state is isolated by account and symbol, so a manually managed short in another symbol can coexist with an automated long. The default single-position guard allows one tracked automated long per account; manual shorts do not occupy that guard.
 
-The automated entry-protection workflow is designed for LONG positions only. Eighteen manual hotkeys support Tier 1–4 shorts at Ask, Bid, or Bid minus the entry offset and full, half, or quarter covers at Bid or Ask plus the exit offset; they do not arm long stop loss, take profit, or entry staging. All cancellations are scoped to the selected account and symbol. Long buy, sell, stop, TP, and backstop actions reject short positions rather than using absolute montage size as direction. A long buy on the same account/symbol as a short is blocked; use Cover to reduce that short.
+The automated entry-protection workflow is designed for LONG positions only. Twenty-two manual hotkeys support Tier 1–4 shorts at Ask, Bid, Ask minus its entry offset, or Bid minus its entry offset and full, half, or quarter covers at Bid or Ask plus the exit offset; they do not arm long stop loss, take profit, or entry staging. All cancellations are scoped to the selected account and symbol. Long buy, sell, stop, TP, and backstop actions reject short positions rather than using absolute montage size as direction. A long buy on the same account/symbol as a short is blocked; use Cover to reduce that short.
 
 Repository structure: the `hotkeys/` folder contains the `.das` hotkey scripts, `keymap.yaml` defines the key bindings and metadata, and `other scripts/` contains support scripts like the timer. A `.das` file is plain text you can paste into the DAS Trader Script Editor. The `keymap.yaml` can be compiled into a `Hotkey.htk` using the DAS Hotkey Tools VS Code extension, or you can skip the compiler and copy the scripts manually.
 
@@ -76,11 +76,11 @@ Feature toggles and entry guards:
 - `$useTimerArming`: uses timer-based entry arming (1) or inline polling (0).
 
 Risk and execution:
-- `$entryBidOffset` / `$entryAskOffset`: independent signed offsets for Bid+ / Ask+ buys and Bid- shorts (defaults: BID `+0.01`, ASK `-0.01`). Negative values price below the reference quote for buys; Bid- shorts subtract the signed BID offset, so positive values price below Bid and negative values price above it.
+- `$entryBidOffset` / `$entryAskOffset`: independent signed offsets for Bid+ / Ask+ buys and Bid- / Ask- shorts (defaults: BID `+0.01`, ASK `-0.01`). Buys add the signed offset; shorts subtract it. For shorts, positive offsets price below the reference quote and negative offsets price above it.
 - `$exitOffset`: aggression offset for Bid- long exits and Ask+ short covers, and the limit offset for fixed stops.
-- `$orderRoute`: limit order route for entries/exits (buys/sells/TP/BE). Default is `ARCA1L`. `FREE1L` is the free route for ST Global Market/Open Ocean.
-- Route presets are available for `AUTOL`, `ARCA1L`, `FREE1L`, `BESTL`, `FLASH1L`, and `SMARTL`.
-- `$gtfoRoute`: emergency exit route for GTFO/backstop/hijack exits. Default is `FLSH1L` (Open Ocean broadcast route).
+- `$orderRoute`: limit order route/mode for entries/exits (buys/sells/TP/BE). Default is `AUTOL`, which resolves each submission using the fee-based rules. `FREE1L` is the free route for ST Global Market/Open Ocean.
+- Route presets are available for `AUTOL`, `ARCA1L`, `FREE1L`, `BESTL`, `FLASH1L`, and `SMRTL`.
+- `$gtfoRoute`: emergency exit route for GTFO/backstop/hijack exits when a manual route is selected. Stored default is `FLSH1L` (Open Ocean broadcast route); default AUTOL mode overrides it with `BESTL`.
 - `$stopLossTrigger`: fixed 1R risk per share for all buy tiers.
 - `$backstopBuffer`: trigger buffer below the stop for the manual backstop alert.
 - `$backstopBidOffset`: limit offset from Bid for backstop exits.
@@ -181,7 +181,7 @@ baseline values when you run "Set Global Variables."
 | Risk | `$entryBidOffset` | `0.01` |
 | Risk | `$entryAskOffset` | `-0.01` |
 | Risk | `$exitOffset` | `0.10` |
-| Risk | `$orderRoute` | `"ARCA1L"` |
+| Risk | `$orderRoute` | `"AUTOL"` |
 | Risk | `$gtfoRoute` | `"FLSH1L"` |
 | Risk | `$stopLossTrigger` | `0.50` |
 | Risk | `$takeProfitFactor` | `1.0` |
@@ -269,6 +269,10 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Shift+J` | `hotkeys/short_tier2_bid.das` | Sell short Tier 2 at bid with no offset or automatic protection. |
 | `Alt+Ctrl+Shift+K` | `hotkeys/short_tier3_bid.das` | Sell short Tier 3 at bid with no offset or automatic protection. |
 | `Alt+Ctrl+Shift+L` | `hotkeys/short_tier4_bid.das` | Sell short Tier 4 at bid with no offset or automatic protection. |
+| `Alt+Ctrl+Shift+Win+S` | `hotkeys/short_tier1_ask_minus.das` | Sell short Tier 1 at Ask minus the signed ASK entry offset, with no automatic protection. |
+| `Alt+Ctrl+Shift+Win+D` | `hotkeys/short_tier2_ask_minus.das` | Sell short Tier 2 at Ask minus the signed ASK entry offset, with no automatic protection. |
+| `Alt+Ctrl+Shift+Win+F` | `hotkeys/short_tier3_ask_minus.das` | Sell short Tier 3 at Ask minus the signed ASK entry offset, with no automatic protection. |
+| `Alt+Ctrl+Shift+Win+G` | `hotkeys/short_tier4_ask_minus.das` | Sell short Tier 4 at Ask minus the signed ASK entry offset, with no automatic protection. |
 | `Alt+Ctrl+Shift+Win+H` | `hotkeys/short_tier1_bid_minus.das` | Sell short Tier 1 at bid minus the signed BID entry offset, with no automatic protection. |
 | `Alt+Ctrl+Shift+Win+J` | `hotkeys/short_tier2_bid_minus.das` | Sell short Tier 2 at bid minus the signed BID entry offset, with no automatic protection. |
 | `Alt+Ctrl+Shift+Win+K` | `hotkeys/short_tier3_bid_minus.das` | Sell short Tier 3 at bid minus the signed BID entry offset, with no automatic protection. |
@@ -308,7 +312,7 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Win+3` | `hotkeys/set_order_route_freel.das` | Set limit order route to FREE1L (free route for ST Global Market/Open Ocean). |
 | `Alt+Ctrl+Win+4` | `hotkeys/set_order_route_bestl.das` | Set limit order route to BESTL. |
 | `Alt+Ctrl+Win+F4` | `hotkeys/set_order_route_flash1l.das` | Set limit order route to FLASH1L. |
-| `Alt+Ctrl+Win+6` | `hotkeys/set_order_route_smartl.das` | Set limit order route to SMARTL. |
+| `Alt+Ctrl+Win+6` | `hotkeys/set_order_route_smrtl.das` | Set limit order route to SMRTL. |
 | `Alt+Ctrl+Win+M` | `hotkeys/toggle_single_position_guard.das` | Toggle single-symbol entry guard. |
 | `Alt+Ctrl+Win+H` | `hotkeys/enable_rehab_mode.das` | Toggle rehab mode (YES to disable). |
 | Unbound | `hotkeys/hijack_exit.das` | Hijack guard exit/lock enforcement (timer-only). |
@@ -412,11 +416,20 @@ route behavior, and applicable short-sale restrictions with the broker.
   `round($tierNShareSize * $qtyMult)` shares. Each hotkey can open a short while
   flat or add its tier to an existing short, but aborts if the current position
   is long or its direction cannot be resolved safely.
-- Page 4 of both Stream Deck profiles duplicates page 3, with the four Bid shorts
-  replaced by `Short T1/T2/T3/T4 Bid-`. These send at `Bid - $entryBidOffset`
-  (default `+0.01`) and share the signed BID OFFSET preset on settings page 5.
-  Positive offsets price below Bid; negative offsets price above it. All five quantity states, Ask shorts, covers,
-  and other controls are copied from page 3. Original plain-Bid shorts remain on page 3.
+- Page 3 of both Stream Deck profiles keeps plain Ask/Bid shorts. Page 4 uses
+  `Short T1/T2/T3/T4 Ask-` at `Ask - $entryAskOffset` and
+  `Short T1/T2/T3/T4 Bid-` at `Bid - $entryBidOffset`. Positive offsets price
+  below the reference quote; negative offsets price above it. With defaults,
+  ASK `-0.01` gives Ask plus one cent, while BID `+0.01` gives Bid minus one cent.
+  The ASK-/BID- labels name the subtraction operation, not a guarantee of a
+  price below the quote. All five quantity states and existing covers remain.
+- Page 4 also shows signed ASK OFFSET and BID OFFSET selectors in row 3,
+  columns 6 and 7 respectively. These share the existing globals and sync groups
+  with settings page 5, so changing either copy updates the corresponding
+  displayed state. LOAD CFG resets them to ASK `-0.01` and BID `+0.01` as before.
+  Other offset values must be selected through the Stream Deck controls to
+  keep the displays aligned with DAS; editing a DAS variable directly does
+  not update Stream Deck. Rebuild and install the full keymap before using Ask-.
 - `Cover 1/1 Ask+` cancels working orders for the montage symbol, then uses the
   native `Share=Pos; SEND=Reverse` command at `Ask + $exitOffset`. DAS resolves the position
   quantity and direction internally; for a short it sends a buy for the full
@@ -626,13 +639,13 @@ Safety toggles:
 - `set_order_route_freel.das` sets `$orderRoute` to `FREE1L` (free route for ST Global Market/Open Ocean).
 - `set_order_route_bestl.das` sets `$orderRoute` to `BESTL`.
 - `set_order_route_flash1l.das` sets `$orderRoute` to `FLASH1L`.
-- `set_order_route_smartl.das` sets `$orderRoute` to `SMARTL`.
+- `set_order_route_smrtl.das` sets `$orderRoute` to `SMRTL`.
 - `set_order_route_autol.das` selects `AUTOL`, bound to `Alt+Ctrl+Win+7`.
-- On page 5 of both the physical and Virtual Stream Deck profiles, the route button cycles through `AUTOL`, `FREE1L`, `BESTL`, `SMRTL`, `ARCA1L`, and `FLSH1L`. AUTOL is green, the next three are white, and the last two are red. This requires the local six-state Advanced Toggles update. `SMRTL` and `FLSH1L` are display labels; the existing manual presets still send `SMARTL` and `FLASH1L` respectively.
-- AUTOL is a script mode, never a broker route. `Resolve Order Route` selects a concrete route immediately before each submission, without changing `$orderRoute`: FREE1L for expected prices at/above $1; SMARTL below $1 when `price * 0.0036 > 0.0015`; BESTL otherwise, including equality. SMRT's $0.0015/share flat fee at all prices is based on broker confirmation. Aggressive buys/covers use Ask, aggressive sells/shorts use Bid, and resting orders use the final limit price. This is a routing-fee estimate, not a guarantee of execution price or the cheapest passive-order fee.
+- On page 5 of both the physical and Virtual Stream Deck profiles, the route button cycles through `AUTOL`, `FREE1L`, `BESTL`, `SMRTL`, `ARCA1L`, and `FLSH1L`. AUTOL is green, the next three are white, and the last two are red. This requires the local six-state Advanced Toggles update. The SMRTL preset sends `SMRTL`. `FLSH1L` remains a display label for the existing `FLASH1L` manual preset.
+- AUTOL is a script mode, never a broker route. `Resolve Order Route` selects a concrete route immediately before each submission, without changing `$orderRoute`: FREE1L for expected prices at/above $1; SMRTL below $1 when `price * 0.0036 > 0.0015`; BESTL otherwise, including equality. SMRT's $0.0015/share flat fee at all prices is based on broker confirmation. Aggressive buys/covers use Ask, aggressive sells/shorts use Bid, and resting orders use the final limit price. This is a routing-fee estimate, not a guarantee of execution price or the cheapest passive-order fee.
 - In AUTOL mode, urgent GTFO, backstop, and hijack submissions use BESTL regardless of price. Manual route selections retain the existing independent `$gtfoRoute`. Native STOP orders remain STOP; breakeven exits that become ordinary limit orders use AUTOL. Missing required quotes prevent ordinary AUTOL submissions.
 - AUTOL adds no route fallback, rejection retry, or automatic rerouting. Existing timer fill monitoring, cancellation, and backstop retry behavior remains in place. Route availability is 04:00-20:00 ET; the operator monitors this window and executions. AUTOL performs no clock/timezone conversion or session gating. The same fee bands apply in regular and extended hours.
-- Rebuild and load the complete keymap, including the unbound `Resolve Order Route` helper, before using the new button. Existing ARCA1L startup behavior remains; select AUTOL to enable it.
+- Rebuild and load the complete keymap, including the unbound `Resolve Order Route` helper. `Set Global Variables` selects AUTOL at startup and whenever LOAD CFG reloads the configuration. Manual route presets override it until the configuration is reloaded or AUTOL is selected again. Running the initializer directly does not synchronize the Stream Deck route display.
 - `toggle_single_position_guard.das` toggles the single-position guard
   (`$singlePositionGuard`).
 - `enable_rehab_mode.das` toggles rehab mode on/off; disabling requires typing `YES`.

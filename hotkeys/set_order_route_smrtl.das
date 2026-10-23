@@ -1,8 +1,8 @@
 // =====================
-// SET ORDER ROUTE TO SMARTL
+// SET ORDER ROUTE TO SMRTL
 // Group: Global controls & config
 // =====================
 // Sets the global limit order route for entries/exits.
 
-$orderRoute = "SMARTL";
-MsgLog("Order route set to SMARTL.");
+$orderRoute = "SMRTL";
+MsgLog("Order route set to SMRTL.");

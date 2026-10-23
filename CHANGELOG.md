@@ -5,6 +5,7 @@ All notable changes to this repository will be documented in this file.
 ## 0.3.3 - Unreleased
 
 ### Fixes
+- Correct the SMRT limit route identifier to `SMRTL` in both the manual preset and AUTOL resolver, removing the extra A that selected the wrong route. Rename the preset source and keymap entry to match; retain `Alt+Ctrl+Win+6`.
 - Restore the trading behavior in the supplied `Hotkey-20261015-062456.htk` baseline. Remove the subsequently added overlap coordinator and its tracking/recovery paths, which let rejected `NewOrder` templates block exits from later manual positions. Preserve the baseline $0.50 stop, Bid-minus shorts, public bindings, Stream Deck page work, and earlier performance improvements. Repeated exits again have the baseline overlap risk.
 - Retain the history lookup correction verified on DAS 5.8.4.4: use `RefNum>=nextReference` and initialize the result before each search.
 
@@ -15,8 +16,10 @@ All notable changes to this repository will be documented in this file.
 - Add position-only reads for routine timer and entry-fill polling, skip unnecessary montage fallback, and skip disabled hijack checks. Expand the in-memory regression model to cover asynchronous exits, cancellation acknowledgments, timeout rollover, and lookup/wait counts.
 
 ### Features
-- Add AUTOL (`Alt+Ctrl+Win+7`): resolve every limit submission using FREE1L at $1+, SMARTL above the $0.0015/0.0036 crossover and below $1, and BESTL at/below the crossover. Marketable orders use the opposite quote; resting orders use the limit. Urgent GTFO/backstop/hijack exits use BESTL in AUTOL mode. Preserve native STOP routing and manual presets; add no route retry or fallback. Put green AUTOL first on page 5 of both Stream Deck profiles, followed by white FREE1L/BESTL/SMRTL and red ARCA1L/FLSH1L, using the local six-state Advanced Toggles update.
-- Add a SMARTL limit order route preset, bound to `Alt+Ctrl+Win+6`, and enable the fifth option on the existing route button in both Stream Deck profiles.
+- Default `$orderRoute` to AUTOL when Set Global Variables runs at startup or through LOAD CFG. Urgent exits therefore use BESTL by default; the stored FLSH1L emergency route remains available when a manual route is selected.
+- Make short page 4 an offset page: add Tier 1-4 Ask-minus shorts at `Ask - $entryAskOffset` on `Alt+Ctrl+Shift+Win+S/D/F/G`, alongside the existing Bid-minus shorts. Preserve page 3's plain Ask/Bid shorts and all five quantity states. Add signed ASK/BID offset controls in empty page 4 slots, synchronized with settings page 5 in both physical and Virtual profiles. Defaults price Ask-minus one cent above Ask and Bid-minus one cent below Bid.
+- Add AUTOL (`Alt+Ctrl+Win+7`): resolve every limit submission using FREE1L at $1+, SMRTL above the $0.0015/0.0036 crossover and below $1, and BESTL at/below the crossover. Marketable orders use the opposite quote; resting orders use the limit. Urgent GTFO/backstop/hijack exits use BESTL in AUTOL mode. Preserve native STOP routing and manual presets; add no route retry or fallback. Put green AUTOL first on page 5 of both Stream Deck profiles, followed by white FREE1L/BESTL/SMRTL and red ARCA1L/FLSH1L, using the local six-state Advanced Toggles update.
+- Add a SMRTL limit order route preset, bound to `Alt+Ctrl+Win+6`, and enable the fifth option on the existing route button in both Stream Deck profiles.
 - Insert a duplicate of short-entry page 3 as page 4 in the physical and Virtual Stream Deck profiles, moving settings to page 5. Replace the copied Bid shorts with Tier 1â€“4 Bid- hotkeys (`Alt+Ctrl+Shift+Win+H/J/K/L`) using the signed `$entryBidOffset`, preserving all five quantity states and the original page.
 - Add a FLASH1L limit order route preset, bound to `Alt+Ctrl+Win+F4`, and a fourth option with orange text on the existing route button in both Stream Deck profiles.
 - Add a BESTL limit order route preset, bound to `Alt+Ctrl+Win+4`, alongside ARCA1L and FREE1L. Update the existing route button on both physical and Virtual Stream Deck profiles to cycle through all three routes.

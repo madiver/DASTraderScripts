@@ -57,7 +57,7 @@ $resetStopOnCancel = "Yes";
 
 // ---- 2) Risk & Execution Variables ----
 
-// Independent signed offsets added to BID or ASK by the "plus" buy scripts.
+// Independent signed offsets: added by plus buys, subtracted by minus shorts.
 // Presets: -0.03, -0.02, -0.01, +0.01, +0.03; defaults BID +0.01, ASK -0.01.
 $entryBidOffset = 0.01;
 $entryAskOffset = -0.01;
@@ -66,10 +66,10 @@ $entryAskOffset = -0.01;
 // Example: 0.01 = exit 1 cent(s) below BID (or above ASK)
 $exitOffset = 0.10;
 
-// Limit order route/mode for entries/exits (buys/sells/TP/BE). Default: ARCA1L.
+// Limit order route/mode for entries/exits (buys/sells/TP/BE). Default: AUTOL.
 // AUTOL resolves each submission; urgent exits then use BESTL.
-$orderRoute = "ARCA1L";
-// Emergency exit route (GTFO/backstop). Default: FLSH1L.
+$orderRoute = "AUTOL";
+// Manual-mode emergency exit route (GTFO/backstop). AUTOL overrides with BESTL.
 $gtfoRoute = "FLSH1L";
 
 // Stop distance from entry, per share, in dollars (your "1R")

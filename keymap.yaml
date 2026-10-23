@@ -200,6 +200,24 @@
   label: Short T4 Bid
   scriptPath: hotkeys/short_tier4_bid.das
 
+# Short orders: Ask-
+- id: short_tier1_ask_minus
+  key: Alt+Ctrl+Shift+Win+S
+  label: Short T1 Ask-
+  scriptPath: hotkeys/short_tier1_ask_minus.das
+- id: short_tier2_ask_minus
+  key: Alt+Ctrl+Shift+Win+D
+  label: Short T2 Ask-
+  scriptPath: hotkeys/short_tier2_ask_minus.das
+- id: short_tier3_ask_minus
+  key: Alt+Ctrl+Shift+Win+F
+  label: Short T3 Ask-
+  scriptPath: hotkeys/short_tier3_ask_minus.das
+- id: short_tier4_ask_minus
+  key: Alt+Ctrl+Shift+Win+G
+  label: Short T4 Ask-
+  scriptPath: hotkeys/short_tier4_ask_minus.das
+
 # Short orders: Bid-
 - id: short_tier1_bid_minus
   key: Alt+Ctrl+Shift+Win+H
@@ -372,10 +390,10 @@
   key: Alt+Ctrl+Win+F4
   label: Set Order Route FLASH1L
   scriptPath: hotkeys/set_order_route_flash1l.das
-- id: set_order_route_smartl
+- id: set_order_route_smrtl
   key: Alt+Ctrl+Win+6
-  label: Set Order Route SMARTL
-  scriptPath: hotkeys/set_order_route_smartl.das
+  label: Set Order Route SMRTL
+  scriptPath: hotkeys/set_order_route_smrtl.das
 - id: toggle_single_position_guard
   key: Alt+Ctrl+Win+M
   label: Toggle Single-Position Guard

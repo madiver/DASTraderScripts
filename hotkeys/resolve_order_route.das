@@ -36,7 +36,7 @@ if ($autoRoutePrice >= 1) {
     if ($autoRoutePrice * 0.0036 <= 0.0015) {
         $resolvedOrderRoute = "BESTL";
     } else {
-        $resolvedOrderRoute = "SMARTL";
+        $resolvedOrderRoute = "SMRTL";
     }
 }
 MsgLog("AUTOL -> " + $resolvedOrderRoute + " at expected price " + $autoRoutePrice + ".");
