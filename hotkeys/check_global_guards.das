@@ -8,6 +8,10 @@ if ($posNow < 0) {
     return;
 }
 $acct = $myAcc;
+if ($trade.shortEntryPending == 1 || $trade.shortCoverPending == 1) {
+    MsgLog("Long entry blocked: short entry still pending or cover cancellation pending for " + $trade.key + ".");
+    return;
+}
 $isLive = 0;
 if (StrLen($acct) > 0 && StrFind($acct, "TR") != 0) { $isLive = 1; }
 if ($HIJACKED_LOCKED == 1 && ($isLive == 1 || $applyLiveGuardsToSim == 1)) {

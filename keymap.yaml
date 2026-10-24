@@ -299,14 +299,6 @@
   key: Ctrl+Shift+S
   label: Set Auto Stop
   scriptPath: hotkeys/set_auto_stop.das
-- id: set_backstop_trigger
-  key: Alt+Ctrl+Win+8
-  label: Set Backstop Trigger
-  scriptPath: hotkeys/set_backstop_trigger.das
-- id: backstop_exit_executor
-  key:
-  label: Backstop Exit Executor
-  scriptPath: hotkeys/backstop_exit_executor.das
 - id: set_auto_stop_be_1_1
   key: Ctrl+Shift+B
   label: Set Auto Stop BE 1/1
@@ -411,6 +403,16 @@
   label: Timer Entry Handler
   scriptPath: hotkeys/timer_entry_handler.das
 
+- id: timer_short_stop_handler
+  key:
+  label: Timer Short Stop Handler
+  scriptPath: hotkeys/timer_short_stop_handler.das
+
+- id: check_working_buys
+  key:
+  label: Check Working Buys
+  scriptPath: hotkeys/check_working_buys.das
+
 # Momo coordinated swaps: fixed app binding, Ctrl+Shift+F12.
 - id: swap_internal
   key: Ctrl+Shift+F12
@@ -431,11 +433,6 @@
   key:
   label: Clear Trade State
   scriptPath: hotkeys/clear_trade_state.das
-
-- id: build_backstop_alert
-  key:
-  label: Build Backstop Alert
-  scriptPath: hotkeys/build_backstop_alert.das
 
 - id: end_trade_action
   key:

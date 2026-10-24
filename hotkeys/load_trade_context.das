@@ -29,7 +29,6 @@ if (!IsObj($trade)) {
     $trade.active = 0;
     $trade.generation = 1;
     $trade.deferredTp = 0;
-    $trade.deferredBackstop = 0;
     $trade.entryPending = 0;
     $trade.entryStage = 0;
     $trade.entryTicks = 0;
@@ -42,9 +41,6 @@ if (!IsObj($trade)) {
     $trade.lastStop = 0;
     $trade.stopArmed = 0;
     $trade.tpName = "";
-    $trade.backstopArmed = 0;
-    $trade.backstopRetries = 0;
-    $trade.backstopStop = 0;
     $tradeStates.Set($tcKey, $trade);
 }
 // Initialize new fields once, including contexts retained by LOAD CFG.
@@ -62,6 +58,32 @@ if ($trade.Get("performanceStateVersion") != 1) {
     $trade.exitCancelWarned = 0;
     $trade.lastEntrySecond = 0;
     $trade.Set("performanceStateVersion", 1);
+}
+// Initialize short protection for new and retained contexts.
+if ($trade.Get("shortProtectionStateVersion") != 1) {
+    $trade.shortWatch = 0;
+    $trade.shortEntryPending = 0;
+    $trade.shortEntryOrder = 0;
+    $trade.shortEntryTicks = 0;
+    $trade.shortEntryPosBefore = 0;
+    $trade.shortCoverPending = 0;
+    $trade.shortStopQty = 0;
+    $trade.shortStopAvg = 0;
+    $trade.shortBuyScanRef = 0;
+    $trade.Set("shortProtectionStateVersion", 1);
+}
+if ($trade.Get("directionalTpStateVersion") != 1) {
+    $trade.tpDirection = 1;
+    $trade.tpRevision = 0;
+    $trade.deferredTpDirection = 1;
+    $trade.deferredTpRevision = 0;
+    $trade.tpCancelPending = 0;
+    $trade.shortTpQty = 0;
+    $trade.shortTpAvg = 0;
+    $trade.shortTpDone = 0;
+    $trade.shortTpInvalidLogged = 0;
+    $trade.shortStopBE = 0;
+    $trade.Set("directionalTpStateVersion", 1);
 }
 // Reuse inactive slots; DAS limits each while loop to 200 iterations.
 if ($trade.listed != 1) {

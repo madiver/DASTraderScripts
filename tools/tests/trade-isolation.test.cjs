@@ -88,7 +88,9 @@ function runtime() {
     NativeCancel:()=>{throw new Error('Unscoped native cancellation');},
     NativeReverse:()=>{
       const pos=r.positions.get(key(r.account,r.symbol))?.Share||0;
-      r.orders.push(object({Account:r.account,Symbol:r.symbol,Side:pos<0?'B':'S',Share:ctx.Share,Price:ctx.Price,Route:ctx.ROUTE}));
+      const o=object({Account:r.account,Symbol:r.symbol,Side:pos<0?'B':'S',Share:ctx.Share,Price:ctx.Price,Route:ctx.ROUTE,
+        Type:'L',Open:ctx.Share,RefNum:r.orders.length+1,GetInfo(){},Cancel(){r.cancel(o);}});
+      r.orders.push(o);if(r.sendHook)r.sendHook(o);
     },
     NewOrderObj:()=>{
       let o=object({Open:1, Send(){o.Open=o.Share;o.RefNum=r.orders.length+1;r.orders.push(o);if(r.sendHook)r.sendHook(o);},
@@ -118,7 +120,7 @@ function runtime() {
 let count=0;
 function test(name,f) {try{f();count++;}catch(e){console.error('FAIL:',name);throw e;}}
 const buyLabels=[...scripts.keys()].filter(s=>/^Buy .* SL$/.test(s));
-const longLabels=[...scripts.keys()].filter(s=>/^Sell |^Set Auto Stop|^Set Take Profit$|^Set Backstop Trigger$/.test(s));
+const longLabels=[...scripts.keys()].filter(s=>!['Set Auto Stop','Set Auto Stop BE 1/1','Set Take Profit'].includes(s)&&/^Sell |^Set Auto Stop/.test(s));
 for(const label of [...buyLabels,...longLabels]) test(label+' rejects short before cancel/send',()=>{
   const r=runtime();r.position('LIVE','AAA',-100);r.availableOverride=0;r.run(label);
   assert.equal(r.orders.length,0);assert.equal(r.cancels.length,0);assert.equal(r.alerts.size,0);
@@ -132,17 +134,17 @@ test('short and long coexist; timer protects long off montage',()=>{
   assert.equal(r.symbol,'SHORT');assert.equal(r.state('LIVE','AAA').entryPending,0);
   assert([...r.alerts.values()].every(a=>a.Symb==='AAA'));
 });
-test('flat montage cannot clear another long stop/backstop/TP',()=>{
-  const r=runtime();r.position('LIVE','AAA',100);r.run('Set Auto Stop');r.run('Set Take Profit');r.run('Set Backstop Trigger');
+test('flat montage cannot clear another long stop/TP',()=>{
+  const r=runtime();r.position('LIVE','AAA',100);r.run('Set Auto Stop');r.run('Set Take Profit');
   const t=r.state('LIVE','AAA');const last=t.lastStop, names=[...r.alerts.keys()];
   r.select('LIVE','FLAT');r.position('LIVE','FLAT',0);for(let i=0;i<6;i++)r.tick();
   assert.equal(t.lastStop,last);assert.deepEqual([...r.alerts.keys()],names);
 });
 test('same symbol in LIVE and SIM has separate stops and alerts',()=>{
-  const r=runtime();r.position('LIVE','AAA',100,10);r.run('Set Auto Stop');r.run('Set Take Profit');r.run('Set Backstop Trigger');
-  r.select('TRSIM','AAA');r.position('TRSIM','AAA',200,11);r.run('Set Auto Stop');r.run('Set Take Profit');r.run('Set Backstop Trigger');
-  assert.equal(r.alerts.size,4);assert.notEqual(r.state('LIVE','AAA').lastStop,r.state('TRSIM','AAA').lastStop);
-  r.position('TRSIM','AAA',0);r.tick();assert.equal(r.alerts.size,2);assert.equal(r.state('LIVE','AAA').lastStop,9.5);
+  const r=runtime();r.position('LIVE','AAA',100,10);r.run('Set Auto Stop');r.run('Set Take Profit');
+  r.select('TRSIM','AAA');r.position('TRSIM','AAA',200,11);r.run('Set Auto Stop');r.run('Set Take Profit');
+  assert.equal(r.alerts.size,2);assert.notEqual(r.state('LIVE','AAA').lastStop,r.state('TRSIM','AAA').lastStop);
+  r.position('TRSIM','AAA',0);r.tick();assert.equal(r.alerts.size,1);assert.equal(r.state('LIVE','AAA').lastStop,9.5);
 });
 test('TP alert uses its account while montage shows another short',()=>{
   const r=runtime();r.position('LIVE','AAA',100);r.run('Set Take Profit');const al=[...r.alerts.values()][0];
@@ -151,15 +153,6 @@ test('TP alert uses its account while montage shows another short',()=>{
   r.execute(al.Script);
   assert(r.orders.length>=1);assert(r.orders.every(o=>o.Account==='LIVE'&&o.Symbol==='AAA'));
   assert.equal(r.account,'TRSIM');assert.equal(r.symbol,'SHORT');assert.equal(r.ctx.TP_SYMBOL,'');
-});
-test('backstop alert uses recorded account and keeps independent retry budgets',()=>{
-  const r=runtime();r.position('LIVE','AAA',100);r.run('Set Auto Stop');r.run('Set Backstop Trigger');
-  const al=r.alerts.get('Backstop LIVE AAA');r.select('TRSIM','SHORT');r.position('TRSIM','SHORT',-200);r.quote('SHORT');
-  r.execute(al.Script);assert.equal(r.state('LIVE','AAA').backstopRetries,2);
-  const o=r.orders.at(-1);assert.equal(o.Account,'LIVE');assert.equal(o.Symbol,'AAA');assert.equal(o.Share,100);
-  r.execute(r.alerts.get('Backstop LIVE AAA').Script);r.execute(r.alerts.get('Backstop LIVE AAA').Script);
-  assert.equal(r.state('LIVE','AAA').backstopRetries,0);
-  const n=r.orders.length;r.execute(al.Script);assert.equal(r.orders.length,n);
 });
 test('stale TP payload on a now-short position cannot add short shares',()=>{
   const r=runtime();r.position('LIVE','AAA',100);r.run('Set Take Profit');const al=[...r.alerts.values()][0];
@@ -180,6 +173,111 @@ test('stop quantity reflects reduced size during cancel wait',()=>{
 });
 test('reserved shares do not hide signed account position',()=>{
   const r=runtime();r.position('LIVE','AAA',100);r.availableOverride=0;r.run('Set Auto Stop');assert.equal(r.orders[0].Share,100);
+});
+for(const [avg,distance,trigger,limit] of [[10,0.5,10.5,10.6],[0.428,0.1,0.528,0.628],
+  [0.18,0.1,0.28,0.38],[0.957,0.1,1.06,1.16],[0.2,0.01,0.21,0.31]]) {
+  test('RESET protects signed short size at average '+avg+' with distance '+distance,()=>{
+    const r=runtime();r.position('LIVE','AAA',-125,avg);r.availableOverride=0;
+    r.ctx.$stopLossTrigger=distance;r.run('Set Auto Stop');
+    assert.equal(r.orders.length,1);const o=r.orders[0];
+    assert.equal(o.Account,'LIVE');assert.equal(o.Symbol,'AAA');assert.equal(o.Side,'B');
+    assert.equal(o.Share,125);assert.equal(o.Route,'STOP');assert.equal(o.Type,'SLP');assert.equal(o.Tif,'DAY+');
+    assert(Math.abs(o.StopPrice-trigger)<1e-8);assert(Math.abs(o.Price-limit)<1e-8);
+    assert(o.Price>o.StopPrice);assert.equal(r.ctx.$stopSubmitted,1);
+    assert.equal(r.state('LIVE','AAA').Get('shortStopOrder'),o);
+    assert.deepEqual(r.cancels,[{account:'LIVE',symbol:'AAA',flag:'BUY'}]);
+    assert.equal(r.ctx.$tradeActionDepth,0);
+  });
+}
+for(const distance of [0.1,0.2,0.3,0.5]) test('RESET short uses the existing '+distance+' stop preset',()=>{
+  const r=runtime();r.position('LIVE','AAA',-20,10);
+  r.run('Set '+distance.toFixed(2)+' Stop');r.run('Set Auto Stop');
+  assert(Math.abs(r.orders[0].StopPrice-(10+distance))<1e-8);
+});
+for(const offset of [0,-0.1,0.00001]) test('RESET short limit stays above its trigger with offset '+offset,()=>{
+  const r=runtime();r.position('LIVE','AAA',-25,10);r.ctx.$exitOffset=offset;r.run('Set Auto Stop');
+  assert.equal(r.orders.length,1);assert.equal(r.orders[0].StopPrice,10.5);assert.equal(r.orders[0].Price,10.51);
+});
+for(const initial of [-100,100]) for(const remaining of [0,-initial/2]) {
+  test('RESET aborts if signed position '+initial+' changes direction or becomes flat at '+remaining,()=>{
+    const r=runtime();r.position('LIVE','AAA',initial,10);
+    r.waitHook=()=>r.position('LIVE','AAA',remaining,10);r.run('Set Auto Stop');
+    assert.equal(r.orders.length,0);assert.equal(r.ctx.$stopSubmitted,0);assert.equal(r.ctx.$tradeActionDepth,0);
+  });
+}
+test('RESET short uses refreshed size and average without following a montage switch',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.quote('BBB');r.position('TRSIM','BBB',100,20);
+  r.waitHook=()=>{r.position('LIVE','AAA',-30,10.2);r.select('TRSIM','BBB');};r.run('Set Auto Stop');
+  assert.equal(r.orders.length,1);const o=r.orders[0];
+  assert.equal(o.Account,'LIVE');assert.equal(o.Symbol,'AAA');assert.equal(o.Side,'B');assert.equal(o.Share,30);
+  assert(Math.abs(o.StopPrice-10.7)<1e-8);assert.equal(r.account,'TRSIM');assert.equal(r.symbol,'BBB');
+});
+test('RESET short refuses missing average, invalid distance, or unknown signed position before cancellation',()=>{
+  for(const invalid of ['average','distance','position']) {
+    const r=runtime();r.position('LIVE','AAA',-100,invalid==='average'?0:10);
+    if(invalid==='distance')r.ctx.$stopLossTrigger=0;
+    if(invalid==='position'){r.missing.add('LIVE|AAA');r.availableOverride=0;}
+    r.run('Set Auto Stop');assert.equal(r.orders.length,0);assert.equal(r.cancels.length,0);
+  }
+  const flat=runtime();flat.run('Set Auto Stop');assert.equal(flat.orders.length,0);assert.equal(flat.cancels.length,0);
+});
+test('RESET short replaces its old stop and waits for cancellation acknowledgment',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.run('Set Auto Stop');const first=r.orders[0];
+  r.cancelHook=()=>{};r.position('LIVE','AAA',-50,10);r.run('Set Auto Stop');
+  assert.equal(r.orders.length,1);assert.equal(r.ctx.$stopSubmitted,0);
+  assert.equal(r.state('LIVE','AAA').Get('shortStopOrder'),first);
+  assert(r.logs.some(s=>s.includes('cancellation pending')));
+  first.Open=0;r.cancelHook=null;r.run('Set Auto Stop');
+  assert.equal(r.orders.length,2);assert.equal(r.orders[1].Share,50);assert.equal(first.canceled,true);
+});
+test('timer retains a RESET short stop across configuration reload without arming long protection',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.run('Set Auto Stop');const o=r.orders[0];
+  const t=r.state('LIVE','AAA');r.run('Set Global Variables');
+  r.select('TRSIM','OTHER');r.quote('OTHER');r.position('TRSIM','OTHER',100,20);
+  for(let i=0;i<5;i++)r.tick();
+  assert.equal(r.orders.length,1);assert.equal(o.Open,100);assert.equal(o.canceled,undefined);
+  assert.equal(t.lastStop,10.5);assert.equal(t.stopArmed,1);assert.equal(t.Get('shortStopOrder'),o);
+  assert.equal(r.alerts.size,1);assert.equal([...r.alerts.values()][0].condition.op,'<');
+});
+for(const remaining of [0,100]) test('timer cancels only its stale short stop when position becomes '+remaining,()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.run('Set Auto Stop');const stop=r.orders[0];
+  r.position('LIVE','OTHER',-100,20);r.quote('OTHER');r.select('LIVE','OTHER');r.run('Set Auto Stop');const other=r.orders[1];
+  r.position('LIVE','AAA',remaining,10);r.cancelHook=o=>{if(o===stop)stop.Open=100;};r.tick();
+  assert.equal(stop.canceled,true);assert.equal(other.canceled,undefined);assert.equal(r.orders.length,2);
+  assert.equal(r.state('LIVE','AAA').Get('shortStopOrder'),stop);
+  stop.Open=0;r.cancelHook=null;r.tick();
+  assert.equal(r.state('LIVE','AAA').Get('shortStopOrder'),0);
+  assert.equal(r.state('LIVE','AAA').active,0);assert.equal(r.orders.length,2);
+});
+test('RESET short clears old long alerts and pending staging',()=>{
+  const r=runtime();r.position('LIVE','AAA',100,10);r.run('Set Take Profit');const alert=[...r.alerts.values()][0];
+  const t=r.state('LIVE','AAA');t.entryPending=1;t.entryStage=2;
+  r.position('LIVE','AAA',-100,10);r.run('Set Auto Stop');r.execute(alert.Script);r.tick();
+  assert.equal(r.orders.length,1);assert.equal(r.orders[0].Side,'B');assert.equal(r.orders[0].canceled,undefined);
+  assert.equal(t.entryPending,0);assert.equal(t.entryWatch,0);assert.equal(r.alerts.size,1);
+  assert.equal([...r.alerts.values()][0].condition.op,'<');
+});
+test('manual short protection does not occupy the single-long guard',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.run('Set Auto Stop');
+  r.select('LIVE','BBB');r.quote('BBB');r.position('LIVE','BBB',0);r.run('Buy MIB Ask SL');
+  assert.equal(r.orders.length,2);assert.equal(r.orders[1].Symbol,'BBB');assert.equal(r.orders[1].Side,'B');
+});
+for(const label of ['Cancel All No Stops','Cover 1/1 Ask+','Cover 1/2 Ask+','Cover 1/4 Bid']) {
+  test(label+' cancels RESET short protection without automatically rearming it',()=>{
+    const r=runtime();r.position('LIVE','AAA',-100,10);r.run('Set Auto Stop');const stop=r.orders[0];
+    r.run(label);const count=r.orders.length;
+    for(let i=0;i<3;i++)r.tick();
+    assert.equal(stop.canceled,true);assert.equal(r.state('LIVE','AAA').Get('shortStopOrder'),0);
+    assert.equal(r.orders.length,count);assert.equal(r.orders.filter(o=>o.Type==='SLP').length,1);
+  });
+}
+for(const route of ['AUTOL','FREE1L','BESTL','SMRTL','ARCA1L']) test('RESET short keeps STOP independent of '+route,()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.ctx.$orderRoute=route;r.run('Set Auto Stop');
+  assert.equal(r.orders[0].Route,'STOP');assert.equal(r.ctx.$orderRoute,route);
+});
+test('long timer mode cannot automatically arm a short stop',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.ctx.$timerMode=1;r.run('Set Auto Stop');
+  assert.equal(r.orders.length,0);assert.equal(r.cancels.length,0);assert.equal(r.ctx.$stopSubmitted,0);
 });
 test('missing account data and unresolved reserved position do not trade',()=>{
   const r=runtime();r.position('LIVE','AAA',100);r.missing.add('LIVE|AAA');r.availableOverride=0;r.run('Set Auto Stop');
@@ -209,7 +307,8 @@ test('LOAD CFG retains protection and open pending state',()=>{
 test('cancel all and GTFO only cancel selected account and symbol',()=>{
   for(const label of ['Cancel All','Cancel All No Stops','GTFO']) {
     const r=runtime();r.position('LIVE','AAA',-100);r.run(label);
-    assert(r.cancels.length>0);assert(r.cancels.every(c=>c.account==='LIVE'&&c.symbol==='AAA'&&c.flag==='BUY|SELL'));
+    assert(r.cancels.length>0);assert(r.cancels.every(c=>c.account==='LIVE'&&c.symbol==='AAA'));
+    assert.equal(r.cancels[0].flag,'BUY|SELL');
     if(label==='GTFO'){assert.equal(r.orders[0].Side,'B');assert.equal(r.orders[0].Share,100);}
   }
 });
@@ -274,7 +373,9 @@ test('manual full sell and GTFO suspend pending entry staging',()=>{
 });
 test('short entry after a canceled long buy clears the pending long context',()=>{
   const r=runtime();r.run('Buy MIB Bid SL');r.run('Short T1 Bid');r.position('LIVE','AAA',-100);r.tick();
-  assert.equal(r.state('LIVE','AAA').entryPending,0);assert(!r.orders.some(o=>o.Type==='SLP'));
+  assert.equal(r.state('LIVE','AAA').entryPending,0);
+  assert(!r.orders.some(o=>o.Type==='SLP'&&o.Side==='S'));
+  assert.equal(r.orders.at(-1).Type,'SLP');assert.equal(r.orders.at(-1).Side,'B');
 });
 test('GTFO pressed during a wait executes as soon as that action finishes',()=>{
   const r=runtime();r.position('LIVE','AAA',100);
@@ -330,14 +431,6 @@ test('Cancel All No Stops prevents timer-owned exit from resurrecting protection
   const r=runtime();r.position('LIVE','AAA',100);r.run('Sell 1/2 Bid-');r.run('Cancel All No Stops');
   const n=r.orders.length;for(let i=0;i<5;i++)r.tick();assert.equal(r.orders.length,n);
   assert.equal(r.state('LIVE','AAA').exitPending,0);assert.equal(r.alerts.size,0);
-});
-test('backstop supersedes pending TP exit without a later timer rearm',()=>{
-  const r=runtime();r.position('LIVE','AAA',100);r.run('Set Auto Stop');r.run('Set Backstop Trigger');r.run('Set Take Profit');
-  const backstop=r.alerts.get('Backstop LIVE AAA'), tp=[...r.alerts.values()].find(a=>a.Name.startsWith('TP '));
-  r.execute(tp.Script);const partial=r.orders.at(-1);assert.equal(r.state('LIVE','AAA').exitPending,1);
-  r.execute(backstop.Script);assert(partial.canceled);assert.equal(r.orders.at(-1).Share,100);
-  assert.equal(r.state('LIVE','AAA').exitPending,0);
-  const n=r.orders.length;r.tick();r.tick();assert.equal(r.orders.length,n);
 });
 test('unacknowledged exit cancellation logs once and keeps GTFO available',()=>{
   const r=runtime();r.position('LIVE','AAA',100);r.run('Sell 1/2 Ask');r.cancelHook=()=>{};
@@ -714,10 +807,7 @@ for(const share of [100,-100]) test('AUTOL GTFO uses BEST for signed position '+
   assert.equal(r.orders.length,1);assert.equal(r.orders[0].Route,'BESTL');
   assert.equal(r.ctx.$gtfoRoute,'FLSH1L');assert.equal(r.ctx.$orderRoute,'AUTOL');
 });
-test('AUTOL backstop and hijack use BEST, manual emergency route stays independent',()=>{
-  const r=runtime();r.position('LIVE','AAA',100,10);r.run('Set Auto Stop');r.run('Set Backstop Trigger');
-  r.run('Set Order Route AUTOL');r.execute(r.alerts.get('Backstop LIVE AAA').Script);
-  assert.equal(r.orders.at(-1).Route,'BESTL');
+test('AUTOL hijack uses BEST, manual emergency route stays independent',()=>{
   const h=runtime();h.position('LIVE','AAA',1000,10);h.ctx.$hijackProtection=1;
   h.run('Set Order Route AUTOL');h.run('Hijack Exit');assert.equal(h.orders.at(-1).Route,'BESTL');
   const m=runtime();m.run('Set Order Route ARCA1L');m.position('LIVE','AAA',100,10);m.run('GTFO');assert.equal(m.orders[0].Route,'FLSH1L');
@@ -813,7 +903,7 @@ for(const label of cushionedExits.filter(s=>s.startsWith('Cover '))) {
     assert.equal(r.orders.length,0);assert.equal(r.ctx.$tradeActionDepth,0);
   });
 }
-test('the ordinary-exit cap leaves STOP, GTFO, backstop, and hijack prices unchanged',()=>{
+test('the ordinary-exit cap leaves STOP, GTFO, and hijack prices unchanged',()=>{
   const stop=runtime();stop.position('LIVE','AAA',100,10);stop.ctx.$exitOffsetMaxPct=0.001;
   stop.run('Set Auto Stop');assert.equal(stop.orders[0].Route,'STOP');
   assert.equal(stop.orders[0].StopPrice,9.5);assert.equal(stop.orders[0].Price,9.4);
@@ -821,11 +911,349 @@ test('the ordinary-exit cap leaves STOP, GTFO, backstop, and hijack prices uncha
     const gtfo=runtime();gtfo.position('LIVE','AAA',share,10);gtfo.ctx.$exitOffsetMaxPct=0.001;gtfo.run('GTFO');
     assert.equal(gtfo.orders[0].Route,'BESTL');assert.equal(gtfo.orders[0].Price,share>0?9.5:10.52);
   }
-  const back=runtime();back.position('LIVE','AAA',100,10);back.ctx.$exitOffsetMaxPct=0.001;
-  back.run('Set Auto Stop');back.run('Set Backstop Trigger');back.execute(back.alerts.get('Backstop LIVE AAA').Script);
-  assert.equal(back.orders.at(-1).Price,9.9);
   const hijack=runtime();hijack.position('LIVE','AAA',1000,10);hijack.ctx.$exitOffsetMaxPct=0.001;
   hijack.ctx.$hijackProtection=1;hijack.run('Hijack Exit');assert.equal(hijack.orders[0].Price,9.9);
+});
+
+for(const label of [...scripts.keys()].filter(s=>/^Short T/.test(s))) {
+  test(label+' protects actual partial and late fills when stops are on',()=>{
+    const r=runtime();r.run(label);const entry=r.orders[0];const partial=Math.floor(entry.Share/2);
+    r.tick();assert.equal(r.orders.length,1,'submission alone must not arm protection');
+    r.position('LIVE','AAA',-partial,10);entry.Open=entry.Share-partial;r.tick();
+    const first=r.orders.at(-1);assert.equal(first.Type,'SLP');assert.equal(first.Side,'B');
+    assert.equal(first.Share,partial);assert.equal(first.StopPrice,10.5);assert.equal(first.Route,'STOP');
+    r.position('LIVE','AAA',-entry.Share,10.02);entry.Open=0;r.tick();
+    assert.equal(first.canceled,true);assert.equal(r.orders.length,2);
+    r.tick();const full=r.orders.at(-1);assert.equal(full.Share,entry.Share);
+    assert(Math.abs(full.StopPrice-10.52)<1e-8);assert.equal(full.Route,'STOP');assert.equal(full.Side,'B');
+    assert.equal(r.alerts.size,1);assert.equal([...r.alerts.values()][0].condition.op,'<');
+    assert.equal(r.ctx.$orderRoute,'AUTOL');
+  });
+  test(label+' leaves automatic protection off when stops are off',()=>{
+    const r=runtime();r.ctx.$useAutoStop='No';r.run(label);
+    r.position('LIVE','AAA',-r.orders[0].Share,10);for(let i=0;i<3;i++)r.tick();
+    assert.equal(r.orders.length,1);assert.equal(r.orders[0].Side,'SS');
+  });
+}
+for(const label of [...scripts.keys()].filter(s=>/^Cover /.test(s))) {
+  test(label+' restores short protection only after the working cover closes',()=>{
+    const r=runtime();r.position('LIVE','AAA',-100,10);r.run('Set Auto Stop');const initial=r.orders[0];
+    r.run(label);const cover=r.orders[1];assert.equal(initial.canceled,true);
+    r.tick();assert.equal(r.orders.length,2,'working cover and new BUY stop must not overlap');
+    const partial=Math.max(1,Math.floor(cover.Share/2));
+    r.position('LIVE','AAA',-100+partial,10);cover.Open=cover.Share-partial;r.tick();assert.equal(r.orders.length,2);
+    r.position('LIVE','AAA',-100+cover.Share,10);cover.Open=0;r.tick();
+    if(cover.Share===100) {
+      assert.equal(r.orders.length,2);assert.equal(r.state('LIVE','AAA').active,0);
+    } else {
+      assert.equal(r.orders.length,3);const stop=r.orders[2];
+      assert.equal(stop.Type,'SLP');assert.equal(stop.Side,'B');assert.equal(stop.Share,100-cover.Share);
+    }
+  });
+}
+test('a canceled cover restores short protection without resubmitting the cover',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.run('Cover 1/2 Ask+');const cover=r.orders[0];
+  cover.Open=0;cover.Status='Canceled';r.tick();
+  assert.equal(r.orders.length,2);assert.equal(r.orders[1].Type,'SLP');assert.equal(r.orders[1].Share,100);
+  assert.equal(r.orders.filter(o=>o.Type==='L').length,1);
+});
+test('flat during a working cover cancels its BUY and waits for acknowledgment',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.run('Cover 1/2 Ask+');const cover=r.orders[0];
+  r.position('LIVE','AAA',0,0);r.cancelHook=()=>{};r.tick();
+  assert.equal(cover.canceled,true);assert.equal(r.state('LIVE','AAA').shortCoverPending,1);
+  assert.equal(r.orders.length,1);r.run('Buy MIB Ask SL');assert.equal(r.orders.length,1);
+  cover.Open=0;r.cancelHook=null;r.tick();assert.equal(r.state('LIVE','AAA').active,0);
+});
+test('RESET waits for a cover cancellation instead of overlapping BUY orders',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.run('Cover 1/2 Ask+');const cover=r.orders[0];
+  r.cancelHook=()=>{};r.run('Set Auto Stop');assert.equal(r.orders.length,1);assert.equal(r.ctx.$stopSubmitted,0);
+  cover.Open=0;r.cancelHook=null;r.tick();assert.equal(r.orders.length,2);assert.equal(r.orders[1].Share,100);
+});
+test('RESET retains an unfilled short remainder for cleanup after a full stop fill',()=>{
+  const r=runtime();r.run('Short T1 Bid');const entry=r.orders[0];entry.Open=50;
+  r.position('LIVE','AAA',-50,10);r.tick();r.run('Set Auto Stop');const stop=r.orders.at(-1);
+  assert.equal(r.state('LIVE','AAA').shortEntryOrder,entry);
+  stop.Open=0;r.position('LIVE','AAA',0,0);r.tick();assert.equal(entry.canceled,true);
+  r.tick();assert.equal(r.state('LIVE','AAA').active,0);
+});
+test('short stop replacement waits for acknowledgment and uses the latest signed size',()=>{
+  const r=runtime();r.run('Short T1 Bid');const entry=r.orders[0];entry.Open=0;
+  r.position('LIVE','AAA',-100,10);r.tick();const stop=r.orders[1];
+  r.position('LIVE','AAA',-150,10);r.cancelHook=()=>{};r.tick();r.tick();
+  assert.equal(r.orders.length,2);assert.equal(stop.canceled,true);
+  r.position('LIVE','AAA',-175,10.1);stop.Open=0;r.cancelHook=null;r.tick();
+  assert.equal(r.orders.length,3);assert.equal(r.orders[2].Share,175);assert.equal(r.orders[2].Side,'B');
+});
+test('a partial short-stop fill keeps its already-working remaining BUY shares',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.run('Set Auto Stop');const stop=r.orders[0];
+  stop.Open=40;r.position('LIVE','AAA',-40,10);r.tick();
+  assert.equal(r.orders.length,1);assert.equal(stop.canceled,undefined);
+  assert.equal(r.state('LIVE','AAA').shortStopQty,40);
+});
+test('short no-fill timeout waits for cancellation and does not arm a stop while flat',()=>{
+  const r=runtime();r.ctx.$entryMaxTicks=2;r.run('Short T1 Bid');const entry=r.orders[0];
+  r.tick();r.tick();assert.equal(entry.canceled,true);r.tick();
+  assert.equal(r.orders.length,1);assert.equal(r.state('LIVE','AAA').active,0);
+});
+test('short fill racing timeout cancellation still receives protection',()=>{
+  const r=runtime();r.ctx.$entryMaxTicks=1;r.run('Short T1 Bid');const entry=r.orders[0];
+  r.cancelHook=o=>{o.Open=0;r.position('LIVE','AAA',-25,10);};r.tick();r.cancelHook=null;r.tick();
+  assert.equal(r.orders.length,2);assert.equal(r.orders[1].Share,25);assert.equal(r.orders[1].Type,'SLP');
+});
+test('short pending entry blocks a long buy in the same symbol',()=>{
+  const r=runtime();r.run('Short T1 Ask');r.run('Buy MIB Bid SL');
+  assert.equal(r.orders.length,1);assert(r.logs.some(s=>s.includes('short entry still pending')));
+});
+test('automatic short and long protection remain isolated off montage across accounts',()=>{
+  const r=runtime();r.run('Short T1 Bid');const shortEntry=r.orders[0];shortEntry.Open=0;r.position('LIVE','AAA',-100,10);
+  r.select('TRSIM','AAA');r.position('TRSIM','AAA',0);r.run('Buy MIB Ask SL');r.position('TRSIM','AAA',100,10);
+  r.select('LIVE','OTHER');r.quote('OTHER');r.position('LIVE','OTHER',-10,20);
+  r.tick();r.tick();const stops=r.orders.filter(o=>o.Type==='SLP');
+  assert.equal(stops.length,2);assert.equal(stops.find(o=>o.Account==='LIVE').Side,'B');
+  assert.equal(stops.find(o=>o.Account==='TRSIM').Side,'S');assert.equal(r.symbol,'OTHER');
+});
+test('automatic short staging survives LOAD CFG and retries missing average',()=>{
+  const r=runtime();r.run('Short T1 Bid');const entry=r.orders[0];entry.Open=0;r.position('LIVE','AAA',-50,0);
+  r.run('Set Global Variables');r.tick();assert.equal(r.orders.length,1);
+  r.position('LIVE','AAA',-50,10);r.tick();assert.equal(r.orders[1].Share,50);
+});
+test('short protection follows the stop toggle without duplicating a working stop',()=>{
+  const r=runtime();r.run('Short T1 Bid');r.ctx.$useAutoStop='No';r.orders[0].Open=0;
+  r.position('LIVE','AAA',-100,10);r.tick();assert.equal(r.orders.length,1);
+  r.ctx.$useAutoStop='Yes';r.tick();r.tick();assert.equal(r.orders.length,2);
+});
+test('Cancel All honors stop-reset settings for a short and No Stops suppresses rearming',()=>{
+  for(const enabled of [true,false]) {
+    const r=runtime();r.position('LIVE','AAA',-100,10);r.run('Set Auto Stop');const stop=r.orders[0];
+    r.ctx.$resetStopOnCancel=enabled?'Yes':'No';r.run('Cancel All');r.tick();
+    assert.equal(stop.canceled,true);assert.equal(r.orders.length,enabled?2:1);
+    r.run('Cancel All No Stops');const count=r.orders.length;r.tick();assert.equal(r.orders.length,count);
+  }
+});
+test('short protection scans long order history over multiple ticks without exceeding the loop limit',()=>{
+  const r=runtime();for(let i=0;i<205;i++)r.orders.push(object({Account:'LIVE',Symbol:'AAA',Side:'B',Open:0,RefNum:i+1}));
+  r.run('Short T1 Bid');r.orders.at(-1).Open=0;r.position('LIVE','AAA',-100,10);
+  r.tick();assert.equal(r.orders.length,206);r.tick();assert.equal(r.orders.length,207);
+  assert.equal(r.orders.at(-1).Type,'SLP');
+});
+test('a rejected short entry never creates protection or automatic route fallback',()=>{
+  const r=runtime();r.sendHook=o=>{o.Open=0;o.Status='Rejected';};r.run('Short T1 Bid');
+  for(let i=0;i<12;i++)r.tick();assert.equal(r.orders.length,1);assert.equal(r.orders[0].Type,'L');
+});
+
+for(const [shares,op,target] of [[100,'>',10.5],[-100,'<',9.5]]) {
+  test('RESET TAKE PROFIT arms the correct direction for signed size '+shares,()=>{
+    const r=runtime();r.position('LIVE','AAA',shares,10);r.run('Set Take Profit');
+    const alert=[...r.alerts.values()][0];assert.equal(alert.condition.field,'Last Sale');
+    assert.equal(alert.condition.op,op);assert.equal(alert.condition.px,target);
+    assert.equal(r.orders.length,0);assert.equal(r.ctx.$tpCreated,1);
+    assert(alert.Script.includes('TP_DIRECTION'));assert(alert.Script.includes('TP_REVISION'));
+  });
+}
+test('short TP refuses nonpositive targets without replacing an existing valid alert',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,0.4);r.ctx.$stopLossTrigger=0.1;r.run('Set Take Profit');
+  const alert=[...r.alerts.values()][0];r.ctx.$stopLossTrigger=0.5;r.run('Set Take Profit');
+  assert.equal(r.ctx.$tpCreated,0);assert.equal(r.alerts.size,1);assert.equal([...r.alerts.values()][0],alert);
+  r.position('LIVE','AAA',0);r.run('Set Take Profit');assert.equal(r.orders.length,0);
+});
+test('invalid automatic short TP target logs once while short stop protection remains active',()=>{
+  const r=runtime();r.quote('AAA',0.39,0.4,0.4);r.run('Short T1 Bid');r.orders[0].Open=0;
+  r.position('LIVE','AAA',-100,0.4);for(let i=0;i<4;i++)r.tick();
+  assert.equal(r.orders.length,2);assert.equal(r.orders[1].Type,'SLP');assert.equal(r.alerts.size,0);
+  assert.equal(r.logs.filter(s=>s.includes('Take profit not created')).length,1);
+});
+for(const label of [...scripts.keys()].filter(s=>/^Short T/.test(s))) {
+  test(label+' automatically arms short TP independently of stops',()=>{
+    const r=runtime();r.ctx.$useAutoStop='No';r.run(label);const entry=r.orders[0];
+    r.tick();assert.equal(r.alerts.size,0);entry.Open=0;r.position('LIVE','AAA',-entry.Share,10);r.tick();
+    assert.equal(r.orders.length,1);assert.equal(r.alerts.size,1);
+    assert.equal([...r.alerts.values()][0].condition.px,9.5);
+    assert.equal([...r.alerts.values()][0].condition.op,'<');
+  });
+}
+test('short TP toggle disables automatic arming while manual RESET still works',()=>{
+  const r=runtime();r.ctx.$useTakeProfit='No';r.run('Short T1 Bid');r.orders[0].Open=0;
+  r.position('LIVE','AAA',-100,10);r.tick();assert.equal(r.orders[1].Type,'SLP');assert.equal(r.alerts.size,0);
+  r.run('Set Take Profit');assert.equal(r.alerts.size,1);assert.equal([...r.alerts.values()][0].condition.op,'<');
+});
+test('RESET STOP LOSS and full BE retain an existing short TP alert when TP is off',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.ctx.$useTakeProfit='No';r.run('Set Take Profit');
+  const alert=[...r.alerts.values()][0];const revision=r.state('LIVE','AAA').tpRevision;
+  r.run('Set Auto Stop');assert.equal([...r.alerts.values()][0],alert);
+  r.run('Set Auto Stop BE 1/1');assert.equal([...r.alerts.values()][0],alert);
+  assert.equal(r.state('LIVE','AAA').tpRevision,revision);
+});
+for(const [ask,avg,expected] of [[9.5,10,'BESTL'],[0.65,0.75,'SMRTL'],[0.4,0.5,'BESTL']]) {
+  test('short TP buys at Ask '+ask+' through the existing AUTOL fee bands',()=>{
+    const r=runtime();r.position('LIVE','AAA',-100,avg);r.quote('AAA',ask-0.01,ask,ask-0.01);
+    r.ctx.$stopLossTrigger=0.1;r.run('Set Take Profit');r.execute([...r.alerts.values()][0].Script);
+    assert.equal(r.orders.length,1);const cover=r.orders[0];
+    assert.equal(cover.Side,'B');assert.equal(cover.Share,50);assert.equal(cover.Price,ask);assert.equal(cover.Route,expected);
+    assert.equal(r.ctx.$orderRoute,'AUTOL');assert.equal(r.state('LIVE','AAA').exitStartPos,-100);
+  });
+}
+test('short TP honors manual routing and rehab quantity rules',()=>{
+  for(const [account,apply,expected] of [['LIVE',0,25],['TRSIM',0,50],['TRSIM',1,25]]) {
+    const r=runtime();r.select(account,'AAA');r.position(account,'AAA',-100,10);r.quote('AAA',9.49,9.5,9.49);
+    r.ctx.$rehab=1;r.ctx.$applyLiveGuardsToSim=apply;r.ctx.$takeProfitSizeRehab=0.25;
+    r.run('Set Order Route FREE1L');r.run('Set Take Profit');r.execute([...r.alerts.values()][0].Script);
+    assert.equal(r.orders[0].Share,expected);assert.equal(r.orders[0].Side,'B');assert.equal(r.orders[0].Route,'FREE1L');
+  }
+});
+test('short TP cannot act on a long, and replaced TP payloads are invalidated by revision',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.run('Set Take Profit');const old=[...r.alerts.values()][0];
+  r.run('Set Take Profit');r.execute(old.Script);assert.equal(r.orders.length,0);assert.equal(r.cancels.length,0);
+  const current=[...r.alerts.values()][0];r.position('LIVE','AAA',100,10);r.execute(current.Script);
+  assert.equal(r.orders.length,0);assert.equal(r.cancels.length,0);
+});
+test('short TP payload uses its original account and symbol off montage',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.quote('AAA',9.49,9.5,9.49);r.run('Set Take Profit');
+  const shortAlert=[...r.alerts.values()][0];r.select('TRSIM','OTHER');r.position('TRSIM','OTHER',200,20);r.quote('OTHER',20.49,20.5,20.49);
+  r.run('Set Take Profit');r.execute(shortAlert.Script);
+  assert.equal(r.orders[0].Account,'LIVE');assert.equal(r.orders[0].Symbol,'AAA');assert.equal(r.orders[0].Side,'B');
+  assert.equal(r.orders[0].Price,9.5);assert.equal(r.account,'TRSIM');assert.equal(r.symbol,'OTHER');
+});
+test('deferred short TP retains direction and revision while another action waits',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.quote('AAA',9.49,9.5,9.49);r.run('Set Take Profit');
+  const shortAlert=[...r.alerts.values()][0];r.select('TRSIM','OTHER');r.position('TRSIM','OTHER',100,20);r.quote('OTHER');
+  r.waitHook=()=>{r.waitHook=null;r.execute(shortAlert.Script);};r.run('Set Auto Stop');
+  assert.equal(r.state('LIVE','AAA').deferredTpDirection,-1);r.tick();
+  const cover=r.orders.find(o=>o.Symbol==='AAA'&&o.Type==='L');assert(cover);assert.equal(cover.Side,'B');assert.equal(cover.Share,50);
+});
+test('short TP waits for BUY stop cancellation before sending its cover',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.quote('AAA',9.49,9.5,9.49);r.run('Set Auto Stop');
+  const stop=r.orders[0];r.run('Set Take Profit');r.cancelHook=()=>{};r.execute([...r.alerts.values()][0].Script);
+  assert.equal(r.orders.length,1);assert.equal(r.state('LIVE','AAA').tpCancelPending,1);
+  r.tick();assert.equal(r.orders.length,1);stop.Open=0;r.cancelHook=null;r.tick();
+  assert.equal(r.orders.length,2);assert.equal(r.orders[1].Side,'B');assert.equal(r.orders[1].Type,'L');
+});
+for(const remaining of [50,80,100]) test('short TP restores protection for remaining size '+remaining,()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.quote('AAA',9.49,9.5,9.49);r.run('Set Auto Stop');r.run('Set Take Profit');
+  const payload=[...r.alerts.values()][0].Script;r.execute(payload);const cover=r.orders.at(-1);cover.Open=0;r.position('LIVE','AAA',-remaining,10);r.tick();
+  const protection=r.orders.at(-1);assert.equal(protection.Side,'B');assert.equal(protection.Type,'SLP');assert.equal(protection.Share,remaining);
+  assert(Math.abs(protection.StopPrice-(remaining===50?9.97:10.5))<1e-8);
+  assert.equal(r.alerts.size,remaining===50?0:1);assert.equal(r.state('LIVE','AAA').exitPending,0);
+  const count=r.orders.length;r.tick();assert.equal(r.orders.length,count);assert.equal(r.alerts.size,remaining===50?0:1);
+  r.execute(payload);assert.equal(r.orders.length,count,'consumed TP payload must never execute again');
+});
+test('short TP leaves its stop untouched when Ask is unavailable before execution',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.run('Set Auto Stop');r.run('Set Take Profit');
+  const payload=[...r.alerts.values()][0].Script;const stop=r.orders[0];r.quote('AAA',9.49,0,9.49);r.execute(payload);
+  assert.equal(r.orders.length,1);assert.equal(stop.canceled,undefined);assert.equal(r.state('LIVE','AAA').stopArmed,1);
+});
+test('RESET TAKE PROFIT invalidates a deferred short TP cancellation handoff',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.run('Set Auto Stop');const stop=r.orders[0];r.run('Set Take Profit');
+  const payload=[...r.alerts.values()][0].Script;r.cancelHook=()=>{};r.execute(payload);
+  assert.equal(r.state('LIVE','AAA').tpCancelPending,1);r.run('Set Take Profit');r.tick();
+  assert.equal(r.orders.length,1);assert.equal(r.state('LIVE','AAA').deferredTp,0);
+  stop.Open=0;r.cancelHook=null;r.tick();assert.equal(r.orders.length,2);assert.equal(r.orders[1].Type,'SLP');
+  r.execute(payload);assert.equal(r.orders.length,2);
+});
+test('short TP residual cancellation uses the final filled amount before choosing BE',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.quote('AAA',9.49,9.5,9.49);r.run('Set Take Profit');
+  r.execute([...r.alerts.values()][0].Script);const cover=r.orders[0];cover.Open=30;r.position('LIVE','AAA',-80,10);
+  r.cancelHook=()=>{};for(let i=0;i<4;i++)r.tick();assert.equal(r.orders.length,1);
+  r.cancelHook=o=>{o.Open=0;r.position('LIVE','AAA',-50,10);};r.tick();r.tick();
+  assert.equal(r.orders.length,2);assert.equal(r.orders[1].Share,50);assert.equal(r.orders[1].StopPrice,9.97);
+});
+test('full-position short TP cleans pending entry remainders before flat cleanup',()=>{
+  const r=runtime();r.run('Short T1 Bid');const entry=r.orders[0];entry.Open=50;
+  r.position('LIVE','AAA',-50,10);r.quote('AAA',9.49,9.5,9.49);r.tick();r.ctx.$takeProfitSize=1;
+  r.execute([...r.alerts.values()][0].Script);r.orders.at(-1).Open=0;r.position('LIVE','AAA',0);r.tick();r.tick();r.tick();
+  assert.equal(entry.canceled,true);assert.equal(r.state('LIVE','AAA').active,0);assert.equal(r.alerts.size,0);
+});
+test('short TP retains its BE order identity when the position flattens during BE submission',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.quote('AAA',9.49,9.5,9.49);r.run('Set Take Profit');
+  r.execute([...r.alerts.values()][0].Script);r.orders[0].Open=0;r.position('LIVE','AAA',-50,10);
+  r.quote('AAA',9.98,9.99,9.98);r.sendHook=o=>{if(o.Type==='L'){r.position('LIVE','AAA',0);o.Open=50;}};
+  r.cancelHook=()=>{};r.tick();const be=r.orders[1];assert.equal(be.Type,'L');
+  assert.equal(r.state('LIVE','AAA').exitPending,1);r.tick();assert.equal(be.canceled,true);
+  assert.equal(r.state('LIVE','AAA').Get('shortStopOrder'),be);
+  be.Open=0;r.cancelHook=null;r.tick();assert.equal(r.state('LIVE','AAA').active,0);
+});
+test('GTFO interrupts short TP without later stop or TP resurrection',()=>{
+  const r=runtime();r.position('LIVE','AAA',-100,10);r.quote('AAA',9.49,9.5,9.49);r.run('Set Take Profit');
+  const alert=[...r.alerts.values()][0];r.execute(alert.Script);const cover=r.orders[0];r.run('GTFO');const count=r.orders.length;
+  assert.equal(cover.canceled,true);r.execute(alert.Script);r.tick();r.tick();assert.equal(r.orders.length,count);assert.equal(r.alerts.size,0);
+});
+for(const [ask,type,route] of [[9.5,'SLP','STOP'],[10.02,'L','ARCA1L']]) {
+  test('existing full BE hotkey supports short with Ask '+ask,()=>{
+    const r=runtime();r.position('LIVE','AAA',-100,10);r.quote('AAA',ask-0.01,ask,ask);r.run('Set Auto Stop BE 1/1');
+    assert.equal(r.orders.length,1);const o=r.orders[0];assert.equal(o.Side,'B');assert.equal(o.Share,100);
+    assert.equal(o.Type,type);assert.equal(o.Route,route);assert.equal(o.Price,10);
+    if(type==='SLP')assert.equal(o.StopPrice,9.97);assert.equal(r.ctx.$tradeActionDepth,0);
+  });
+}
+
+for(const ref of [0.0001,0.001,0.01,0.05,0.1796,0.2,0.2381,0.2499,0.25,0.4298,
+  0.49,0.5,0.500001,0.50004,0.5001,0.99,1,1.051,10,10.02,100]) {
+  for(const shares of [125,-125]) test('GTFO caps price distance at quote '+ref+' for signed shares '+shares,()=>{
+    const r=runtime();r.position('LIVE','AAA',shares,ref);r.quote('AAA',ref,ref,ref);r.run('GTFO');
+    assert.equal(r.orders.length,1);const o=r.orders[0];
+    assert.equal(o.Account,'LIVE');assert.equal(o.Symbol,'AAA');assert.equal(o.Type,'L');assert.equal(o.Tif,'DAY+');
+    assert.equal(o.Share,125);assert.equal(o.Side,shares>0?'S':'B');assert.equal(o.Route,'BESTL');assert(o.Price>0);
+    assert(shares>0?o.Price>=ref*0.95-1e-12&&o.Price<=ref+1e-12:o.Price<=ref*1.05+1e-12&&o.Price>=ref-1e-12);
+    assert.equal(r.ctx.$orderRoute,'AUTOL');assert.equal(r.ctx.$tradeActionDepth,0);
+  });
+}
+for(const [ref,shares,expected] of [[0.2,100,0.19],[0.5,100,0.475],[0.2,-100,0.21],
+  [0.4298,-750,0.451],[0.1796,-2450,0.1885],[10,100,9.5],[10.02,-100,10.52]]) {
+  test('GTFO concrete capped limit '+expected+' at quote '+ref+' and signed size '+shares,()=>{
+    const r=runtime();r.position('LIVE','AAA',shares,ref);r.quote('AAA',ref,ref,ref);r.run('GTFO');
+    assert.equal(r.orders.length,1);assert(Math.abs(r.orders[0].Price-expected)<1e-10);
+  });
+}
+test('GTFO refreshes price and signed size after its cancellation wait',()=>{
+  const r=runtime();r.position('LIVE','AAA',100,0.2);r.quote('AAA',0.2,0.21,0.2);
+  r.waitHook=()=>{r.position('LIVE','AAA',30,0.2);r.quote('AAA',0.1,0.11,0.1);};r.run('GTFO');
+  assert.equal(r.orders[0].Share,30);assert.equal(r.orders[0].Price,0.095);
+});
+test('queued GTFO exits a low-price long after the active stop action finishes',()=>{
+  const r=runtime();r.position('LIVE','AAA',100,0.2);r.quote('AAA',0.2,0.21,0.2);
+  r.ctx.$stopLossTrigger=0.05;r.ctx.$exitOffset=0.01;
+  r.waitHook=()=>{r.waitHook=null;r.run('GTFO');};r.run('Set Auto Stop');
+  const exit=r.orders.at(-1);assert.equal(exit.Type,'L');assert.equal(exit.Side,'S');
+  assert.equal(exit.Share,100);assert.equal(exit.Route,'BESTL');assert(Math.abs(exit.Price-0.19)<1e-10);
+  assert.equal(r.ctx.$tradeActionDepth,0);assert.equal(r.ctx.GTFO_PENDING_ACCOUNT,'');
+});
+for(const shares of [100,-100]) test('GTFO uses the existing Last fallback for a missing quote with signed size '+shares,()=>{
+  const r=runtime();r.position('LIVE','AAA',shares,0.2);r.quote('AAA',0,0,0.2);r.run('GTFO');
+  assert.equal(r.orders.length,1);assert(Math.abs(r.orders[0].Price-(shares>0?0.19:0.21))<1e-10);
+});
+test('GTFO submits no order without any positive quote or Last',()=>{
+  const r=runtime();r.position('LIVE','AAA',100,0.2);r.quote('AAA',0,0,0);r.run('GTFO');
+  assert.equal(r.orders.length,0);assert(r.logs.some(s=>s.includes('no positive quote/last')));
+  assert.equal(r.ctx.$tradeActionDepth,0);
+});
+for(const [selected,emergency,expected] of [['AUTOL','ARCA1L','BESTL'],['FREE1L','FLSH1L','FLSH1L'],
+  ['SMRTL','BESTL','BESTL'],['ARCA1L','','ARCA1L']]) {
+  test('low-price GTFO preserves urgent routing '+selected+'/'+emergency,()=>{
+    const r=runtime();r.position('LIVE','AAA',100,0.2);r.quote('AAA',0.2,0.21,0.2);
+    r.ctx.$orderRoute=selected;r.ctx.$gtfoRoute=emergency;r.run('GTFO');
+    assert.equal(r.orders.length,1);assert.equal(r.orders[0].Route,expected);
+    assert.equal(r.ctx.$orderRoute,selected);assert.equal(r.ctx.$gtfoRoute,emergency);
+  });
+}
+test('GTFO percentage ceiling is independent of the ordinary-exit cap',()=>{
+  const r=runtime();r.position('LIVE','AAA',100,0.2);r.quote('AAA',0.2,0.21,0.2);
+  r.ctx.$exitOffsetMaxPct=0.001;r.ctx.$exitOffset=0.01;r.run('GTFO');assert(Math.abs(r.orders[0].Price-0.19)<1e-10);
+  r.ctx.$gtfoOffsetMaxPct=0.1;r.run('GTFO');assert(Math.abs(r.orders[1].Price-0.18)<1e-10);
+  r.run('Show Config');assert(r.logs.some(s=>s.includes('gtfoOffsetMaxPct: 10%')));
+});
+test('disabled GTFO cap retains the dollar cushion with a positive minimum sell limit',()=>{
+  for(const shares of [100,-100]) {
+    const r=runtime();r.position('LIVE','AAA',shares,0.2);r.quote('AAA',0.2,0.2,0.2);r.ctx.$gtfoOffsetMaxPct=0;r.run('GTFO');
+    assert.equal(r.orders.length,1);assert(Math.abs(r.orders[0].Price-(shares>0?0.0001:0.7))<1e-10);
+  }
+});
+test('GTFO cannot round a tiny positive sell price to zero when its cap is disabled',()=>{
+  const r=runtime();r.position('LIVE','AAA',100,0.500001);r.quote('AAA',0.500001,0.51,0.500001);
+  r.ctx.$gtfoOffsetMaxPct=0;r.run('GTFO');assert.equal(r.orders[0].Price,0.0001);
+});
+for(const shares of [100,-100]) test('rejected low-price GTFO does not trigger a route fallback for '+shares,()=>{
+  const r=runtime();r.position('LIVE','AAA',shares,0.2);r.quote('AAA',0.2,0.2,0.2);
+  r.sendHook=o=>{o.Open=0;o.Status='Rejected';};r.run('GTFO');for(let i=0;i<12;i++)r.tick();
+  assert.equal(r.orders.length,1);assert.equal(r.orders[0].Route,'BESTL');
 });
 
 // Syntax-check all mapped scripts after translating native DAS statements.

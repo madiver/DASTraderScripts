@@ -1,5 +1,5 @@
 // Group: Global controls & config
-// Emergency exit: exact account/symbol, full signed position, $0.50 offset.
+// Emergency exit: full signed position, $0.50 cushion capped by quote percentage.
 // Preserve a panic request arriving during another action's cancel/fill wait.
 if (GetVar("tradeActionDepth") * 1 > 0) {
     $gtfoQueueMontage = GetWindowObj("Primary_OE");
@@ -48,21 +48,23 @@ if ($tradePositionValid != 1 || $posNow == 0 || $posNow * $gtfoDirection <= 0) {
 }
 $gtfoExecSide = "S";
 $gtfoExecQty = $posNow;
-$gtfoExecPrice = $tradeBid - 0.50;
+$gtfoRefPrice = $tradeBid;
 if ($posNow < 0) {
     $gtfoExecSide = "B";
     $gtfoExecQty = 0 - $posNow;
-    $gtfoExecPrice = $tradeAsk + 0.50;
+    $gtfoRefPrice = $tradeAsk;
 }
-if (($posNow > 0 && $tradeBid <= 0) || ($posNow < 0 && $tradeAsk <= 0)) {
-    $gtfoExecPrice = $tradeLast - 0.50;
-    if ($posNow < 0) { $gtfoExecPrice = $tradeLast + 0.50; }
-    if ($tradeLast <= 0) { $gtfoExecPrice = 0; }
-}
-if ($gtfoExecPrice <= 0) {
+if ($gtfoRefPrice <= 0) { $gtfoRefPrice = $tradeLast; }
+if ($gtfoRefPrice <= 0) {
+    MsgLog("GTFO aborted: no positive quote/last price for " + $trade.key + ".");
     ExecHotkey("End Trade Action");
     return;
 }
+$gtfoCushion = 0.50;
+$gtfoCushionCap = $gtfoRefPrice * $gtfoOffsetMaxPct;
+if ($gtfoOffsetMaxPct > 0 && $gtfoCushion > $gtfoCushionCap) { $gtfoCushion = $gtfoCushionCap; }
+$gtfoExecPrice = $gtfoRefPrice - $gtfoCushion;
+if ($posNow < 0) { $gtfoExecPrice = $gtfoRefPrice + $gtfoCushion; }
 // Arithmetic snapping works without editing the currently selected montage.
 $gtfoExecInc = 0.01;
 if ($gtfoExecPrice < 1) { $gtfoExecInc = 0.001; }
@@ -70,6 +72,22 @@ if ($gtfoExecPrice < 0.25) { $gtfoExecInc = 0.0001; }
 $gtfoExecTicks = ($gtfoExecPrice / $gtfoExecInc) + 0.5;
 $gtfoExecTicks = $gtfoExecTicks - ($gtfoExecTicks % 1);
 $gtfoExecPrice = $gtfoExecTicks * $gtfoExecInc;
+// Keep rounding inside the cap: raise a sell limit or lower a buy limit one tick.
+if ($gtfoOffsetMaxPct > 0) {
+    if ($posNow > 0 && $gtfoExecPrice < $gtfoRefPrice - $gtfoCushionCap) {
+        $gtfoExecPrice = ($gtfoExecTicks + 1) * $gtfoExecInc;
+    }
+    if ($posNow < 0 && $gtfoExecPrice > $gtfoRefPrice + $gtfoCushionCap) {
+        $gtfoExecPrice = ($gtfoExecTicks - 1) * $gtfoExecInc;
+    }
+}
+// A disabled/oversized percentage cap must never produce a nonpositive sell.
+if ($gtfoExecPrice < $gtfoExecInc) { $gtfoExecPrice = $gtfoExecInc; }
+if ($posNow < 0 && $gtfoOffsetMaxPct > 0 && $gtfoExecPrice > $gtfoRefPrice + $gtfoCushionCap) {
+    MsgLog("GTFO aborted: no positive buy limit at supported precision inside the configured cap.");
+    ExecHotkey("End Trade Action");
+    return;
+}
 $gtfoExecOrder = NewOrderObj();
 $gtfoExecOrder.Account = $trade.account;
 $gtfoExecOrder.Symbol = $trade.symbol;

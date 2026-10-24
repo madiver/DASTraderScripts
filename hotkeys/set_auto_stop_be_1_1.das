@@ -6,12 +6,30 @@ if (GetVar("tradeActionDepth") * 1 > 0 && GetVar("TRADE_CONTEXT_ACCOUNT") == "")
 $tradeActionDepth = GetVar("tradeActionDepth") * 1 + 1;
 if ($tradeActionDepth == 1) { $tradeActionUntil = GetSecond() + 30; }
 // Group: Stops
-// LONG ONLY. Account/symbol context is independent of the selected montage.
+// Full-position breakeven protection for either direction.
 $stopSubmitted = 0;
 $stopTimer = $timerMode;
 $timerMode = 0;
 ExecHotkey("Load Trade Context");
 if ($tradeContextValid != 1 || $tradePositionValid != 1) {
+    ExecHotkey("End Trade Action");
+    return;
+}
+if ($posNow < 0) {
+    if ($stopTimer == 1 && GetVar("SHORT_STOP_TIMER") * 1 != 1) {
+        ExecHotkey("End Trade Action");
+        return;
+    }
+    SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
+    SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
+    SetVar("SHORT_STOP_BE", 1);
+    $timerMode = $stopTimer;
+    ExecHotkey("Set Auto Stop");
+    ExecHotkey("End Trade Action");
+    return;
+}
+if (GetVar("SHORT_STOP_TIMER") * 1 == 1) {
+    SetVar("SHORT_STOP_TIMER", 0);
     ExecHotkey("End Trade Action");
     return;
 }

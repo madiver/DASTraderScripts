@@ -29,14 +29,9 @@ while ($timerTradeIndex < $tradeSlotCount) {
                 SetVar("TP_ACCOUNT", $timerTrade.account);
                 SetVar("TP_SYMBOL", $timerTrade.symbol);
                 SetVar("TP_GENERATION", $timerTrade.generation);
+                SetVar("TP_DIRECTION", $timerTrade.deferredTpDirection);
+                SetVar("TP_REVISION", $timerTrade.deferredTpRevision);
                 ExecHotkey("Take Profit Executor");
-            }
-            if ($timerTrade.deferredBackstop == 1) {
-                $timerTrade.deferredBackstop = 0;
-                SetVar("BACKSTOP_ACCOUNT", $timerTrade.account);
-                SetVar("BACKSTOP_SYMBOL", $timerTrade.symbol);
-                SetVar("BACKSTOP_GENERATION", $timerTrade.generation);
-                ExecHotkey("Backstop Exit Executor");
             }
         }
     }

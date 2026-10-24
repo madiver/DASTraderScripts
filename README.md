@@ -9,7 +9,7 @@ This repository contains human-readable DAS Trader hotkey scripts plus a keymap 
 These are the scripts I trade with on a daily basis. If you choose to use them, start by reading the user guide and then review the global settings in `hotkeys/set_global_variables.das` and the bindings in `keymap.yaml` (mine are tailored to my setup). I primarily use a Stream Deck.
 
 Important constraints:
-- Automated entry protection (stops, take profit, and timer arming) is long-only. The manual Tier 1â€“4 short-entry and full-cover hotkeys are intentionally isolated from that workflow.
+- Long and short entries arm stop losses and take-profit alerts after actual fills when each feature is enabled. RESET STOP LOSS, RESET TAKE PROFIT and full-position breakeven support both directions. Half-BE and scale-in-BE helpers remain long-only.
 - Trade state is isolated by account and symbol. A manual short in another symbol can coexist with an automated long; the default guard allows one tracked automated long per account.
 - Requires a montage named `Primary_OE`.
 - Requires installing `other scripts/timer.das` in DAS Trader's Timer Event Scripts.
@@ -45,7 +45,7 @@ Serious about day trading? You can find me on Discord here:  https://discord.gg/
 2. Ensure `keymap.yaml` is present at the repo root.
 3. Run `DAS: Build Hotkey File`.
 4. Use the generated `output.htk` in DAS Trader.
-5. For this performance upgrade, also replace the installed Timer Event Script with `other scripts/timer.das` and run Set Global Variables. The updated timer is required for TP and manual partial exits even when entry arming is inline. Recreate any legacy symbol-only TP/backstop alerts.
+5. For this performance upgrade, also replace the installed Timer Event Script with `other scripts/timer.das` and run Set Global Variables. The updated timer is required for TP and manual partial exits even when entry arming is inline. Recreate any legacy symbol-only TP alerts. FLASH CRASH TRIG has been removed; delete any previously armed `Backstop ...` alerts and replace the complete hotkey map so its retired bindings are removed.
 
 The rollback was compared with `Hotkey-20261015-062456.htk`: all 100 public
 bindings and all entry/exit logic match that baseline. The verified order-history
@@ -91,8 +91,6 @@ Momo uses this fixed shortcut automatically. See [Momo swap setup](USERGUIDE.md#
 - Routine timer and fill checks read fresh signed positions without fetching
   quotes. Full price reads use montage fallback only when needed; disabled hijack
   protection does no timer work.
-- A manual backstop alert can be armed for fast flushes; it uses L1 Bid
-  triggers and sends aggressive limit exits via `$gtfoRoute` (see USERGUIDE).
 
 ## Script metadata
 
@@ -127,14 +125,15 @@ Short orders: Ask, Short orders: Bid, Short orders: Bid-, Stops, Take profit, Ut
 - `Cover 1/1 Ask+` cancels current-symbol orders and uses DAS `Share=Pos; SEND=Reverse` at Ask plus the smaller of `$exitOffset` and `Ask * $exitOffsetMaxPct`. Defaults retain the $0.10 desired cushion with a 5% ceiling; set `$exitOffsetMaxPct = 0` to disable the percentage ceiling. For a short position, DAS resolves the current quantity and sends a buy. This does not guarantee that a previous order cannot still fill.
 - `Cover 1/2 Ask+` and `Cover 1/4 Ask+` use the same pricing and native Reverse behavior for half or a quarter of the current position, rounded down to whole shares with a minimum of one share. Page 3 has Cover 1/4, Cover 1/2, and Cover 1/1 from left to right on both Stream Deck profiles.
 - `Cover 1/1`, `Cover 1/2`, and `Cover 1/4 Bid` use plain Bid with no offset and the same native Reverse quantity behavior. Page 3 places Tier 1â€“4 Bid shorts across the top right, with quarter/half/full Bid covers on the second row at the left.
-- These scripts use `$orderRoute` and `DAY+`, but deliberately do not use the long-side entry guards, stop loss, take profit, or timer arming. Confirm locate availability, broker routing, and short-sale restrictions before use.
-- `Cancel All` cancels short-side working orders without invoking the long stop engine. `GTFO` uses signed position direction to sell longs at Bid minus $0.50 or cover shorts at Ask plus $0.50 through `$gtfoRoute`.
+- These scripts use `$orderRoute` and `DAY+`. They bypass long-side entry guards; the short timer arms enabled stop-loss and take-profit protection after actual fills. Confirm locate availability, broker routing, and short-sale restrictions before use.
+- `Cancel All` cancels short-side working orders and restores enabled stop protection after BUY cancellations finish. `GTFO` exits the full signed position using up to a $0.50 cushion below Bid for longs or above Ask for shorts, independently capped at 5% by `$gtfoOffsetMaxPct`. At a $0.20 quote this gives a $0.19 sell or $0.21 cover limit. AUTOL urgent routing remains BESTL; manual mode retains `$gtfoRoute`.
 
 ## Fixed Stops
 
 Ordinary Bid- sells use the same percentage-capped cushion, referenced to Bid.
 Final tick rounding keeps ordinary exit limits inside the percentage ceiling.
-Stop-limit, GTFO, backstop, and hijack prices retain their existing offsets.
+GTFO has its own percentage ceiling. Stop-limit and hijack prices
+retain their existing offsets.
 
 - All buy tiers use `$stopLossTrigger` as their 1R stop distance (default `$0.50`).
 - `Set Auto Stop` places a full-position stop-limit at average cost minus 1R,

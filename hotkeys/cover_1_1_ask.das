@@ -116,6 +116,12 @@ ROUTE=$resolvedOrderRoute;
 Share=Pos;
 TIF=DAY+;
 SEND=Reverse;
+if (($useAutoStop == "Yes" || $useTakeProfit == "Yes") && $tradeContextValid == 1) {
+    // The timer waits for working BUY orders before protecting remaining shorts.
+    $trade.active = 1;
+    $trade.shortWatch = 1;
+    $trade.shortCoverPending = 1;
+}
 
 MsgLog("Cover 1/1: submitted full-position Reverse for " + $mySym + " at Ask+ " + $px + " via " + $resolvedOrderRoute + ".");
 

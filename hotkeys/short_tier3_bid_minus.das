@@ -10,7 +10,7 @@ if ($tradeActionDepth == 1) { $tradeActionUntil = GetSecond() + 30; }
 // Group: Short orders: Bid-
 // =====================
 // Sends a Tier 3 sell-short limit order at Bid - $entryBidOffset.
-// This manual short workflow intentionally does not arm stops or take profit.
+// Actual short fills arm stop/TP through the timer when their features are enabled.
 
 FocusWindow Primary_OE;
 
@@ -80,6 +80,11 @@ SetVar("TRADE_CONTEXT_ACCOUNT", $myAcc);
 SetVar("TRADE_CONTEXT_SYMBOL", $mySym);
 ExecHotkey("Load Trade Context");
 if ($tradeContextValid == 1) { ExecHotkey("Invalidate Trade Alerts"); }
+if (($useAutoStop == "Yes" || $useTakeProfit == "Yes") && $tradeContextValid != 1) {
+    MsgLog("Short entry aborted: protection context unavailable.");
+    ExecHotkey("End Trade Action");
+    return;
+}
 Wait(100);
 
 // Recheck direction after the cancel delay so this hotkey cannot reverse a long.
@@ -140,6 +145,14 @@ $order.Type    = "L";
 $order.Price   = $px;
 $order.Share   = $qty;
 $order.Send();
+if (($useAutoStop == "Yes" || $useTakeProfit == "Yes") && $tradeContextValid == 1) {
+    $trade.active = 1;
+    $trade.shortWatch = 1;
+    $trade.shortEntryPending = 1;
+    $trade.shortEntryOrder = $order;
+    $trade.shortEntryTicks = 0;
+    $trade.shortEntryPosBefore = $posNow;
+}
 
 MsgLog("Short Tier 3 Bid-: sent " + $qty + " " + $mySym + " at Bid- " + $px + " via " + $resolvedOrderRoute + ".");
 

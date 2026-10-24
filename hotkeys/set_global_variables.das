@@ -22,6 +22,9 @@ $useTimerArming = 1;
 $tradeActionDepth = 0; // recover any interrupted action when configuration is loaded
 $tradeActionUntil = 0;
 $timerMode = 0;         // internal flag for timer-triggered hotkeys
+SetVar("SHORT_STOP_TIMER", 0);
+SetVar("SHORT_STOP_BE", 0);
+SetVar("TP_EXPECTED_DIRECTION", 0);
 $entryCooldownSeconds = 1; // inline entry pacing; GetSecond has 1-second resolution
 $entryMaxTicks = 10;    // timeout while waiting for a fill
 $HIJACKED_LOCKED = 0;
@@ -64,31 +67,27 @@ $entryAskOffset = -0.01;
 
 // Desired fixed-dollar cushion for ordinary Bid- sells and Ask+ covers.
 // Ordinary exits cap this cushion at quote * exitOffsetMaxPct before rounding.
-// Stop-limit and urgent-exit pricing do not use the percentage cap.
+// Stop-limit/hijack pricing is uncapped; GTFO has its own cap below.
 $exitOffset = 0.10;
 $exitOffsetMaxPct = 0.05; // 0.05 = 5% of Bid/Ask; 0 disables the percentage cap
+$gtfoOffsetMaxPct = 0.05; // Independent GTFO cap on its $0.50 cushion; 0 disables
 
 // Limit order route/mode for entries/exits (buys/sells/TP/BE). Default: AUTOL.
 // AUTOL: expected adding uses ARCA1L, taking uses fee bands, urgent exits BESTL.
 $orderRoute = "AUTOL";
-// Manual-mode emergency exit route (GTFO/backstop). AUTOL overrides with BESTL.
+// Manual-mode emergency exit route (GTFO/hijack). AUTOL overrides with BESTL.
 $gtfoRoute = "FLSH1L";
 
 // Stop distance from entry, per share, in dollars (your "1R")
 // Default: 0.50 = 50 cents risk per share
 $stopLossTrigger = 0.50;
 
-// Backstop trigger settings (manual catastrophic exit helper)
-$backstopBuffer = 0.03;      // trigger when Bid < stop - buffer
-$backstopBidOffset = 0.10;   // limit price at Bid - offset
-$backstopMaxRetries = 3;     // retries if still not flat
-
 // How many Rs ahead to place the take-profit alert
-// Example: 1.0 = take profit at +1R
+// Example: 1.0 = take profit at +1R for longs / -1R for shorts
 $takeProfitFactor = 1.0;
 
 // Portion of your position to sell/cover when the TP alert hits
-// Example: 0.50 = sell half at TP
+// Example: 0.50 = sell/cover half at TP
 $takeProfitSize = 0.50;
 // Portion to sell/cover when rehab mode is active (LIVE; SIM if $applyLiveGuardsToSim = 1)
 $takeProfitSizeRehab = 0.50;

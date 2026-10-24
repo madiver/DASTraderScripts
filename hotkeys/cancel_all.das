@@ -25,11 +25,17 @@ if ($tradePositionValid != 1) {
     ExecHotkey("End Trade Action");
     return;
 }
-if ($posNow <= 0) { ExecHotkey("Clear Trade State"); ExecHotkey("End Trade Action"); return; }
+if ($posNow == 0) { ExecHotkey("Clear Trade State"); ExecHotkey("End Trade Action"); return; }
 if ($useAutoStop == "Yes" && $resetStopOnCancel == "Yes") {
-    SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
-    SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
-    ExecHotkey("Set Auto Stop");
+    if ($posNow < 0) {
+        // Wait for BUY cancellation acknowledgment before restoring a short stop.
+        $trade.active = 1;
+        $trade.shortWatch = 1;
+    } else {
+        SetVar("TRADE_CONTEXT_ACCOUNT", $trade.account);
+        SetVar("TRADE_CONTEXT_SYMBOL", $trade.symbol);
+        ExecHotkey("Set Auto Stop");
+    }
 }
 
 ExecHotkey("End Trade Action");

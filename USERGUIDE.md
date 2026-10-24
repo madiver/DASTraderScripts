@@ -2,9 +2,9 @@
 
 ## OVERVIEW
 
-These scripts are the hotkeys I use in DAS Trader for active, discretionary day trading. They focus on fast, repeatable order entry with guard rails. I treat the micro ice breaker and ice breaker (Buy MIB/IB) entries as the first tests of a trade thesis. Automated long trade state is isolated by account and symbol, so a manually managed short in another symbol can coexist with an automated long. The default single-position guard allows one tracked automated long per account; manual shorts do not occupy that guard.
+These scripts are the hotkeys I use in DAS Trader for active, discretionary day trading. They focus on fast, repeatable order entry with guard rails. I treat the micro ice breaker and ice breaker (Buy MIB/IB) entries as the first tests of a trade thesis. Trade state is isolated by account and symbol, so a protected short in another symbol can coexist with an automated long. The default single-position guard allows one tracked automated long per account; manual shorts do not occupy that guard.
 
-The automated entry-protection workflow is designed for LONG positions only. Twenty-two manual hotkeys support Tier 1–4 shorts at Ask, Bid, Ask minus its entry offset, or Bid minus its entry offset and full, half, or quarter covers at Bid or Ask plus the exit offset; they do not arm long stop loss, take profit, or entry staging. All cancellations are scoped to the selected account and symbol. Long buy, sell, stop, TP, and backstop actions reject short positions rather than using absolute montage size as direction. A long buy on the same account/symbol as a short is blocked; use Cover to reduce that short.
+Automatic stop-loss and take-profit protection supports both long and short entries, independently controlled by `$useAutoStop` and `$useTakeProfit`. All sixteen Tier 1–4 short-entry hotkeys arm enabled protection after actual fills. Full, half, and quarter covers wait for working BUY orders to finish before restoring protection on remaining shorts. The existing RESET STOP LOSS (`Set Auto Stop`, `Ctrl+Shift+S`), RESET TAKE PROFIT (`Set Take Profit`, `Ctrl+Shift+T`) and full-position BE buttons support both directions. All cancellations are scoped to the selected account and symbol. Long buy/sell, half-BE and scale-in-BE actions still reject shorts. A long buy on the same account/symbol as a short or pending short action is blocked; use Cover to reduce a short.
 
 Repository structure: the `hotkeys/` folder contains the `.das` hotkey scripts, `keymap.yaml` defines the key bindings and metadata, and `other scripts/` contains support scripts like the timer. A `.das` file is plain text you can paste into the DAS Trader Script Editor. The `keymap.yaml` can be compiled into a `Hotkey.htk` using the DAS Hotkey Tools VS Code extension, or you can skip the compiler and copy the scripts manually.
 
@@ -23,7 +23,13 @@ Regardless of the method you choose, the timer script must be installed manually
    - Optional: `dasHotkeyTools.placeholders.failOnMissing` to block builds when placeholders are unresolved.
 3) Ensure your montage is named `Primary_OE`, the timer script `other scripts/timer.das` is installed under Timer Event Scripts, and the chart used for symbol synchronization is named `Primary_Chart`.
 4) Run `switch_to_sim.das` or `switch_to_live.das` to set the montage account and filters.
-5) Run `set_global_variables.das` to initialize globals. On this upgrade, replace the installed Timer Event Script with the new `other scripts/timer.das` as well as recompiling/reloading all hotkeys. Existing symbol-only TP/backstop alerts are ignored by the new executors; recreate those alerts with the updated builders.
+5) Run `set_global_variables.das` to initialize globals. On this upgrade, replace the installed Timer Event Script with the new `other scripts/timer.das` as well as recompiling/reloading all hotkeys. Existing symbol-only TP alerts are ignored by the new executor; recreate those alerts with the updated builder.
+
+FLASH CRASH TRIG has been retired. Replace the complete hotkey map to remove
+the old `Set Backstop Trigger`, `Backstop Exit Executor`, and `Build Backstop
+Alert` entries, including `Alt+Ctrl+Win+8`. Delete any previously armed
+`Backstop ...` alerts in DAS. Its button slot is now empty in both physical and
+Virtual Stream Deck profiles.
 6) Use `show_config.das` to confirm account mode, defaults, and guard states.
 
 For the exit-coordinator rollback, install while flat with no working orders.
@@ -37,6 +43,15 @@ Important: update `$TRSIM` and `$LIVEACT` in `hotkeys/set_global_variables.das` 
 By default (`$useTimerArming = 1`), a buy hotkey sends the limit order, records entry context, and returns immediately. A timer-driven handler arms stop loss / take profit on the first 1-second tick that sees a clean fresh fill. If there are working SELLs, or this is a scale-in, it cancels existing SELLs and submits replacement protection on a subsequent tick. A bounded order-history check falls back to ordinary cancellation staging if it cannot prove that no working SELL exists. If position size increases on later ticks, the handler resizes the stop and only re-arms TP when the TP reset conditions are met. If no fill appears within `$entryMaxTicks`, it cancels the working buy order and clears pending state. With `$useTimerArming = 0`, buy hotkeys poll for actual fills up to `$maxPolls * $pollMs` and cancel any remainder before protecting shares received. They do not add the former 1,000 ms padding wait before protection. A second inline buy in the same account/symbol is blocked during `$entryCooldownSeconds` instead; this uses whole-second clock values, not millisecond precision.
 
 TP and half/quarter manual exits always use timer-managed fill monitoring, regardless of `$useTimerArming`. Keep the current Timer Event Script installed and enabled in both entry modes.
+
+Short fills and stop resizing also use the timer, independently of `$useTimerArming`.
+With stops enabled, the first observed partial fill receives protection; later
+fills/scale-ins resize it using the current signed position and average cost.
+An unfilled short entry is canceled after `$entryMaxTicks` (0 disables timeout),
+and a racing/late fill remains monitored until cancellation is acknowledged.
+Stops off means short entries do not start automatic protection. RESET can
+still manually place a short stop with stops off. Short take profit arms
+independently when `$useTakeProfit = "Yes"`, even if automatic stops are off.
 
 Stops are placed as STOP/SLP orders routed to the broker, which means the stop logic lives on the broker side once submitted. Take-profit is implemented with DAS alerts that fire when price reaches the configured R target and then execute the Take Profit hotkey; those alerts are client-side and require DAS to remain open with live data.
 
@@ -72,13 +87,14 @@ Feature toggles and entry guards:
 - `$singlePositionGuard`: when set to 1 (default), block new entries on a different symbol (script-tracked).
 - `$useAutoStop`: toggles auto stop placement.
 - `$useTakeProfit`: toggles take-profit alerts/executor behavior.
-- `$resetStopOnCancel`: re-arms the stop after `cancel_all.das` if long.
+- `$resetStopOnCancel`: restores the stop after `cancel_all.das` for either direction when stops are enabled; shorts wait for BUY cancellations through the timer.
 - `$useTimerArming`: uses timer-based entry arming (1) or inline polling (0).
 
 Risk and execution:
 - `$entryBidOffset` / `$entryAskOffset`: independent signed offsets for Bid+ / Ask+ buys and Bid- / Ask- shorts (defaults: BID `+0.01`, ASK `-0.01`). Buys add the signed offset; shorts subtract it. For shorts, positive offsets price below the reference quote and negative offsets price above it.
 - `$exitOffset`: desired fixed-dollar cushion for ordinary Bid- long exits and Ask+ short covers (default `$0.10`), also used uncapped for stop-limit and hijack pricing.
-- `$exitOffsetMaxPct`: percentage ceiling for ordinary Bid- sells and Ask+ covers only. Default `0.05` means 5% of Bid for sells or Ask for covers. The effective cushion is the smaller of `$exitOffset` and `quote * $exitOffsetMaxPct`. Set `0` to disable the percentage ceiling. Stop-limit, GTFO, backstop, and hijack pricing do not use this ceiling.
+- `$exitOffsetMaxPct`: percentage ceiling for ordinary Bid- sells and Ask+ covers only. Default `0.05` means 5% of Bid for sells or Ask for covers. The effective cushion is the smaller of `$exitOffset` and `quote * $exitOffsetMaxPct`. Set `0` to disable the percentage ceiling. Stop-limit and hijack pricing do not use this ceiling; GTFO has its own setting below.
+- `$gtfoOffsetMaxPct`: independent percentage ceiling for GTFO's desired `$0.50` cushion. Default `0.05` means 5% of Bid for long sells or Ask for short covers. The effective cushion is `min(0.50, quote * gtfoOffsetMaxPct)`. Set `0` to disable this ceiling. GTFO rounds toward the quote when needed to stay within the ceiling and enforces a positive minimum price. It uses Last only if the required quote is unavailable. Re-run Set Global Variables after loading the updated keymap to initialize this setting.
 
 With the defaults, a $10 reference quote keeps the full $0.10 cushion, while a
 $0.43 quote limits the cushion to $0.0215 before price rounding. Ordinary exits
@@ -94,13 +110,10 @@ keymap to initialize it.
 
 - `$orderRoute`: limit order route/mode for entries/exits (buys/sells/TP/BE). Default is `AUTOL`, which selects ARCA1L for expected adding liquidity and uses the configured price bands for expected taking liquidity. Urgent exits use BESTL. `FREE1L` remains available as a manual preset and is never selected by AUTOL.
 - Route presets are available for `AUTOL`, `ARCA1L`, `FREE1L`, `BESTL`, `FLASH1L`, and `SMRTL`.
-- `$gtfoRoute`: emergency exit route for GTFO/backstop/hijack exits when a manual route is selected. Stored default is `FLSH1L` (Open Ocean broadcast route); default AUTOL mode overrides it with `BESTL`.
-- `$stopLossTrigger`: fixed 1R risk per share for all buy tiers.
-- `$backstopBuffer`: trigger buffer below the stop for the manual backstop alert.
-- `$backstopBidOffset`: limit offset from Bid for backstop exits.
-- `$backstopMaxRetries`: max retry attempts for backstop exits when still not flat.
+- `$gtfoRoute`: emergency exit route for GTFO/hijack exits when a manual route is selected. Stored default is `FLSH1L` (Open Ocean broadcast route); default AUTOL mode overrides it with `BESTL`.
+- `$stopLossTrigger`: fixed 1R risk per share for long and short stop losses, including RESET STOP LOSS.
 - `$takeProfitFactor`: R multiple for take-profit alerts.
-- `$takeProfitSize`: fraction of the position to sell on a TP trigger.
+- `$takeProfitSize`: fraction of the long to sell or short to cover on a TP trigger.
 - `$takeProfitSizeRehab`: TP fraction when rehab is active (LIVE; SIM when `$applyLiveGuardsToSim = 1`).
 
 Account tokens:
@@ -132,10 +145,15 @@ Trade runtime (each `$trade` belongs to exactly one account and symbol):
 - `$trade.entryRefPx`: submitted entry reference, retained for diagnostics rather than substituting for an unknown average cost.
 - `$trade.entryWatch`, `$trade.entryLastPos`: detect later size increases.
 - `$trade.lastStop`, `$trade.stopArmed`: last submitted stop reference/status for this trade.
+- `$trade.shortWatch`, `$trade.shortEntryPending`, `$trade.shortEntryOrder`, `$trade.shortEntryTicks`: short fill monitoring and no-fill timeout.
+- `$trade.shortCoverPending`: wait for a cover to finish/cancel before restoring protection or permitting a new long entry.
+- `$trade.shortStopQty`, `$trade.shortStopAvg`: size and average used by the last short stop; `Get("shortStopOrder")` retains its order identity for cancellation acknowledgment.
+- `$trade.tpDirection`, `$trade.tpRevision`: bind a TP alert to its side and latest reset; revisions are consumed after submission so captured payloads cannot repeat an order.
+- `$trade.tpCancelPending`, `$trade.deferredTpDirection`, `$trade.deferredTpRevision`: wait for short-stop cancellation without losing the TP payload's identity.
+- `$trade.shortTpQty`, `$trade.shortTpAvg`, `$trade.shortTpDone`: short TP refresh state; a completed TP stays consumed until RESET or a later fill changes the position.
 - `$trade.tpName`: exact account-scoped TP alert name.
-- `$trade.backstopArmed`, `$trade.backstopRetries`, `$trade.backstopStop`: independent backstop state.
 - `$trade.generation`: identifies the current trade/alert lifecycle; canceled or old-trade alert payloads cannot act on a new position.
-- `$trade.deferredTp`, `$trade.deferredBackstop`: queued alert actions while another script is waiting.
+- `$trade.deferredTp`: queued take-profit action while another script is waiting.
 - `$trade.exitPending`, `$trade.exitStage`, `$trade.exitOrder`: timer-owned partial
   exit, canceled by GTFO or a manual full exit/cancellation.
 - `$trade.exitStartPos`, `$trade.exitQty`, `$trade.exitGeneration`: actual starting
@@ -147,7 +165,7 @@ Trade runtime (each `$trade` belongs to exactly one account and symbol):
 
 The timer reads signed `GetAccountObj(account).GetPosition(symbol).Share`, including shares reserved by working orders. Routine checks fetch position/average data without quotes; order pricing fetches fresh quotes when needed. Montage `.Pos` and native `Pos` are absolute quantities; `GetCurrPos()` can temporarily be zero while shares are reserved. Missing position data fails closed, and a missing off-montage position record is not assumed flat. Primary/Secondary montages are examined only when required data is missing, and must match both account and symbol. Stops wait for a valid average cost, and alerts require valid quotes for market-priced exits.
 
-`Set Global Variables` resets configuration and the action lease but preserves initialized trade objects. Restarting DAS clears this client-side registry. Recreate TP/backstop alerts after a restart or upgrading legacy scripts. Existing broker orders are not reconstructed into runtime state automatically; use the stop/alert hotkeys to manage an already-open long.
+`Set Global Variables` resets configuration and the action lease but preserves initialized trade objects. Restarting DAS clears this client-side registry. Recreate TP alerts after a restart or upgrading legacy scripts. Existing broker orders are not reconstructed into runtime state automatically; use the stop/alert hotkeys to manage an already-open position.
 
 ### Defaults table
 
@@ -174,9 +192,6 @@ baseline values when you run "Set Global Variables."
 | Runtime | `$testMode` | `0` |
 | Runtime | `$trade.entryWatch` | `0` |
 | Runtime | `$trade.entryLastPos` | `0` |
-| Runtime | `$trade.backstopArmed` | `0` |
-| Runtime | `$trade.backstopRetries` | `0` |
-| Runtime | `$trade.backstopStop` | `0` |
 | Toggles | `$useSlippageMargin` | `1` |
 | Toggles | `$slipTicksMin` | `2` |
 | Toggles | `$slipSpreadFrac` | `0.25` |
@@ -196,15 +211,13 @@ baseline values when you run "Set Global Variables."
 | Risk | `$entryAskOffset` | `-0.01` |
 | Risk | `$exitOffset` | `0.10` |
 | Risk | `$exitOffsetMaxPct` | `0.05` (5%; `0` disables the cap) |
+| Risk | `$gtfoOffsetMaxPct` | `0.05` (5%; `0` disables the GTFO cap) |
 | Risk | `$orderRoute` | `"AUTOL"` |
 | Risk | `$gtfoRoute` | `"FLSH1L"` |
 | Risk | `$stopLossTrigger` | `0.50` |
 | Risk | `$takeProfitFactor` | `1.0` |
 | Risk | `$takeProfitSize` | `0.50` |
 | Risk | `$takeProfitSizeRehab` | `0.50` |
-| Backstop | `$backstopBuffer` | `0.03` |
-| Backstop | `$backstopBidOffset` | `0.10` |
-| Backstop | `$backstopMaxRetries` | `3` |
 | Accounts | `$TRSIM` | `"%%SIMULATED%%"` |
 | Accounts | `$LIVEACT` | `"%%LIVE%%"` |
 | Sizing | `$qtyMult` | `1.0` |
@@ -237,8 +250,8 @@ scripts rather than direct invocation.
 
 | Key binding | Script | Description |
 | --- | --- | --- |
-| `Ctrl+Shift+Q` | `hotkeys/cancel_all.das` | Cancel orders and clear TP alerts; re-arm stops only for longs. |
-| `Alt+Ctrl+Q` | `hotkeys/gtfo.das` | Emergency exit: long at bid-$0.50 or short at ask+$0.50. |
+| `Ctrl+Shift+Q` | `hotkeys/cancel_all.das` | Cancel orders and clear TP alerts; restore enabled stop protection for either direction. |
+| `Alt+Ctrl+Q` | `hotkeys/gtfo.das` | Full-position emergency limit exit: up to $0.50 below Bid for longs or above Ask for shorts, capped at 5% by default. |
 | `Ctrl+,` | `hotkeys/set_global_variables.das` | Load default globals. |
 | `Alt+Ctrl+Shift+5` | `hotkeys/set_qty_mult_0_5.das` | Set the shared tier-size multiplier to 0.5x. |
 | `Alt+Ctrl+Shift+6` | `hotkeys/set_qty_mult_1_0.das` | Set the shared tier-size multiplier to 1.0x. |
@@ -276,22 +289,22 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Shift+1` | `hotkeys/buy_ib_ask_plus_sl.das` | Ice breaker buy at ask + offset with auto stop/TP. |
 | `Alt+Ctrl+Shift+2` | `hotkeys/buy_25_ask_plus_sl.das` | Tier 3 buy at ask + offset with auto stop/TP (300 base shares). |
 | `Alt+Ctrl+Shift+3` | `hotkeys/buy_50_ask_plus_sl.das` | Tier 4 buy at ask + offset with auto stop/TP (500 base shares). |
-| `Alt+Ctrl+Shift+S` | `hotkeys/short_tier1_ask.das` | Sell short Tier 1 at ask without automatic protection. |
-| `Alt+Ctrl+Shift+D` | `hotkeys/short_tier2_ask.das` | Sell short Tier 2 at ask without automatic protection. |
-| `Alt+Ctrl+Shift+F` | `hotkeys/short_tier3_ask.das` | Sell short Tier 3 at ask without automatic protection. |
-| `Alt+Ctrl+Shift+G` | `hotkeys/short_tier4_ask.das` | Sell short Tier 4 at ask without automatic protection. |
-| `Alt+Ctrl+Shift+H` | `hotkeys/short_tier1_bid.das` | Sell short Tier 1 at bid with no offset or automatic protection. |
-| `Alt+Ctrl+Shift+J` | `hotkeys/short_tier2_bid.das` | Sell short Tier 2 at bid with no offset or automatic protection. |
-| `Alt+Ctrl+Shift+K` | `hotkeys/short_tier3_bid.das` | Sell short Tier 3 at bid with no offset or automatic protection. |
-| `Alt+Ctrl+Shift+L` | `hotkeys/short_tier4_bid.das` | Sell short Tier 4 at bid with no offset or automatic protection. |
-| `Alt+Ctrl+Shift+Win+S` | `hotkeys/short_tier1_ask_minus.das` | Sell short Tier 1 at Ask minus the signed ASK entry offset, with no automatic protection. |
-| `Alt+Ctrl+Shift+Win+D` | `hotkeys/short_tier2_ask_minus.das` | Sell short Tier 2 at Ask minus the signed ASK entry offset, with no automatic protection. |
-| `Alt+Ctrl+Shift+Win+F` | `hotkeys/short_tier3_ask_minus.das` | Sell short Tier 3 at Ask minus the signed ASK entry offset, with no automatic protection. |
-| `Alt+Ctrl+Shift+Win+G` | `hotkeys/short_tier4_ask_minus.das` | Sell short Tier 4 at Ask minus the signed ASK entry offset, with no automatic protection. |
-| `Alt+Ctrl+Shift+Win+H` | `hotkeys/short_tier1_bid_minus.das` | Sell short Tier 1 at bid minus the signed BID entry offset, with no automatic protection. |
-| `Alt+Ctrl+Shift+Win+J` | `hotkeys/short_tier2_bid_minus.das` | Sell short Tier 2 at bid minus the signed BID entry offset, with no automatic protection. |
-| `Alt+Ctrl+Shift+Win+K` | `hotkeys/short_tier3_bid_minus.das` | Sell short Tier 3 at bid minus the signed BID entry offset, with no automatic protection. |
-| `Alt+Ctrl+Shift+Win+L` | `hotkeys/short_tier4_bid_minus.das` | Sell short Tier 4 at bid minus the signed BID entry offset, with no automatic protection. |
+| `Alt+Ctrl+Shift+S` | `hotkeys/short_tier1_ask.das` | Sell short Tier 1 at ask with automatic stops when enabled. |
+| `Alt+Ctrl+Shift+D` | `hotkeys/short_tier2_ask.das` | Sell short Tier 2 at ask with automatic stops when enabled. |
+| `Alt+Ctrl+Shift+F` | `hotkeys/short_tier3_ask.das` | Sell short Tier 3 at ask with automatic stops when enabled. |
+| `Alt+Ctrl+Shift+G` | `hotkeys/short_tier4_ask.das` | Sell short Tier 4 at ask with automatic stops when enabled. |
+| `Alt+Ctrl+Shift+H` | `hotkeys/short_tier1_bid.das` | Sell short Tier 1 at bid with no offset; automatic stops when enabled. |
+| `Alt+Ctrl+Shift+J` | `hotkeys/short_tier2_bid.das` | Sell short Tier 2 at bid with no offset; automatic stops when enabled. |
+| `Alt+Ctrl+Shift+K` | `hotkeys/short_tier3_bid.das` | Sell short Tier 3 at bid with no offset; automatic stops when enabled. |
+| `Alt+Ctrl+Shift+L` | `hotkeys/short_tier4_bid.das` | Sell short Tier 4 at bid with no offset; automatic stops when enabled. |
+| `Alt+Ctrl+Shift+Win+S` | `hotkeys/short_tier1_ask_minus.das` | Sell short Tier 1 at Ask minus the signed ASK entry offset, with automatic stops when enabled. |
+| `Alt+Ctrl+Shift+Win+D` | `hotkeys/short_tier2_ask_minus.das` | Sell short Tier 2 at Ask minus the signed ASK entry offset, with automatic stops when enabled. |
+| `Alt+Ctrl+Shift+Win+F` | `hotkeys/short_tier3_ask_minus.das` | Sell short Tier 3 at Ask minus the signed ASK entry offset, with automatic stops when enabled. |
+| `Alt+Ctrl+Shift+Win+G` | `hotkeys/short_tier4_ask_minus.das` | Sell short Tier 4 at Ask minus the signed ASK entry offset, with automatic stops when enabled. |
+| `Alt+Ctrl+Shift+Win+H` | `hotkeys/short_tier1_bid_minus.das` | Sell short Tier 1 at bid minus the signed BID entry offset, with automatic stops when enabled. |
+| `Alt+Ctrl+Shift+Win+J` | `hotkeys/short_tier2_bid_minus.das` | Sell short Tier 2 at bid minus the signed BID entry offset, with automatic stops when enabled. |
+| `Alt+Ctrl+Shift+Win+K` | `hotkeys/short_tier3_bid_minus.das` | Sell short Tier 3 at bid minus the signed BID entry offset, with automatic stops when enabled. |
+| `Alt+Ctrl+Shift+Win+L` | `hotkeys/short_tier4_bid_minus.das` | Sell short Tier 4 at bid minus the signed BID entry offset, with automatic stops when enabled. |
 | `Alt+Ctrl+Shift+C` | `hotkeys/cover_1_1_ask.das` | Cover the full short position at Ask plus the capped exit cushion using DAS Reverse. |
 | `Alt+Ctrl+Shift+X` | `hotkeys/cover_1_2_ask.das` | Cover half the current position at Ask plus the capped exit cushion using DAS Reverse. |
 | `Alt+Ctrl+Shift+Z` | `hotkeys/cover_1_4_ask.das` | Cover a quarter of the current position at Ask plus the capped exit cushion using DAS Reverse. |
@@ -305,16 +318,14 @@ scripts rather than direct invocation.
 | `Ctrl+X` | `hotkeys/sell_1_2_bid.das` | Sell half position at bid minus offset. |
 | `Ctrl+C` | `hotkeys/sell_1_4_bid.das` | Sell quarter position at bid minus offset. |
 | `Ctrl+Shift+S` | `hotkeys/set_auto_stop.das` | Place 1R stop-limit for full position. |
-| `Alt+Ctrl+Win+8` | `hotkeys/set_backstop_trigger.das` | Arm an L1 Bid-based backstop alert for catastrophic exits. |
-| Unbound | `hotkeys/backstop_exit_executor.das` | Backstop exit executor (alert-driven). |
-| `Ctrl+Shift+B` | `hotkeys/set_auto_stop_be_1_1.das` | Breakeven stop/limit for full position. |
+| `Ctrl+Shift+B` | `hotkeys/set_auto_stop_be_1_1.das` | Breakeven stop/limit for full long or short position. |
 | Unbound | `hotkeys/set_auto_stop_be_scale_1_1.das` | Scale-in BE stop/limit for full position. |
 | `Alt+Ctrl+Win+-` | `hotkeys/set_0_10_stop.das` | Set 1R stop-loss trigger to $0.10. |
 | `Alt+Ctrl+Win+[` | `hotkeys/set_0_20_stop.das` | Set 1R stop-loss trigger to $0.20. |
 | `Alt+Ctrl+Win+=` | `hotkeys/set_0_30_stop.das` | Set 1R stop-loss trigger to $0.30. |
 | `Alt+Ctrl+Win+5` | `hotkeys/set_0_50_stop.das` | Set 1R stop-loss trigger to $0.50. |
 | `Alt+Ctrl+B` | `hotkeys/set_auto_stop_be_1_2.das` | Breakeven stop/limit for half position. |
-| `Ctrl+Shift+T` | `hotkeys/set_take_profit.das` | Create R-based take-profit alert. |
+| `Ctrl+Shift+T` | `hotkeys/set_take_profit.das` | RESET TAKE PROFIT: create an R-based alert for the current long or short. |
 | Unbound | `hotkeys/take_profit_executor.das` | Execute TP partial when alert fires. |
 | `Alt+Ctrl+Win+1` | `hotkeys/select_primary_order_entry.das` | Focus the Primary_OE montage. |
 | `Alt+Ctrl+Win+P` | `hotkeys/toggle_position_window.das` | Toggle Positions windows AlwaysOnTop. |
@@ -334,11 +345,13 @@ scripts rather than direct invocation.
 | Unbound | `hotkeys/timer_entry_handler.das` | Timer-driven stop/TP arming for entries. |
 | Unbound | `hotkeys/timer_exit_handler.das` | Monitor partial exits and restore protection after confirmed residual cancellation. |
 | Unbound | `hotkeys/resolve_order_route.das` | Resolve a concrete route for each AUTOL submission. |
+| Unbound | `hotkeys/timer_short_stop_handler.das` | Protect actual short fills and resize short stops through the timer. |
+| Unbound | `hotkeys/check_working_buys.das` | Check for other working BUY orders before placing a short stop. |
 | Unbound | `hotkeys/load_position_context.das`, `hotkeys/read_position_only.das` | Fresh context/position reads without quotes. |
 | Unbound | `hotkeys/check_working_sells.das` | Bounded working-order check for clean fresh-entry stop arming. |
 | Unbound | `hotkeys/load_trade_context.das`, `hotkeys/read_trade_position.das` | Select an account/symbol trade and read signed position/quote data. |
 | Unbound | `hotkeys/clear_trade_state.das`, `hotkeys/invalidate_trade_alerts.das` | Clean up one closed trade or suspend its automation for a manual cancel/exit. |
-| Unbound | `hotkeys/build_backstop_alert.das`, `hotkeys/end_trade_action.das` | Account-bound backstop builder and action lease release. |
+| Unbound | `hotkeys/end_trade_action.das` | Release the trade action lease and process queued GTFO requests. |
 
 ## BUY ORDERS
 
@@ -414,7 +427,7 @@ position has moved at least 1R in your favor.
 
 ### Single-position guard
 
-When `$singlePositionGuard = 1` (default), buy hotkeys allow one tracked automated long per account. A manual short in another symbol does not block it. Turning the guard off allows multiple tracked longs; each has independent stop/TP/backstop and timer state. Another pending long entry in the same account blocks a new entry until staging finishes or times out; a duplicate pending buy in the same symbol is also blocked.
+When `$singlePositionGuard = 1` (default), buy hotkeys allow one tracked automated long per account. A manual short in another symbol does not block it. Turning the guard off allows multiple tracked longs; each has independent stop/TP and timer state. Another pending long entry in the same account blocks a new entry until staging finishes or times out; a duplicate pending buy in the same symbol is also blocked.
 
 Changing or swapping the montage does not cancel a pending entry or clear another trade's state. The timer continues processing the original account and symbol without changing montage focus or selection. Account P&L and buying power remain DAS/broker calculations; these scripts do not maintain a separate accounting ledger.
 
@@ -472,12 +485,18 @@ route behavior, and applicable short-sale restrictions with the broker.
 - Ask orders are limit orders. A short entry can remain unfilled if Ask moves
   away, and an Ask+ cover can remain unfilled if Ask rises beyond its limit before execution. Monitor
   working orders and the resulting position directly in DAS.
-- `Cancel All` uses signed `$M.GetCurrPos()` on `Primary_OE` after cancelling orders. It re-arms
-  the automatic stop only for a confirmed long and deliberately skips the
-  long stop engine for shorts.
-- `GTFO` cancels only its account/symbol orders and uses `$gtfoRoute` with a full-size direction-aware limit order. It
-  prices long exits at Bid minus `$0.50` and short covers at Ask plus `$0.50`.
-  These are aggressive limit orders, not guaranteed executions.
+- `Cancel All` cancels orders for its account/symbol and restores enabled stop
+  protection in either direction. Short protection waits for BUY cancellation
+  acknowledgment through the timer before submitting a replacement stop.
+- `GTFO` cancels only its account/symbol orders and sends a full-size limit exit
+  through BESTL in AUTOL mode or the configured `$gtfoRoute` in manual mode.
+  It subtracts the smaller of `$0.50` and `Bid * $gtfoOffsetMaxPct` for longs,
+  or adds the smaller of `$0.50` and `Ask * $gtfoOffsetMaxPct` for shorts.
+  At the default 5% ceiling, a `$0.20` Bid produces a `$0.19` long sell limit
+  and a `$0.20` Ask produces a `$0.21` short cover limit. A positive minimum
+  sell price also permits low-price exits when the cap is disabled.
+  These remain limit orders: the current quote may differ from the broker's
+  reference price, and neither acceptance nor execution is guaranteed.
 
 ## SELL ORDERS
 
@@ -531,34 +550,56 @@ on the two buy pages are now empty.
 
 ### Fixed stop losses
 
-`Set Auto Stop` places a stop-limit order at 1R below avg cost for long
-positions. R is `$stopLossTrigger` for all buy tiers. The script
-uses the signed account position and average cost, with a matching montage as a fallback source. If average cost is unavailable, timer staging retries instead of inventing a stop from another symbol or a last-sale price. It cancels
-existing sell orders for the symbol before placing the new stop, except when
-invoked in timer mode (`$timerMode`) where cancels are skipped.
+The existing RESET STOP LOSS button invokes `Set Auto Stop` (`Ctrl+Shift+S`).
+It uses the signed account position and average cost, with a matching montage
+as a fallback source:
 
-The stop-limit offset uses `$exitOffset`. The
-order is snapped to valid tick sizes and sent as a STOP/SLP order.
+| Position | Stop trigger | Stop-limit price | Shares protected |
+| --- | --- | --- | --- |
+| Long | Average cost minus `$stopLossTrigger` | Trigger minus `$exitOffset` | Current long shares |
+| Short | Average cost plus `$stopLossTrigger` | Trigger plus `$exitOffset` | Absolute current short shares |
+| Flat | No order | No order | None |
+
+R is the same `$stopLossTrigger` selected by the existing amount buttons.
+RESET cancels existing SELL orders for a long or BUY orders for a short,
+then refreshes size and average. A flat or reversed position after the wait
+aborts the submission. A retained short stop must acknowledge cancellation
+before RESET replaces it; a pending cancellation logs a message without sending
+an overlapping stop. When automatic stops are enabled the timer can complete
+the replacement after confirmation; with stops off, press RESET again.
+Missing position data or average cost prevents submission.
+Long timer staging retains its existing behavior, including skipping cancels
+in timer mode (`$timerMode`).
+
+With `$useAutoStop = "Yes"`, actual short fills automatically arm this same
+buy-stop logic on a timer tick. It protects the filled size and resizes after
+later fills or changes to the signed position/average. Replacement waits for
+the old stop's cancellation acknowledgment and uses fresh size; an already
+executing stop whose open shares match the remaining short is left working.
+Cover and new short-entry actions cancel previous protection, then resume
+monitoring. A working cover must finish/cancel before a replacement stop is
+placed for the remaining short. Cancel All restores protection when both
+`$useAutoStop` and `$resetStopOnCancel` are enabled; Cancel All No Stops and
+GTFO suppress rearming. With stops off, RESET remains available manually and
+the timer does not automatically resize/re-arm it. The timer cancels a tracked
+BUY stop if the position becomes flat or long. Full-position BE supports shorts;
+half-BE and scale-in-BE helpers remain long-only. Resetting a short
+stop preserves its current short TP alert and unfilled entry identity.
+
+Short protection requires the Timer Event Script to be enabled. Recompile/load
+the complete keymap, including the new unbound `Timer Short Stop Handler` and
+`Check Working Buys` helpers. Existing Stream Deck RESET and stop-toggle
+bindings need no changes. These regression checks model script decisions;
+broker acceptance, stop triggering, and extended-hours behavior require
+separate verification in DAS.
+
+The stop-limit offset uses `$exitOffset`, without the ordinary-exit percentage
+cap. The order is snapped to valid tick sizes and sent as a STOP/SLP order;
+short limits are kept above the trigger. AUTOL and manual routing choices are
+unchanged: these stops continue using STOP, independently of `$orderRoute`.
 Use the fixed-stop preset hotkeys to set `$stopLossTrigger` to `$0.10`, `$0.20`,
 `$0.30`, or `$0.50`; each preset writes the selected value to the DAS message
 log.
-
-### Backstop trigger (manual, limit-only)
-
-The backstop is a manual alert-driven exit you can arm on specific positions
-when you are worried about a fast flush. It uses L1 Bid alerts (client-side)
-and sends aggressive LIMIT exits for pre-market compatibility.
-
-- `Set Backstop Trigger` builds an L1 Bid alert at `stop - $backstopBuffer`.
-- When the alert fires, `Backstop Exit Executor` cancels existing sell orders
-  and sends a limit sell at `Bid - $backstopBidOffset` using `$gtfoRoute`.
-- If you are still not flat, it retries up to `$backstopMaxRetries` times.
-- The backstop alert is automatically deleted when you go flat (timer cleanup).
-
-The backstop uses this account/symbol trade's `$trade.lastStop` as its stop reference, so run `Set Auto Stop`
-before arming the backstop.
-`FLSH1L` (the default `$gtfoRoute`) is the Open Ocean broadcast route; it costs
-more but prioritizes exit speed.
 
 ## TAKE PROFIT
 
@@ -568,20 +609,54 @@ hotkey. It is not a resting broker-side order.
 `Set Take Profit` builds the alert using an R-based distance:
 - Distance is `R * $takeProfitFactor`.
 - R is `$stopLossTrigger`.
-- The alert watches last sale and fires above the target for longs.
+- Long target: average cost plus the distance; Last Sale must be above it.
+- Short target: average cost minus the distance; Last Sale must be below it.
+- A nonpositive target or a rounded target that is not on the profitable side
+  does not create an alert. For low-priced shorts, choose a stop distance/factor
+  that leaves a positive target. Automatic invalid-target messages are logged
+  once per lifecycle; stop-loss protection remains independent.
+
+The existing RESET TAKE PROFIT button and `Ctrl+Shift+T` support both
+directions. Manual RESET can arm an alert even with the automatic TP toggle
+off. When TP is on, short fills automatically arm/rebuild the alert through the
+timer, including TP-only operation with stops off. No new Stream Deck button
+or public binding is required.
 
 When the alert fires, `Take Profit Executor`:
-- Cancels existing sell orders for the symbol.
-- Sells a partial position sized by `$takeProfitSize` (default 50%), or
+- Cancels existing SELL orders for a long, or BUY orders for a short, within
+  the alert's account/symbol. A short TP waits for its BUY stop/covers to
+  acknowledge cancellation before sending another BUY.
+- Sells a partial long at Bid, or buys to cover a partial short at Ask, sized
+  by `$takeProfitSize` (default 50%), or
   `$takeProfitSizeRehab` (also default 50%) when rehab is active in LIVE and in
   SIM when `$applyLiveGuardsToSim = 1`.
 - Returns after submission, retaining only its initial 300 ms cancellation wait.
   The timer monitors fills for three seconds and confirms residual cancellation
   before resizing protection. A full requested reduction moves protection to BE;
   a partial fill, rejection, or timeout restores the fixed stop and TP alert for
-  the remaining long. GTFO or manual cancellation can interrupt these stages.
+  the remaining position. Short BE mirrors long BE: the normal buy-stop trigger
+  is three cents below average with its limit at average. If Ask is already
+  above that trigger, the existing full-BE function submits a buy limit at
+  average instead, using the unchanged route resolver. With `$pegToBid = 1`,
+  the short branch mirrors quote pegging by using a lower Ask for that limit.
+  GTFO or manual cancellation can interrupt these stages.
+- Consumes the alert revision after submission. A completed short TP is not
+  automatically repeated; RESET or later additional shares/average changes
+  can arm another target. Partial TP failure restores the fixed stop and TP
+  alert for the actual remaining size, matching the long workflow.
 
-TP and backstop alert names include account and symbol. Their scripts carry both identifiers and the trade generation; executors consume that payload, validate a current long, and recheck its signed size after cancellation waits. Cleanup deletes only alerts belonging to a confirmed flat/short trade. An unknown position does not clear another trade's protection.
+TP alert names include account and symbol. Their scripts carry both identifiers,
+trade generation, position direction and TP revision. Reset/replacement makes
+old payloads stale; a short alert cannot act on a long or vice versa. Deferred
+alerts retain their direction/revision while another action is waiting.
+Cleanup is scoped to the original trade; unknown position data does not clear
+another trade's protection.
+
+For this upgrade, recompile/load the complete keymap and replace the installed
+Timer Event Script with `other scripts/timer.das`. The updated timer forwards
+short TP direction/revision when a cancellation handoff is deferred. Recreate
+existing TP alerts with RESET TAKE PROFIT after installing the upgrade. DAS
+must remain open with its timer and market data running for these alerts.
 
 ## OTHER GUARD RAILS
 
@@ -660,8 +735,8 @@ Safety toggles:
 - `set_order_route_autol.das` selects `AUTOL`, bound to `Alt+Ctrl+Win+7`.
 - On page 5 of both the physical and Virtual Stream Deck profiles, the route button cycles through `AUTOL`, `FREE1L`, `BESTL`, `SMRTL`, `ARCA1L`, and `FLSH1L`. AUTOL is green, the next three are white, and the last two are red. This requires the local six-state Advanced Toggles update. The SMRTL preset sends `SMRTL`. `FLSH1L` remains a display label for the existing `FLASH1L` manual preset.
 - AUTOL is a script mode, never a broker route. `Resolve Order Route` selects a concrete route immediately before each submission, without changing `$orderRoute`. After the urgent-exit override, it compares the final limit price (including offsets and rounding) with the opposite quote: buys/covers below Ask and sells/shorts above Bid select ARCA1L for expected adding liquidity, at any price. Buys/covers at or above Ask and sells/shorts at or below Bid are expected to take liquidity and retain the existing fee bands: BESTL for expected prices at/above $1; SMRTL below $1 when `price * 0.0036 > 0.0015`; BESTL otherwise, including equality. Taking buys/covers use Ask as the expected price; taking sells/shorts use Bid. FREE1L remains a manual option only. SMRT's $0.0015/share flat fee at all prices is based on broker confirmation. The sub-dollar bands compare routing fees; the $1+ band explicitly prefers BESTL. Adding/taking is a prediction from current quotes, not a post-only instruction or a guarantee of the eventual liquidity classification, rebate, execution price, or route acceptance.
-- In AUTOL mode, urgent GTFO, backstop, and hijack submissions use BESTL regardless of price. Manual route selections retain the existing independent `$gtfoRoute`. Native STOP orders remain STOP; breakeven exits that become ordinary limit orders use AUTOL. Missing required quotes prevent ordinary AUTOL submissions.
-- AUTOL adds no route fallback, rejection retry, or automatic rerouting. Existing timer fill monitoring, cancellation, and backstop retry behavior remains in place. Route availability is 04:00-20:00 ET; the operator monitors this window and executions. AUTOL performs no clock/timezone conversion or session gating. The same adding-liquidity selection and taking-liquidity fee bands apply in regular and extended hours.
+- In AUTOL mode, urgent GTFO and hijack submissions use BESTL regardless of price. Manual route selections retain the existing independent `$gtfoRoute`. Native STOP orders remain STOP; breakeven exits that become ordinary limit orders use AUTOL. Missing required quotes prevent ordinary AUTOL submissions.
+- AUTOL adds no route fallback, rejection retry, or automatic rerouting. Existing timer fill monitoring and cancellation behavior remains in place. Route availability is 04:00-20:00 ET; the operator monitors this window and executions. AUTOL performs no clock/timezone conversion or session gating. The same adding-liquidity selection and taking-liquidity fee bands apply in regular and extended hours.
 - Rebuild and load the complete keymap, including the unbound `Resolve Order Route` helper. `Set Global Variables` selects AUTOL at startup and whenever LOAD CFG reloads the configuration. Manual route presets override it until the configuration is reloaded or AUTOL is selected again. Running the initializer directly does not synchronize the Stream Deck route display.
 - `toggle_single_position_guard.das` toggles the single-position guard
   (`$singlePositionGuard`).
@@ -672,11 +747,12 @@ Account and session:
 - `switch_to_sim.das` and `switch_to_live.das` set the Primary_OE account.
 
 Order control:
-- `cancel_all.das` cancels working orders and re-arms stops only for confirmed
-  long positions; it skips long-stop re-arming for shorts.
+- `cancel_all.das` cancels working orders and restores enabled stops for either
+  direction; shorts wait for working BUY orders through the timer.
   `cancel_all_no_stops.das` cancels without re-arming.
-- `gtfo.das` attempts a direction-aware aggressive limit exit for the full
-  position: Bid minus `$0.50` for longs or Ask plus `$0.50` for shorts.
+- `gtfo.das` attempts a direction-aware limit exit for the full position, using
+  a desired `$0.50` cushion below Bid for longs or above Ask for shorts. Its
+  independent `$gtfoOffsetMaxPct` caps that cushion at 5% by default.
 
 UI and convenience:
 - `show_config.das` displays current globals and account mode. It also logs

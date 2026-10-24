@@ -4,6 +4,9 @@ All notable changes to this repository will be documented in this file.
 
 ## 0.3.3 - Unreleased
 
+### Removed
+- Remove FLASH CRASH TRIG: delete the trigger, alert builder and exit executor; remove its three keymap entries, runtime state, timer dispatch and configuration fields. Clear its button slot in both physical and Virtual Stream Deck profiles. Keep GTFO, stops, take profit, hijack protection and routing behavior unchanged.
+
 ### Fixes
 - Use BESTL in AUTOL's $1-and-above band after FREE1 destination-availability cancellations. Keep FREE1L as a manual preset; add no automatic fallback, retry, or rerouting.
 - Keep the fixed-dollar cushion for ordinary full/half/quarter Bid- sells and Ask+ covers, capped by `$exitOffsetMaxPct` (default `0.05`, or 5% of the current reference quote; `0` disables the cap). Enforce the ceiling after tick rounding, use a single native precision for covers below $0.25, and log the final submitted cover limit. Preserve stop-limit, GTFO, backstop, and hijack pricing. Add regression cases for the reported LUCD/GPUS price-distance failures.

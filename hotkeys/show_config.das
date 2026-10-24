@@ -93,19 +93,11 @@ $msg =
 "exitOffsetMaxPct: " + ($exitOffsetMaxPct * 100) + "% (0 = disabled)\n" +
 "orderRoute: " + $orderRoute + "\n" +
 "gtfoRoute: " + $gtfoRoute + "\n" +
+"gtfoOffsetMaxPct: " + ($gtfoOffsetMaxPct * 100) + "% (0 = disabled)\n" +
 "stopLossTrigger (1R): $" + $stopLossTrigger + "\n" +
 "takeProfitFactor: " + $takeProfitFactor + "R\n" +
-"takeProfitSize: " + ($takeProfitSize * 100) + "% (rehab: " + ($takeProfitSizeRehab * 100) + "%)\n\n" +
-
-"BACKSTOP\n" +
-"-----------------\n" +
-"backstopBuffer: $" + $backstopBuffer + "\n" +
-"backstopBidOffset: $" + $backstopBidOffset + "\n" +
-"backstopMaxRetries: " + $backstopMaxRetries + "\n" +
-"backstopArmed: " + $trade.backstopArmed + "\n" +
-"backstopRetries: " + $trade.backstopRetries + "\n" +
-"backstopStop: $" + $trade.backstopStop + "\n" +
-"lastStop: $" + $trade.lastStop + "\n" +
+"takeProfitSize: " + ($takeProfitSize * 100) + "% (rehab: " + ($takeProfitSizeRehab * 100) + "%)\n" +
+"lastStop: $" + $trade.lastStop + "\n\n" +
 
 "POSITION DIAGNOSTICS\n" +
 "-----------------\n" +

@@ -3,6 +3,10 @@
 ExecHotkey("Load Position Context");
 if ($tradeContextValid != 1 || $tradePositionValid != 1) { return; }
 if ($trade.exitPending == 1) { return; }
+if ($trade.shortWatch == 1) {
+    ExecHotkey("Timer Short Stop Handler");
+    return;
+}
 if ($posNow < 0) {
     // A former long was reversed manually: never arm a SELL against the short.
     if ($trade.entryPending == 1) { $tradeAccountObj.CancelOrder("BUY", $mySym, 0); }
