@@ -69,7 +69,7 @@ $exitOffset = 0.10;
 $exitOffsetMaxPct = 0.05; // 0.05 = 5% of Bid/Ask; 0 disables the percentage cap
 
 // Limit order route/mode for entries/exits (buys/sells/TP/BE). Default: AUTOL.
-// AUTOL resolves each submission; urgent exits then use BESTL.
+// AUTOL: expected adding uses ARCA1L, taking uses fee bands, urgent exits BESTL.
 $orderRoute = "AUTOL";
 // Manual-mode emergency exit route (GTFO/backstop). AUTOL overrides with BESTL.
 $gtfoRoute = "FLSH1L";

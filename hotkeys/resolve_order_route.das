@@ -16,17 +16,31 @@ if ($routeLimit <= 0 || $routeBid <= 0 || $routeAsk <= 0) {
     MsgLog("AUTOL: invalid limit or quotes; no order submitted.");
     return;
 }
-// A marketable limit is expected to execute at the opposite quote.
-// A resting order uses its limit; final fills/fees may differ.
+// Classify the final limit against the opposite quote, not the hotkey label.
+// This predicts adding/taking; actual fills and liquidity fees may differ.
 $autoRoutePrice = $routeLimit;
+$autoRouteAdding = 0;
 if ($routeSide == "B") {
-    if ($routeLimit >= $routeAsk) { $autoRoutePrice = $routeAsk; }
+    if ($routeLimit < $routeAsk) {
+        $autoRouteAdding = 1;
+    } else {
+        $autoRoutePrice = $routeAsk;
+    }
 } else {
     if ($routeSide != "S" && $routeSide != "SS") {
         MsgLog("AUTOL: unsupported order side; no order submitted.");
         return;
     }
-    if ($routeLimit <= $routeBid) { $autoRoutePrice = $routeBid; }
+    if ($routeLimit > $routeBid) {
+        $autoRouteAdding = 1;
+    } else {
+        $autoRoutePrice = $routeBid;
+    }
+}
+if ($autoRouteAdding == 1) {
+    $resolvedOrderRoute = "ARCA1L";
+    MsgLog("AUTOL -> ARCA1L: expected adding liquidity at limit " + $routeLimit + ".");
+    return;
 }
 // SMRT is flat $0.0015/share at all prices (broker confirmation).
 // Compare costs directly so equality selects BEST without a rounded threshold.
