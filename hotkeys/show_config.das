@@ -90,6 +90,7 @@ $msg =
 "entryBidOffset: $" + $entryBidOffset + "\n" +
 "entryAskOffset: $" + $entryAskOffset + "\n" +
 "exitOffset: $" + $exitOffset + "\n" +
+"exitOffsetMaxPct: " + ($exitOffsetMaxPct * 100) + "% (0 = disabled)\n" +
 "orderRoute: " + $orderRoute + "\n" +
 "gtfoRoute: " + $gtfoRoute + "\n" +
 "stopLossTrigger (1R): $" + $stopLossTrigger + "\n" +

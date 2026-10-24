@@ -62,9 +62,11 @@ $resetStopOnCancel = "Yes";
 $entryBidOffset = 0.01;
 $entryAskOffset = -0.01;
 
-// Exit offset above/below bid/ask (depending on strategy)
-// Example: 0.01 = exit 1 cent(s) below BID (or above ASK)
+// Desired fixed-dollar cushion for ordinary Bid- sells and Ask+ covers.
+// Ordinary exits cap this cushion at quote * exitOffsetMaxPct before rounding.
+// Stop-limit and urgent-exit pricing do not use the percentage cap.
 $exitOffset = 0.10;
+$exitOffsetMaxPct = 0.05; // 0.05 = 5% of Bid/Ask; 0 disables the percentage cap
 
 // Limit order route/mode for entries/exits (buys/sells/TP/BE). Default: AUTOL.
 // AUTOL resolves each submission; urgent exits then use BESTL.

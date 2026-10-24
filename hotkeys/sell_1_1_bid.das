@@ -30,7 +30,11 @@ $qty = $posNow / 1;
 $qty = $qty - ($qty % 1);
 if ($qty < 1) { $qty = 1; }
 if ($qty > $posNow) { $qty = $posNow; }
-$px = $tradeBid - $exitOffset;
+// Keep the dollar cushion, capped for low-priced ordinary exits.
+$exitCushion = $exitOffset;
+$exitCushionCap = $tradeBid * $exitOffsetMaxPct;
+if ($exitOffsetMaxPct > 0 && $exitCushion > $exitCushionCap) { $exitCushion = $exitCushionCap; }
+$px = $tradeBid - $exitCushion;
 if ($tradeBid <= 0 || $tradeAsk <= 0) {
     ExecHotkey("End Trade Action");
     return;
@@ -39,6 +43,10 @@ $inc = 0.01;
 if ($px < 1) { $inc = 0.001; }
 if ($px < 0.25) { $inc = 0.0005; }
 $px = Round($px, 102, $inc);
+// Round toward the quote if nearest-tick rounding would exceed the ceiling.
+if ($exitOffsetMaxPct > 0 && $px < $tradeBid - $exitCushionCap) {
+    $px = Round($px + $inc, 102, $inc);
+}
 if ($px < $inc) { $px = $inc; }
 // Resolve AUTOL immediately before this submission; manual routes pass through.
 $routeRequest = $orderRoute;

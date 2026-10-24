@@ -124,13 +124,17 @@ Short orders: Ask, Short orders: Bid, Short orders: Bid-, Stops, Take profit, Ut
 
 - `Short T1/T2/T3/T4 Ask/Bid` sends `round($tierNShareSize * $qtyMult)` shares as an explicit sell-short limit order at the selected quote, with no offset. These hotkeys can open a short or add to an existing short, but reject long positions.
 - Page 3 has plain Ask/Bid shorts. Page 4 of both Stream Deck profiles has Tier 1-4 `ASK-` and `BID-` shorts using `Ask - $entryAskOffset` and `Bid - $entryBidOffset`. Default ASK `-0.01` prices one cent above Ask; default BID `+0.01` prices one cent below Bid. All five quantity states remain, and signed offset controls on page 4 sync with settings page 5.
-- `Cover 1/1 Ask+` cancels current-symbol orders and uses DAS `Share=Pos; SEND=Reverse` at `Ask + $exitOffset`. For a short position, DAS resolves the current quantity and sends a buy. This does not guarantee that a previous order cannot still fill.
+- `Cover 1/1 Ask+` cancels current-symbol orders and uses DAS `Share=Pos; SEND=Reverse` at Ask plus the smaller of `$exitOffset` and `Ask * $exitOffsetMaxPct`. Defaults retain the $0.10 desired cushion with a 5% ceiling; set `$exitOffsetMaxPct = 0` to disable the percentage ceiling. For a short position, DAS resolves the current quantity and sends a buy. This does not guarantee that a previous order cannot still fill.
 - `Cover 1/2 Ask+` and `Cover 1/4 Ask+` use the same pricing and native Reverse behavior for half or a quarter of the current position, rounded down to whole shares with a minimum of one share. Page 3 has Cover 1/4, Cover 1/2, and Cover 1/1 from left to right on both Stream Deck profiles.
 - `Cover 1/1`, `Cover 1/2`, and `Cover 1/4 Bid` use plain Bid with no offset and the same native Reverse quantity behavior. Page 3 places Tier 1â€“4 Bid shorts across the top right, with quarter/half/full Bid covers on the second row at the left.
 - These scripts use `$orderRoute` and `DAY+`, but deliberately do not use the long-side entry guards, stop loss, take profit, or timer arming. Confirm locate availability, broker routing, and short-sale restrictions before use.
 - `Cancel All` cancels short-side working orders without invoking the long stop engine. `GTFO` uses signed position direction to sell longs at Bid minus $0.50 or cover shorts at Ask plus $0.50 through `$gtfoRoute`.
 
 ## Fixed Stops
+
+Ordinary Bid- sells use the same percentage-capped cushion, referenced to Bid.
+Final tick rounding keeps ordinary exit limits inside the percentage ceiling.
+Stop-limit, GTFO, backstop, and hijack prices retain their existing offsets.
 
 - All buy tiers use `$stopLossTrigger` as their 1R stop distance (default `$0.50`).
 - `Set Auto Stop` places a full-position stop-limit at average cost minus 1R,

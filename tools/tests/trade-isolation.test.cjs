@@ -558,10 +558,10 @@ test('Ask- short rejects missing Ask despite a negative offset, invalid limits, 
 test('Ask- AUTOL uses Bid for a marketable limit and the limit for a resting order',()=>{
   const r=runtime();r.quote('AAA',1,1.02,1);r.ctx.$entryAskOffset=0.04;
   r.run('Set Order Route AUTOL');r.run('Short T1 Ask-');
-  assert.equal(r.orders[0].Price,0.98);assert.equal(r.orders[0].Route,'FREE1L');
+  assert.equal(r.orders[0].Price,0.98);assert.equal(r.orders[0].Route,'BESTL');
   const passive=runtime();passive.quote('AAA',0.98,0.99,0.99);passive.ctx.$entryAskOffset=-0.03;
   passive.run('Set Order Route AUTOL');passive.run('Short T1 Ask-');
-  assert.equal(passive.orders[0].Price,1.02);assert.equal(passive.orders[0].Route,'FREE1L');
+  assert.equal(passive.orders[0].Price,1.02);assert.equal(passive.orders[0].Route,'BESTL');
 });
 
 test('rollback preserves the requested stop default and removes coordinator helpers',()=>{
@@ -619,7 +619,7 @@ for(const preset of ['Set Order Route SMRTL','Set Order Route AUTOL']) {
 for(const price of [0.1,0.4166,5/12,0.4167,0.75,0.9999,1,1.01,100]) {
   for(const side of ['B','S','SS']) test('AUTOL fee band '+price+' '+side,()=>{
     const r=runtime();r.run('Set Order Route AUTOL');
-    const expected=price>=1?'FREE1L':price<=5/12?'BESTL':'SMRTL';
+    const expected=price>=1?'BESTL':price<=5/12?'BESTL':'SMRTL';
     assert.equal(resolveRoute(r,{side,limit:price,bid:price,ask:price}),expected);
     assert.equal(r.ctx.$orderRoute,'AUTOL');assert.equal(r.orders.length,0);
   });
@@ -627,9 +627,9 @@ for(const price of [0.1,0.4166,5/12,0.4167,0.75,0.9999,1,1.01,100]) {
 test('AUTOL uses opposite quote for marketable orders and limit for resting orders',()=>{
   const r=runtime();r.run('Set Order Route AUTOL');
   assert.equal(resolveRoute(r,{limit:1.1,bid:0.97,ask:0.98}),'SMRTL');
-  assert.equal(resolveRoute(r,{side:'S',limit:0.9,bid:1.02,ask:1.03}),'FREE1L');
+  assert.equal(resolveRoute(r,{side:'S',limit:0.9,bid:1.02,ask:1.03}),'BESTL');
   assert.equal(resolveRoute(r,{limit:0.4,bid:0.49,ask:0.5}),'BESTL');
-  assert.equal(resolveRoute(r,{side:'SS',limit:1.01,bid:0.98,ask:0.99}),'FREE1L');
+  assert.equal(resolveRoute(r,{side:'SS',limit:1.01,bid:0.98,ask:0.99}),'BESTL');
 });
 test('AUTOL invalid quotes clear the last result instead of choosing a fallback',()=>{
   const r=runtime();r.run('Set Order Route AUTOL');resolveRoute(r);
@@ -644,6 +644,14 @@ test('manual route presets disable AUTOL and pass through without quotes',()=>{
     assert.equal(resolveRoute(r,{bid:0,ask:0,limit:0}),name);
   }
 });
+test('AUTOL uses BEST for the CLRO $3.72 case while manual FREE remains selectable',()=>{
+  const auto=runtime();auto.quote('AAA',3.71,3.72,3.72);auto.run('Buy MIB Ask SL');
+  assert.equal(auto.orders.length,1);assert.equal(auto.orders[0].Price,3.72);
+  assert.equal(auto.orders[0].Route,'BESTL');assert.equal(auto.ctx.$orderRoute,'AUTOL');
+  const manual=runtime();manual.quote('AAA',3.71,3.72,3.72);manual.run('Set Order Route FREE1L');
+  manual.run('Buy MIB Ask SL');assert.equal(manual.orders.length,1);
+  assert.equal(manual.orders[0].Route,'FREE1L');assert.equal(manual.ctx.$orderRoute,'FREE1L');
+});
 for(const label of [...buyLabels,...manualExits,...scripts.keys()].filter((v,i,a)=>a.indexOf(v)===i&&/^(Buy .* SL|Sell |Cover |Short T)/.test(v))) {
   test(label+' submits a concrete AUTOL route and retains the mode',()=>{
     const r=runtime();r.quote('AAA',0.75,0.76,0.75);
@@ -656,12 +664,12 @@ for(const label of [...buyLabels,...manualExits,...scripts.keys()].filter((v,i,a
 test('AUTOL sell uses bid above one dollar even with a sub-dollar exit limit',()=>{
   const r=runtime();r.position('LIVE','AAA',100,1.02);r.quote('AAA',1.02,1.03,1.02);
   r.run('Set Order Route AUTOL');r.run('Sell 1/1 Bid-');
-  assert(r.orders[0].Price<1);assert.equal(r.orders[0].Route,'FREE1L');
+  assert(r.orders[0].Price<1);assert.equal(r.orders[0].Route,'BESTL');
 });
 test('AUTOL cover resolves using the final natively rounded limit',()=>{
   const r=runtime();r.position('LIVE','AAA',-100,0.99);r.quote('AAA',0.9996,1.01,1);
   r.run('Set Order Route AUTOL');r.run('Cover 1/1 Bid');
-  assert.equal(r.orders[0].Price,1);assert.equal(r.orders[0].Route,'FREE1L');
+  assert.equal(r.orders[0].Price,1);assert.equal(r.orders[0].Route,'BESTL');
 });
 test('AUTOL TP resolves the alert symbol instead of the active montage',()=>{
   const r=runtime();r.position('LIVE','AAA',100,0.75);r.quote('AAA',0.75,0.76,0.75);
@@ -692,10 +700,13 @@ test('AUTOL preserves STOP and resolves immediate breakeven limit exits',()=>{
 });
 test('startup and configuration reload enable AUTOL without a route preset hotkey',()=>{
   const r=runtime();assert.equal(r.ctx.$orderRoute,'AUTOL');
+  assert.equal(r.ctx.$exitOffsetMaxPct,0.05);
   r.quote('AAA',0.75,0.76,0.75);r.run('Buy MIB Ask SL');
   assert.equal(r.orders[0].Route,'SMRTL');
   r.run('Set Order Route ARCA1L');assert.equal(r.ctx.$orderRoute,'ARCA1L');
+  r.ctx.$exitOffsetMaxPct=0.02;
   r.run('Set Global Variables');assert.equal(r.ctx.$orderRoute,'AUTOL');
+  assert.equal(r.ctx.$exitOffsetMaxPct,0.05);
   assert.equal(r.ctx.$gtfoRoute,'FLSH1L');
   r.position('LIVE','AAA',100,0.76);r.run('GTFO');
   assert.equal(r.orders.at(-1).Route,'BESTL');
@@ -704,7 +715,84 @@ test('AUTOL never reroutes or retries a rejected submission',()=>{
   const r=runtime();r.run('Set Order Route AUTOL');
   r.sendHook=o=>{o.Open=0;o.Status='Rejected';};r.run('Buy MIB Ask SL');
   for(let i=0;i<12;i++)r.tick();
-  assert.equal(r.orders.length,1);assert.equal(r.orders[0].Route,'FREE1L');
+  assert.equal(r.orders.length,1);assert.equal(r.orders[0].Route,'BESTL');
+});
+
+const cushionedExits = ['Cover 1/1 Ask+','Cover 1/2 Ask+','Cover 1/4 Ask+',
+  'Sell 1/1 Bid-','Sell 1/2 Bid-','Sell 1/4 Bid-'];
+function ordinaryExit(label,{bid,ask,offset=0.1,cap=0.05,route='AUTOL'}={}) {
+  const r=runtime();r.quote('AAA',bid,ask,bid);
+  r.position('LIVE','AAA',label.startsWith('Cover ')?-750:750,bid);
+  r.ctx.$exitOffset=offset;r.ctx.$exitOffsetMaxPct=cap;r.ctx.$orderRoute=route;
+  r.run(label);assert.equal(r.orders.length,1);return r;
+}
+for(const label of cushionedExits) {
+  for(const ref of [0.0001,0.01,0.1796,0.2381,0.4298,0.952,0.9999,1,1.999,2,10]) {
+    test(label+' keeps final limit inside the 5% ceiling at quote '+ref,()=>{
+      const isBuy=label.startsWith('Cover ');
+      const r=ordinaryExit(label,{bid:ref,ask:ref});const o=r.orders[0];
+      const boundary=ref*(isBuy?1.05:0.95);
+      assert.equal(o.Side,isBuy?'B':'S');assert(o.Price>0);
+      if(isBuy)assert(o.Price<=boundary+1e-12,`${o.Price} > ${boundary}`);
+      else assert(o.Price>=boundary-1e-12,`${o.Price} < ${boundary}`);
+      const divisor=Number(label.match(/1\/(\d)/)[1]);assert.equal(o.Share,Math.floor(750/divisor));
+      assert.equal(r.ctx.$orderRoute,'AUTOL');assert.equal(r.ctx.$tradeActionDepth,0);
+      assert.equal(r.ctx.$exitOffset,0.1);assert.equal(r.ctx.$exitOffsetMaxPct,0.05);
+      if(ref===10)assert(Math.abs(o.Price-(isBuy?10.1:9.9))<1e-10);
+    });
+  }
+  test(label+' supports a different percentage ceiling and a smaller dollar cushion',()=>{
+    const isBuy=label.startsWith('Cover ');
+    const tight=ordinaryExit(label,{bid:0.43,ask:0.43,cap:0.01}).orders[0];
+    assert(isBuy?tight.Price<=0.4343+1e-12:tight.Price>=0.4257-1e-12);
+    const fixed=ordinaryExit(label,{bid:10,ask:10,offset:0.02}).orders[0];
+    assert(Math.abs(fixed.Price-(isBuy?10.02:9.98))<1e-10);
+  });
+  test(label+' permits disabling the cap for legacy dollar-offset pricing',()=>{
+    const isBuy=label.startsWith('Cover ');
+    const r=ordinaryExit(label,{bid:0.18,ask:0.18,cap:0});
+    assert(Math.abs(r.orders[0].Price-(isBuy?0.28:0.08))<1e-10);
+  });
+  test(label+' applies the same ceiling with a manual route',()=>{
+    const r=ordinaryExit(label,{bid:0.43,ask:0.43,route:'ARCA1L'});
+    assert.equal(r.orders[0].Route,'ARCA1L');
+    assert(label.startsWith('Cover ')?r.orders[0].Price<=0.4515:r.orders[0].Price>=0.4085);
+  });
+}
+for(const label of cushionedExits.filter(s=>s.startsWith('Cover '))) {
+  test(label+' reproduces the LUCD and GPUS cover failures with capped prices',()=>{
+    const lucd=ordinaryExit(label,{bid:0.4286,ask:0.4298}).orders[0];
+    assert.equal(lucd.Route,'SMRTL');assert.equal(lucd.Price,0.451);
+    assert(lucd.Price<0.4286*1.10);
+    const gpus=ordinaryExit(label,{bid:0.1795,ask:0.1796}).orders[0];
+    assert.equal(gpus.Route,'BESTL');assert.equal(gpus.Price,0.1885);
+    assert(gpus.Price<0.1796*1.50);
+  });
+  test(label+' uses native rounding and logs the final submitted price',()=>{
+    const r=runtime();r.position('LIVE','AAA',-100,0.18);r.quote('AAA',0.1795,0.1796,0.1795);
+    r.ctx.Round=(n,precision)=>{assert.notEqual(precision,102,'covers must retain montage-native rounding');return Math.round(n*10**precision)/10**precision;};
+    r.run(label);assert.equal(r.orders[0].Price,0.1885);
+    assert(r.logs.some(s=>s.includes('at Ask+ 0.1885 via BESTL')));
+  });
+  test(label+' rejects an Ask that disappears after cancellation even with the cap disabled',()=>{
+    const r=runtime();r.position('LIVE','AAA',-100);r.ctx.$exitOffsetMaxPct=0;r.ctx.$orderRoute='ARCA1L';
+    r.waitHook=()=>r.quote('AAA',10,0,10);r.run(label);
+    assert.equal(r.orders.length,0);assert.equal(r.ctx.$tradeActionDepth,0);
+  });
+}
+test('the ordinary-exit cap leaves STOP, GTFO, backstop, and hijack prices unchanged',()=>{
+  const stop=runtime();stop.position('LIVE','AAA',100,10);stop.ctx.$exitOffsetMaxPct=0.001;
+  stop.run('Set Auto Stop');assert.equal(stop.orders[0].Route,'STOP');
+  assert.equal(stop.orders[0].StopPrice,9.5);assert.equal(stop.orders[0].Price,9.4);
+  for(const share of [100,-100]) {
+    const gtfo=runtime();gtfo.position('LIVE','AAA',share,10);gtfo.ctx.$exitOffsetMaxPct=0.001;gtfo.run('GTFO');
+    assert.equal(gtfo.orders[0].Route,'BESTL');assert.equal(gtfo.orders[0].Price,share>0?9.5:10.52);
+  }
+  const back=runtime();back.position('LIVE','AAA',100,10);back.ctx.$exitOffsetMaxPct=0.001;
+  back.run('Set Auto Stop');back.run('Set Backstop Trigger');back.execute(back.alerts.get('Backstop LIVE AAA').Script);
+  assert.equal(back.orders.at(-1).Price,9.9);
+  const hijack=runtime();hijack.position('LIVE','AAA',1000,10);hijack.ctx.$exitOffsetMaxPct=0.001;
+  hijack.ctx.$hijackProtection=1;hijack.run('Hijack Exit');assert.equal(hijack.orders[0].Price,9.9);
 });
 
 // Syntax-check all mapped scripts after translating native DAS statements.

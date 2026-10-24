@@ -77,8 +77,22 @@ Feature toggles and entry guards:
 
 Risk and execution:
 - `$entryBidOffset` / `$entryAskOffset`: independent signed offsets for Bid+ / Ask+ buys and Bid- / Ask- shorts (defaults: BID `+0.01`, ASK `-0.01`). Buys add the signed offset; shorts subtract it. For shorts, positive offsets price below the reference quote and negative offsets price above it.
-- `$exitOffset`: aggression offset for Bid- long exits and Ask+ short covers, and the limit offset for fixed stops.
-- `$orderRoute`: limit order route/mode for entries/exits (buys/sells/TP/BE). Default is `AUTOL`, which resolves each submission using the fee-based rules. `FREE1L` is the free route for ST Global Market/Open Ocean.
+- `$exitOffset`: desired fixed-dollar cushion for ordinary Bid- long exits and Ask+ short covers (default `$0.10`), also used uncapped for stop-limit and hijack pricing.
+- `$exitOffsetMaxPct`: percentage ceiling for ordinary Bid- sells and Ask+ covers only. Default `0.05` means 5% of Bid for sells or Ask for covers. The effective cushion is the smaller of `$exitOffset` and `quote * $exitOffsetMaxPct`. Set `0` to disable the percentage ceiling. Stop-limit, GTFO, backstop, and hijack pricing do not use this ceiling.
+
+With the defaults, a $10 reference quote keeps the full $0.10 cushion, while a
+$0.43 quote limits the cushion to $0.0215 before price rounding. Ordinary exits
+round toward the quote if nearest-tick rounding would cross the percentage
+ceiling. Ask+ covers retain native DAS rounding, using four decimal places
+below $0.25 without first rounding to three. For the reported examples, Ask
+$0.4298 produces a $0.451 cover limit; Ask $0.1796 produces $0.1885. The ceiling
+uses the current quote, not a guaranteed match for a broker's reference price,
+and does not guarantee route acceptance or a fill. It applies with manual
+routes and AUTOL and adds no fallback or automatic rerouting. SHOW CFG displays
+the configured ceiling; re-run Set Global Variables after loading the new
+keymap to initialize it.
+
+- `$orderRoute`: limit order route/mode for entries/exits (buys/sells/TP/BE). Default is `AUTOL`, which resolves each submission using the configured price bands. `FREE1L` remains available as a manual preset and is never selected by AUTOL.
 - Route presets are available for `AUTOL`, `ARCA1L`, `FREE1L`, `BESTL`, `FLASH1L`, and `SMRTL`.
 - `$gtfoRoute`: emergency exit route for GTFO/backstop/hijack exits when a manual route is selected. Stored default is `FLSH1L` (Open Ocean broadcast route); default AUTOL mode overrides it with `BESTL`.
 - `$stopLossTrigger`: fixed 1R risk per share for all buy tiers.
@@ -181,6 +195,7 @@ baseline values when you run "Set Global Variables."
 | Risk | `$entryBidOffset` | `0.01` |
 | Risk | `$entryAskOffset` | `-0.01` |
 | Risk | `$exitOffset` | `0.10` |
+| Risk | `$exitOffsetMaxPct` | `0.05` (5%; `0` disables the cap) |
 | Risk | `$orderRoute` | `"AUTOL"` |
 | Risk | `$gtfoRoute` | `"FLSH1L"` |
 | Risk | `$stopLossTrigger` | `0.50` |
@@ -277,9 +292,9 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Shift+Win+J` | `hotkeys/short_tier2_bid_minus.das` | Sell short Tier 2 at bid minus the signed BID entry offset, with no automatic protection. |
 | `Alt+Ctrl+Shift+Win+K` | `hotkeys/short_tier3_bid_minus.das` | Sell short Tier 3 at bid minus the signed BID entry offset, with no automatic protection. |
 | `Alt+Ctrl+Shift+Win+L` | `hotkeys/short_tier4_bid_minus.das` | Sell short Tier 4 at bid minus the signed BID entry offset, with no automatic protection. |
-| `Alt+Ctrl+Shift+C` | `hotkeys/cover_1_1_ask.das` | Cover the full short position at ask plus `$exitOffset` using DAS Reverse. |
-| `Alt+Ctrl+Shift+X` | `hotkeys/cover_1_2_ask.das` | Cover half the current position at ask plus `$exitOffset` using DAS Reverse. |
-| `Alt+Ctrl+Shift+Z` | `hotkeys/cover_1_4_ask.das` | Cover a quarter of the current position at ask plus `$exitOffset` using DAS Reverse. |
+| `Alt+Ctrl+Shift+C` | `hotkeys/cover_1_1_ask.das` | Cover the full short position at Ask plus the capped exit cushion using DAS Reverse. |
+| `Alt+Ctrl+Shift+X` | `hotkeys/cover_1_2_ask.das` | Cover half the current position at Ask plus the capped exit cushion using DAS Reverse. |
+| `Alt+Ctrl+Shift+Z` | `hotkeys/cover_1_4_ask.das` | Cover a quarter of the current position at Ask plus the capped exit cushion using DAS Reverse. |
 | `Alt+Ctrl+Shift+N` | `hotkeys/cover_1_1_bid.das` | Cover the full position at bid with no offset using DAS Reverse. |
 | `Alt+Ctrl+Shift+B` | `hotkeys/cover_1_2_bid.das` | Cover half the position at bid with no offset using DAS Reverse. |
 | `Alt+Ctrl+Shift+V` | `hotkeys/cover_1_4_bid.das` | Cover a quarter of the position at bid with no offset using DAS Reverse. |
@@ -431,13 +446,14 @@ route behavior, and applicable short-sale restrictions with the broker.
   keep the displays aligned with DAS; editing a DAS variable directly does
   not update Stream Deck. Rebuild and install the full keymap before using Ask-.
 - `Cover 1/1 Ask+` cancels working orders for the montage symbol, then uses the
-  native `Share=Pos; SEND=Reverse` command at `Ask + $exitOffset`. DAS resolves the position
+  native `Share=Pos; SEND=Reverse` command at Ask plus the smaller of `$exitOffset`
+  and `Ask * $exitOffsetMaxPct` (or the fixed offset when the ceiling is disabled). DAS resolves the position
   quantity and direction internally; for a short it sends a buy for the full
   short based on the position visible at submission. An older order can still
   fill after cancellation is requested. If invoked while long, `SEND=Reverse` closes
   the long with a sell, so treat this as a full-position close hotkey.
 - `Cover 1/2 Ask+` and `Cover 1/4 Ask+` use the same native Reverse command
-  and Ask + `$exitOffset` pricing for half or a quarter of the current position.
+  and the same capped Ask+ pricing for half or a quarter of the current position.
   Quantities are calculated after cancelling older orders, rounded down to
   whole shares, and clamped to at least one share and at most the current position.
   They do nothing while flat and abort if the montage account or symbol changes.
@@ -483,7 +499,8 @@ protection rather than inventing a quantity or price.
 ### Standard sell orders
 
 - Ask sells place a limit order at the current Ask (price first).
-- Bid- sells place a limit order at Bid minus `$exitOffset` (fill priority).
+- Bid- sells place a limit order at Bid minus the smaller of `$exitOffset` and
+  `Bid * $exitOffsetMaxPct` (or the fixed offset when the ceiling is disabled).
 - Bid- prices are snapped to valid tick sizes and clamped to non-negative values.
 - After a full fill, partial fill, rejection, or timeout on half/quarter sells,
   the timer restores `Set Auto Stop` and `Set Take Profit` when enabled and a
@@ -642,7 +659,7 @@ Safety toggles:
 - `set_order_route_smrtl.das` sets `$orderRoute` to `SMRTL`.
 - `set_order_route_autol.das` selects `AUTOL`, bound to `Alt+Ctrl+Win+7`.
 - On page 5 of both the physical and Virtual Stream Deck profiles, the route button cycles through `AUTOL`, `FREE1L`, `BESTL`, `SMRTL`, `ARCA1L`, and `FLSH1L`. AUTOL is green, the next three are white, and the last two are red. This requires the local six-state Advanced Toggles update. The SMRTL preset sends `SMRTL`. `FLSH1L` remains a display label for the existing `FLASH1L` manual preset.
-- AUTOL is a script mode, never a broker route. `Resolve Order Route` selects a concrete route immediately before each submission, without changing `$orderRoute`: FREE1L for expected prices at/above $1; SMRTL below $1 when `price * 0.0036 > 0.0015`; BESTL otherwise, including equality. SMRT's $0.0015/share flat fee at all prices is based on broker confirmation. Aggressive buys/covers use Ask, aggressive sells/shorts use Bid, and resting orders use the final limit price. This is a routing-fee estimate, not a guarantee of execution price or the cheapest passive-order fee.
+- AUTOL is a script mode, never a broker route. `Resolve Order Route` selects a concrete route immediately before each submission, without changing `$orderRoute`: BESTL for expected prices at/above $1; SMRTL below $1 when `price * 0.0036 > 0.0015`; BESTL otherwise, including equality. FREE1L remains a manual option only. SMRT's $0.0015/share flat fee at all prices is based on broker confirmation. Aggressive buys/covers use Ask, aggressive sells/shorts use Bid, and resting orders use the final limit price. The sub-dollar bands compare routing fees; the $1+ band explicitly prefers BESTL. This does not guarantee execution price, route acceptance, or the cheapest passive-order fee.
 - In AUTOL mode, urgent GTFO, backstop, and hijack submissions use BESTL regardless of price. Manual route selections retain the existing independent `$gtfoRoute`. Native STOP orders remain STOP; breakeven exits that become ordinary limit orders use AUTOL. Missing required quotes prevent ordinary AUTOL submissions.
 - AUTOL adds no route fallback, rejection retry, or automatic rerouting. Existing timer fill monitoring, cancellation, and backstop retry behavior remains in place. Route availability is 04:00-20:00 ET; the operator monitors this window and executions. AUTOL performs no clock/timezone conversion or session gating. The same fee bands apply in regular and extended hours.
 - Rebuild and load the complete keymap, including the unbound `Resolve Order Route` helper. `Set Global Variables` selects AUTOL at startup and whenever LOAD CFG reloads the configuration. Manual route presets override it until the configuration is reloaded or AUTOL is selected again. Running the initializer directly does not synchronize the Stream Deck route display.

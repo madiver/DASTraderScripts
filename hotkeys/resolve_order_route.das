@@ -31,7 +31,8 @@ if ($routeSide == "B") {
 // SMRT is flat $0.0015/share at all prices (broker confirmation).
 // Compare costs directly so equality selects BEST without a rounded threshold.
 if ($autoRoutePrice >= 1) {
-    $resolvedOrderRoute = "FREE1L";
+    // FREE1L remains a manual preset; AUTOL uses BESTL at $1 and above.
+    $resolvedOrderRoute = "BESTL";
 } else {
     if ($autoRoutePrice * 0.0036 <= 0.0015) {
         $resolvedOrderRoute = "BESTL";
