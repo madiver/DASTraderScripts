@@ -1,0 +1,24 @@
+{
+  "runs": [
+    {
+      "date": "2026-10-25T11:21:02.144656+00:00",
+      "input_tokens": null,
+      "output_tokens": null,
+      "token_usage_status": "Subagent usage counters unavailable; no paid external extraction API used",
+      "files": 117
+    },
+    {
+      "date": "2026-10-25T11:31:17.072582+00:00",
+      "input_tokens": null,
+      "output_tokens": null,
+      "token_usage_status": "Subagent usage unavailable; no external extraction API used",
+      "files": 1,
+      "refreshed_files": [
+        "AGENTS.md"
+      ]
+    }
+  ],
+  "total_input_tokens": 0,
+  "total_output_tokens": 0,
+  "total_semantic_usage_known": false
+}

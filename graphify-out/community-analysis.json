@@ -1,0 +1,382 @@
+{
+  "communities": {
+    "0": [
+      "hotkeys_load_position_context_script",
+      "hotkeys_set_order_route_arcal_script",
+      "hotkeys_set_order_route_autol_script",
+      "hotkeys_set_order_route_freel_script",
+      "ref_node_assert_strict",
+      "ref_node_fs",
+      "ref_node_path",
+      "ref_node_vm",
+      "tools_tests_trade_isolation_test",
+      "tools_tests_trade_isolation_test_assert",
+      "tools_tests_trade_isolation_test_buylabels",
+      "tools_tests_trade_isolation_test_cancel",
+      "tools_tests_trade_isolation_test_cushionedexits",
+      "tools_tests_trade_isolation_test_entries",
+      "tools_tests_trade_isolation_test_fs",
+      "tools_tests_trade_isolation_test_getinfo",
+      "tools_tests_trade_isolation_test_longlabels",
+      "tools_tests_trade_isolation_test_manualexits",
+      "tools_tests_trade_isolation_test_object",
+      "tools_tests_trade_isolation_test_ordinaryexit",
+      "tools_tests_trade_isolation_test_path",
+      "tools_tests_trade_isolation_test_resolveroute",
+      "tools_tests_trade_isolation_test_root",
+      "tools_tests_trade_isolation_test_runtime",
+      "tools_tests_trade_isolation_test_runtime_r",
+      "tools_tests_trade_isolation_test_runtime_r_bind",
+      "tools_tests_trade_isolation_test_runtime_r_cancel",
+      "tools_tests_trade_isolation_test_runtime_r_execute",
+      "tools_tests_trade_isolation_test_runtime_r_position",
+      "tools_tests_trade_isolation_test_runtime_r_quote",
+      "tools_tests_trade_isolation_test_runtime_r_runfile",
+      "tools_tests_trade_isolation_test_runtime_r_select",
+      "tools_tests_trade_isolation_test_runtime_r_state",
+      "tools_tests_trade_isolation_test_runtime_r_tick",
+      "tools_tests_trade_isolation_test_scripts",
+      "tools_tests_trade_isolation_test_test",
+      "tools_tests_trade_isolation_test_translate",
+      "tools_tests_trade_isolation_test_userobject",
+      "tools_tests_trade_isolation_test_vm"
+    ],
+    "1": [
+      "assets_streamdeck_ask_offset_red_image",
+      "assets_streamdeck_ask_offset_red_microchip_outline",
+      "assets_streamdeck_bid_offset_green_image",
+      "assets_streamdeck_bid_offset_green_microchip_outline",
+      "assets_streamdeck_readme_file",
+      "assets_streamdeck_readme_offset_icons",
+      "readme_scalein_guards",
+      "readme_signed_offsets",
+      "todo_exposure_guard",
+      "todo_file",
+      "todo_loss_streak_guard",
+      "todo_profit_giveback_guard",
+      "todo_time_window_lock",
+      "userguide_autol",
+      "userguide_entry_guards",
+      "userguide_file",
+      "userguide_fixed_stops",
+      "userguide_gtfo_pricing",
+      "userguide_hijack_protection",
+      "userguide_inline_arming",
+      "userguide_liquidity_prediction",
+      "userguide_ordinary_exit_pricing",
+      "userguide_partial_exits",
+      "userguide_registry_lifecycle",
+      "userguide_rehab_mode",
+      "userguide_route_operational_limits",
+      "userguide_short_documentation_conflict",
+      "userguide_short_protection",
+      "userguide_signed_positions",
+      "userguide_sim_guard_scope",
+      "userguide_single_long_guard",
+      "userguide_streamdeck_sync",
+      "userguide_take_profit_alerts",
+      "userguide_timer_arming",
+      "userguide_tp_identity",
+      "userguide_trade_isolation"
+    ],
+    "2": [
+      "hotkeys_cover_1_1_ask_script",
+      "hotkeys_cover_1_1_bid_script",
+      "hotkeys_cover_1_2_ask_script",
+      "hotkeys_cover_1_2_bid_script",
+      "hotkeys_cover_1_4_ask_script",
+      "hotkeys_cover_1_4_bid_script",
+      "hotkeys_end_trade_action_script",
+      "hotkeys_gtfo_script",
+      "hotkeys_hijack_exit_script",
+      "hotkeys_invalidate_trade_alerts_script",
+      "hotkeys_load_trade_context_script",
+      "hotkeys_load_trade_context_trade_active",
+      "hotkeys_load_trade_context_trade_deferredtp",
+      "hotkeys_resolve_order_route_script",
+      "hotkeys_sell_1_1_ask_script",
+      "hotkeys_sell_1_1_bid_script",
+      "hotkeys_set_auto_stop_be_1_2_script",
+      "hotkeys_short_tier1_ask_minus_script",
+      "hotkeys_short_tier1_ask_script",
+      "hotkeys_short_tier1_bid_minus_script",
+      "hotkeys_short_tier1_bid_script",
+      "hotkeys_short_tier2_ask_minus_script",
+      "hotkeys_short_tier2_ask_script",
+      "hotkeys_short_tier2_bid_minus_script",
+      "hotkeys_short_tier2_bid_script",
+      "hotkeys_short_tier3_ask_minus_script",
+      "hotkeys_short_tier3_ask_script",
+      "hotkeys_short_tier3_bid_minus_script",
+      "hotkeys_short_tier3_bid_script",
+      "hotkeys_short_tier4_ask_minus_script",
+      "hotkeys_short_tier4_ask_script",
+      "hotkeys_short_tier4_bid_minus_script",
+      "hotkeys_short_tier4_bid_script",
+      "userguide_action_lease"
+    ],
+    "3": [
+      "hotkeys_check_working_sells_script",
+      "hotkeys_enable_rehab_mode_script",
+      "hotkeys_select_primary_order_entry_script",
+      "hotkeys_set_0_10_stop_script",
+      "hotkeys_set_0_20_stop_script",
+      "hotkeys_set_0_30_stop_script",
+      "hotkeys_set_0_50_stop_script",
+      "hotkeys_set_ask_entry_offset_minus_1_script",
+      "hotkeys_set_ask_entry_offset_minus_2_script",
+      "hotkeys_set_ask_entry_offset_minus_3_script",
+      "hotkeys_set_ask_entry_offset_plus_1_script",
+      "hotkeys_set_ask_entry_offset_plus_3_script",
+      "hotkeys_set_bid_entry_offset_minus_1_script",
+      "hotkeys_set_bid_entry_offset_minus_2_script",
+      "hotkeys_set_bid_entry_offset_minus_3_script",
+      "hotkeys_set_bid_entry_offset_plus_1_script",
+      "hotkeys_set_bid_entry_offset_plus_3_script",
+      "hotkeys_set_order_route_bestl_script",
+      "hotkeys_set_order_route_flash1l_script",
+      "hotkeys_set_order_route_smrtl_script",
+      "hotkeys_set_qty_mult_0_5_script",
+      "hotkeys_set_qty_mult_1_0_script",
+      "hotkeys_set_qty_mult_1_5_script",
+      "hotkeys_set_qty_mult_2_0_script",
+      "hotkeys_set_qty_mult_3_0_script",
+      "hotkeys_toggle_apply_live_guards_to_sim_script",
+      "hotkeys_toggle_position_window_script",
+      "hotkeys_toggle_single_position_guard_script",
+      "hotkeys_toggle_spread_check_feature_script",
+      "hotkeys_toggle_stp_feature_script",
+      "hotkeys_toggle_tp_feature_script",
+      "keymap_file"
+    ],
+    "4": [
+      "hotkeys_buy_25_ask_plus_sl_script",
+      "hotkeys_buy_25_ask_sl_script",
+      "hotkeys_buy_25_bid_plus_sl_script",
+      "hotkeys_buy_25_bid_sl_script",
+      "hotkeys_buy_50_ask_plus_sl_script",
+      "hotkeys_buy_50_ask_sl_script",
+      "hotkeys_buy_50_bid_plus_sl_script",
+      "hotkeys_buy_50_bid_sl_script",
+      "hotkeys_buy_ib_ask_plus_sl_script",
+      "hotkeys_buy_ib_ask_sl_script",
+      "hotkeys_buy_ib_bid_plus_sl_script",
+      "hotkeys_buy_ib_bid_sl_script",
+      "hotkeys_buy_mib_ask_plus_sl_script",
+      "hotkeys_buy_mib_ask_sl_script",
+      "hotkeys_buy_mib_bid_plus_sl_script",
+      "hotkeys_buy_mib_bid_sl_script",
+      "hotkeys_cancel_all_no_stops_script",
+      "hotkeys_cancel_all_script",
+      "hotkeys_check_global_guards_script",
+      "hotkeys_clear_trade_state_script",
+      "hotkeys_load_trade_context_trade_entrypending",
+      "hotkeys_load_trade_context_trade_entrystage",
+      "hotkeys_load_trade_context_trade_entrywatch",
+      "hotkeys_load_trade_context_trade_laststop",
+      "hotkeys_read_position_only_script",
+      "hotkeys_read_trade_position_script",
+      "hotkeys_set_auto_stop_be_scale_1_1_script",
+      "hotkeys_set_auto_stop_script",
+      "hotkeys_set_take_profit_script",
+      "hotkeys_show_config_script",
+      "hotkeys_timer_entry_handler_script"
+    ],
+    "5": [
+      "hotkeys_check_working_buys_script",
+      "hotkeys_load_trade_context_trade_exitgeneration",
+      "hotkeys_load_trade_context_trade_exitpending",
+      "hotkeys_load_trade_context_trade_exitstage",
+      "hotkeys_load_trade_context_trade_generation",
+      "hotkeys_load_trade_context_trade_stoparmed",
+      "hotkeys_load_trade_context_trade_tpname",
+      "hotkeys_sell_1_2_ask_script",
+      "hotkeys_sell_1_2_bid_script",
+      "hotkeys_sell_1_4_ask_script",
+      "hotkeys_sell_1_4_bid_script",
+      "hotkeys_set_auto_stop_be_1_1_script",
+      "hotkeys_take_profit_executor_script",
+      "hotkeys_timer_exit_handler_script",
+      "hotkeys_timer_short_stop_handler_script"
+    ],
+    "6": [
+      "agents_file",
+      "agents_graphify_das_aware_refresh",
+      "agents_graphify_evidence_limits",
+      "agents_graphify_operational_boundary",
+      "agents_graphify_pending_refresh",
+      "agents_graphify_query_first",
+      "agents_graphify_refresh_integrity",
+      "agents_graphify_retained_evidence_builder",
+      "agents_graphify_source_verification",
+      "agents_graphify_vocabulary_and_paths",
+      "agents_source_only_workflow"
+    ],
+    "7": [
+      "hotkeys_set_global_variables_script",
+      "other_scripts_timer_script",
+      "readme_build_workflow",
+      "readme_das_hotkey_tools",
+      "readme_file",
+      "readme_repository",
+      "readme_rollback_installation",
+      "readme_runtime_requirements",
+      "readme_tier_sizing"
+    ],
+    "8": [
+      "changelog_file",
+      "changelog_release_history",
+      "changelog_retired_features",
+      "readme_exit_overlap_risk"
+    ],
+    "9": [
+      "hotkeys_swap_internal_script",
+      "readme_validation_boundary",
+      "userguide_momo_swap"
+    ],
+    "10": [
+      "hotkeys_switch_to_live_script",
+      "hotkeys_switch_to_sim_script",
+      "readme_account_placeholders"
+    ]
+  },
+  "cohesion": {
+    "0": 0.07692307692307693,
+    "1": 0.0761904761904762,
+    "2": 0.24064171122994651,
+    "3": 0.0625,
+    "4": 0.4150537634408602,
+    "5": 0.37142857142857144,
+    "6": 0.32727272727272727,
+    "7": 0.3611111111111111,
+    "8": 0.6666666666666666,
+    "9": 0.6666666666666666,
+    "10": 0.6666666666666666
+  },
+  "gods": [
+    {
+      "id": "keymap_file",
+      "label": "Canonical hotkey bindings",
+      "degree": 108
+    },
+    {
+      "id": "hotkeys_end_trade_action_script",
+      "label": "End Trade Action",
+      "degree": 58
+    },
+    {
+      "id": "hotkeys_load_trade_context_script",
+      "label": "Load Trade Context",
+      "degree": 57
+    },
+    {
+      "id": "hotkeys_resolve_order_route_script",
+      "label": "Resolve Order Route",
+      "degree": 53
+    },
+    {
+      "id": "hotkeys_load_trade_context_trade_active",
+      "label": "$trade.active",
+      "degree": 53
+    },
+    {
+      "id": "hotkeys_invalidate_trade_alerts_script",
+      "label": "Invalidate Trade Alerts",
+      "degree": 45
+    },
+    {
+      "id": "hotkeys_read_trade_position_script",
+      "label": "Read Trade Position",
+      "degree": 36
+    },
+    {
+      "id": "hotkeys_set_auto_stop_script",
+      "label": "Set Auto Stop",
+      "degree": 35
+    },
+    {
+      "id": "hotkeys_clear_trade_state_script",
+      "label": "Clear Trade State",
+      "degree": 34
+    },
+    {
+      "id": "hotkeys_set_take_profit_script",
+      "label": "Set Take Profit",
+      "degree": 31
+    }
+  ],
+  "surprises": [
+    {
+      "source": "Proposed pre-trade dollar exposure guard",
+      "target": "Entry spread, slippage, size and risk guards",
+      "source_files": [
+        "TODO.md",
+        "USERGUIDE.md"
+      ],
+      "confidence": "INFERRED",
+      "relation": "semantically_similar_to",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; semantically similar concepts with no structural link"
+    },
+    {
+      "source": "Proposed time-window trading lock",
+      "target": "AUTOL has no fallback, retry or session gating",
+      "source_files": [
+        "TODO.md",
+        "USERGUIDE.md"
+      ],
+      "confidence": "INFERRED",
+      "relation": "semantically_similar_to",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; semantically similar concepts with no structural link"
+    },
+    {
+      "source": "Canonical hotkey bindings",
+      "target": "Set Order Route ARCA1L",
+      "source_files": [
+        "keymap.yaml",
+        "hotkeys/set_order_route_arcal.das"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "connects across different repos/directories; bridges separate communities; peripheral node `Set Order Route ARCA1L` unexpectedly reaches hub `Canonical hotkey bindings`"
+    },
+    {
+      "source": "Canonical hotkey bindings",
+      "target": "Set Order Route AUTOL",
+      "source_files": [
+        "keymap.yaml",
+        "hotkeys/set_order_route_autol.das"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "connects across different repos/directories; bridges separate communities; peripheral node `Set Order Route AUTOL` unexpectedly reaches hub `Canonical hotkey bindings`"
+    },
+    {
+      "source": "Canonical hotkey bindings",
+      "target": "Set Order Route FREE1L",
+      "source_files": [
+        "keymap.yaml",
+        "hotkeys/set_order_route_freel.das"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "connects across different repos/directories; bridges separate communities; peripheral node `Set Order Route FREE1L` unexpectedly reaches hub `Canonical hotkey bindings`"
+    }
+  ],
+  "questions": [
+    {
+      "type": "ambiguous_edge",
+      "question": "What is the exact relationship between `Automatic protection for actual short fills` and `Conflicting manual-short protection descriptions`?",
+      "why": "Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `Resolve Order Route` connect `Manual Order Execution` to `Regression Test Harness`, `Trading Rules and Risks`, `Bindings and Presets`, `Long Entry Protection`, `Exit and Short Protection`?",
+      "why": "High betweenness centrality (0.078) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `Load Trade Context` connect `Manual Order Execution` to `Regression Test Harness`, `Trading Rules and Risks`, `Bindings and Presets`, `Long Entry Protection`, `Exit and Short Protection`?",
+      "why": "High betweenness centrality (0.066) - this node is a cross-community bridge."
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "backup": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/graphify-out/refresh-backups/20261025T112956Z",
+  "timestamp": "2026-10-25T11:29:56.669596+00:00",
+  "updated_files": [
+    "AGENTS.md"
+  ],
+  "old_nodes": 208,
+  "new_nodes": 217,
+  "old_evidence_edges": 856,
+  "new_evidence_edges": 873,
+  "removed_policy_nodes": 2,
+  "new_policy_nodes": 11,
+  "unchanged_nodes_preserved": 206,
+  "unchanged_edges_preserved": 855,
+  "agents_sha256": "c47c86235c4e0c0ce74993c66e278b5a560a498567525e0d2724cea610e72032",
+  "word_count_delta": 720,
+  "validation": "passed",
+  "non_agents_evidence_unchanged": true,
+  "new_graph_nodes": 217,
+  "new_graph_edges": 853,
+  "new_graph_communities": 11,
+  "cache_verified": true,
+  "manifest_verified": true,
+  "completed_at": "2026-10-25T11:31:17.072582+00:00"
+}

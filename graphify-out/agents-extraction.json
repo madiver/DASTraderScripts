@@ -1,0 +1,321 @@
+{
+  "nodes": [
+    {
+      "id": "agents_file",
+      "label": "Repository Instructions",
+      "file_type": "document",
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "1-89",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "agents_source_only_workflow",
+      "label": "Source-only DAS hotkey workflow",
+      "file_type": "rationale",
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "8-10",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "The user compiles and installs hotkeys; compilation, loading, and active configuration changes require an explicit request."
+    },
+    {
+      "id": "agents_graphify_query_first",
+      "label": "Graphify query-first investigation workflow",
+      "file_type": "rationale",
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "19-44",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Existing graph queries scope source inspection; missing or unavailable graph access has fallback paths so authorized work can continue."
+    },
+    {
+      "id": "agents_graphify_vocabulary_and_paths",
+      "label": "Graph vocabulary and path direction rules",
+      "file_type": "rationale",
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "24-29",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Expand unfamiliar wording against actual graph labels and use undirected paths intentionally; a missing directed path does not disprove a relationship."
+    },
+    {
+      "id": "agents_graphify_source_verification",
+      "label": "Current-source verification of graph claims",
+      "file_type": "rationale",
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "48-55",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Verify changed source and current line locations because a matching commit or stale graph claim does not establish current evidence."
+    },
+    {
+      "id": "agents_graphify_pending_refresh",
+      "label": "Pending-refresh accounting requirement",
+      "file_type": "rationale",
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "48-52",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Check pending-refresh.json and clear entries only after actual re-extraction and merging."
+    },
+    {
+      "id": "agents_graphify_evidence_limits",
+      "label": "Graph and regression evidence limitations",
+      "file_type": "rationale",
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "56-60",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Preserve extraction confidence distinctions; undirected paths do not prove runtime reachability and regression results do not prove installed DAS behavior or fills."
+    },
+    {
+      "id": "agents_graphify_das_aware_refresh",
+      "label": "DAS-aware extraction and merge requirement",
+      "file_type": "rationale",
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "64-74",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "The standard parser does not recognize DAS files; refreshes require DAS adapter output, fresh test extraction, current semantic results, and preservation of unrelated evidence."
+    },
+    {
+      "id": "agents_graphify_retained_evidence_builder",
+      "label": "Retained-evidence builder limitation",
+      "file_type": "rationale",
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "75-79",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "The project builder renders retained extraction evidence and does not extract or merge new DAS output automatically."
+    },
+    {
+      "id": "agents_graphify_refresh_integrity",
+      "label": "Refresh integrity and provenance requirements",
+      "file_type": "rationale",
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "80-87",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Preserve source locations and parallel-edge evidence, update manifest/cache only for processed files, and disclose stale scope and unavailable token usage."
+    },
+    {
+      "id": "agents_graphify_operational_boundary",
+      "label": "Graph maintenance operational boundary",
+      "file_type": "rationale",
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "88-89",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Graph maintenance does not authorize compiling or installing hotkeys, modifying Stream Deck profiles, or operating the trading application."
+    }
+  ],
+  "edges": [
+    {
+      "source": "agents_file",
+      "target": "agents_source_only_workflow",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "8-10",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_file",
+      "target": "agents_graphify_query_first",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "19-44",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_file",
+      "target": "agents_graphify_vocabulary_and_paths",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "24-29",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_file",
+      "target": "agents_graphify_source_verification",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "48-55",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_file",
+      "target": "agents_graphify_pending_refresh",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "48-52",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_file",
+      "target": "agents_graphify_evidence_limits",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "56-60",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_file",
+      "target": "agents_graphify_das_aware_refresh",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "64-74",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_file",
+      "target": "agents_graphify_retained_evidence_builder",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "75-79",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_file",
+      "target": "agents_graphify_refresh_integrity",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "80-87",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_file",
+      "target": "agents_graphify_operational_boundary",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "88-89",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_graphify_vocabulary_and_paths",
+      "target": "agents_graphify_query_first",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "24-29",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_graphify_source_verification",
+      "target": "agents_graphify_query_first",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "30-33;53-55",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_graphify_pending_refresh",
+      "target": "agents_graphify_source_verification",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "48-55",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_graphify_evidence_limits",
+      "target": "agents_graphify_source_verification",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "53-60",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_graphify_das_aware_refresh",
+      "target": "agents_graphify_pending_refresh",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "64-69",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_graphify_retained_evidence_builder",
+      "target": "agents_graphify_das_aware_refresh",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "70-79",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_graphify_refresh_integrity",
+      "target": "agents_graphify_das_aware_refresh",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "80-87",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_graphify_operational_boundary",
+      "target": "agents_source_only_workflow",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
+      "source_location": "8-10;88-89",
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0,
+  "token_usage_status": "unavailable"
+}

@@ -1,3 +1,11 @@
 DAS Trader Docs/
 .DS_Store
 ._.DS_Store
+
+# Local graphify runtime state; retain shared graphs, evidence, and adapters.
+graphify-out/.graphify_python
+graphify-out/.graphify_root
+graphify-out/cache/
+graphify-out/browser-check-logs/
+graphify-out/refresh-backups/
+graphify-out/__pycache__/

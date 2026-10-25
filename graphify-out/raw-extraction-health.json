@@ -1,0 +1,195 @@
+{
+  "node_count": 217,
+  "unverified_node_count": 0,
+  "raw_edge_count": 873,
+  "non_object_edges": 0,
+  "missing_endpoint_edges": 0,
+  "dangling_endpoint_edges": 0,
+  "self_loop_edges": 0,
+  "valid_candidate_edges": 873,
+  "exact_duplicate_edges": 0,
+  "directed_unique_endpoint_pairs": 854,
+  "directed_same_endpoint_collapsed_edges": 19,
+  "undirected_unique_endpoint_pairs": 853,
+  "undirected_same_endpoint_collapsed_edges": 20,
+  "same_endpoint_group_count": 19,
+  "relation_variant_groups": 0,
+  "source_file_variant_groups": 0,
+  "source_location_variant_groups": 19,
+  "context_variant_groups": 0,
+  "post_build_graph_type": "Graph",
+  "post_build_node_count": 217,
+  "post_build_edge_count": 853,
+  "post_build_error": "",
+  "producer_suppression": {
+    "path": "/Users/markbennett/.local/share/uv/tools/graphifyy/lib/python3.13/site-packages/graphify/extract.py",
+    "total_sites": 12,
+    "sites": [
+      {
+        "line": 1172,
+        "name": "seen_ids",
+        "tuple_arity": 0,
+        "sample": "seen_ids = {n[\"id\"] for n in nodes}"
+      },
+      {
+        "line": 1438,
+        "name": "seen_ids",
+        "tuple_arity": 0,
+        "sample": "seen_ids = {n[\"id\"] for n in nodes}"
+      },
+      {
+        "line": 1440,
+        "name": "seen_doc_refs",
+        "tuple_arity": 0,
+        "sample": "seen_doc_refs: set[str] = set()"
+      },
+      {
+        "line": 1800,
+        "name": "seen_ids",
+        "tuple_arity": 0,
+        "sample": "seen_ids: set[str] = {n[\"id\"] for n in nodes}"
+      },
+      {
+        "line": 1947,
+        "name": "seen_ids",
+        "tuple_arity": 0,
+        "sample": "seen_ids = {n.get(\"id\") for n in nodes}"
+      },
+      {
+        "line": 2565,
+        "name": "seen_keys",
+        "tuple_arity": 0,
+        "sample": "seen_keys: set[tuple] = set()"
+      },
+      {
+        "line": 2734,
+        "name": "seen_keys",
+        "tuple_arity": 0,
+        "sample": "seen_keys: set[tuple] = set()"
+      },
+      {
+        "line": 4230,
+        "name": "seen_ids",
+        "tuple_arity": 0,
+        "sample": "seen_ids: set[str] = set()"
+      },
+      {
+        "line": 4338,
+        "name": "seen_ids",
+        "tuple_arity": 0,
+        "sample": "seen_ids: set[str] = set()"
+      },
+      {
+        "line": 4417,
+        "name": "seen_ids",
+        "tuple_arity": 0,
+        "sample": "seen_ids: set[str] = set()"
+      },
+      {
+        "line": 4932,
+        "name": "seen_ids",
+        "tuple_arity": 0,
+        "sample": "seen_ids: set[str] = set()"
+      },
+      {
+        "line": 4933,
+        "name": "seen_edges",
+        "tuple_arity": 4,
+        "sample": "seen_edges: set[tuple[str, str, str, str | None]] = set()"
+      }
+    ],
+    "error": ""
+  },
+  "examples": [
+    {
+      "source": "keymap_file",
+      "target": "hotkeys_cancel_all_script",
+      "edge_count": 2,
+      "relations": [
+        "references"
+      ],
+      "source_files": [
+        "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/keymap.yaml"
+      ],
+      "source_locations": [
+        "",
+        "L2"
+      ],
+      "contexts": [
+        ""
+      ]
+    },
+    {
+      "source": "keymap_file",
+      "target": "hotkeys_gtfo_script",
+      "edge_count": 2,
+      "relations": [
+        "references"
+      ],
+      "source_files": [
+        "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/keymap.yaml"
+      ],
+      "source_locations": [
+        "",
+        "L6"
+      ],
+      "contexts": [
+        ""
+      ]
+    },
+    {
+      "source": "keymap_file",
+      "target": "hotkeys_set_global_variables_script",
+      "edge_count": 2,
+      "relations": [
+        "references"
+      ],
+      "source_files": [
+        "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/keymap.yaml"
+      ],
+      "source_locations": [
+        "",
+        "L10"
+      ],
+      "contexts": [
+        ""
+      ]
+    },
+    {
+      "source": "keymap_file",
+      "target": "hotkeys_switch_to_sim_script",
+      "edge_count": 2,
+      "relations": [
+        "references"
+      ],
+      "source_files": [
+        "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/keymap.yaml"
+      ],
+      "source_locations": [
+        "",
+        "L74"
+      ],
+      "contexts": [
+        ""
+      ]
+    },
+    {
+      "source": "keymap_file",
+      "target": "hotkeys_switch_to_live_script",
+      "edge_count": 2,
+      "relations": [
+        "references"
+      ],
+      "source_files": [
+        "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/keymap.yaml"
+      ],
+      "source_locations": [
+        "",
+        "L78"
+      ],
+      "contexts": [
+        ""
+      ]
+    }
+  ]
+}
