@@ -1,10 +1,116 @@
 {
   "communities": {
     "0": [
+      "changelog_exit_performance",
+      "changelog_exit_rollback",
+      "changelog_route_corrections",
+      "hotkeys_check_working_sells_script",
+      "hotkeys_enable_rehab_mode_script",
+      "hotkeys_set_global_variables_script",
+      "hotkeys_switch_to_live_script",
+      "hotkeys_switch_to_sim_script",
+      "keymap_internal_helpers",
+      "other_scripts_timer_script",
+      "readme_account_placeholders",
+      "readme_build_workflow",
+      "readme_das_hotkey_tools",
+      "readme_das_trader_config",
+      "readme_discord_community",
+      "readme_exit_overlap_risk",
+      "readme_file",
+      "readme_repository",
+      "readme_rollback_installation",
+      "readme_runtime_requirements",
+      "readme_scalein_guards",
+      "readme_signed_offsets",
+      "readme_tier_sizing",
+      "todo_exposure_guard",
+      "todo_file",
+      "todo_loss_streak_guard",
+      "todo_profit_giveback_guard",
+      "todo_time_window_lock",
+      "userguide_action_lease",
+      "userguide_autol",
+      "userguide_defaults",
+      "userguide_entry_guards",
+      "userguide_exit_settings_independent",
+      "userguide_file",
+      "userguide_fixed_stops",
+      "userguide_gtfo_pricing",
+      "userguide_hijack_protection",
+      "userguide_inline_arming",
+      "userguide_liquidity_prediction",
+      "userguide_ordinary_exit_pricing",
+      "userguide_partial_exits",
+      "userguide_registry_lifecycle",
+      "userguide_rehab_mode",
+      "userguide_route_button",
+      "userguide_route_operational_limits",
+      "userguide_setup_requirements",
+      "userguide_short_protection",
+      "userguide_signed_positions",
+      "userguide_sim_guard_scope",
+      "userguide_single_long_guard",
+      "userguide_stop_extended_hours",
+      "userguide_take_profit_alerts",
+      "userguide_timer_arming",
+      "userguide_timer_runtime",
+      "userguide_tp_identity",
+      "userguide_trade_isolation"
+    ],
+    "1": [
+      "assets_streamdeck_ask_offset_red_image",
+      "assets_streamdeck_ask_offset_red_microchip_outline",
+      "assets_streamdeck_bid_offset_green_image",
+      "assets_streamdeck_bid_offset_green_microchip_outline",
+      "assets_streamdeck_readme_file",
+      "assets_streamdeck_readme_offset_icons",
+      "assets_streamdeck_readme_precise_recolor",
+      "hotkeys_select_primary_order_entry_script",
+      "hotkeys_set_0_10_stop_script",
+      "hotkeys_set_0_20_stop_script",
+      "hotkeys_set_0_30_stop_script",
+      "hotkeys_set_0_50_stop_script",
+      "hotkeys_set_ask_entry_offset_minus_1_script",
+      "hotkeys_set_ask_entry_offset_minus_2_script",
+      "hotkeys_set_ask_entry_offset_minus_3_script",
+      "hotkeys_set_ask_entry_offset_plus_1_script",
+      "hotkeys_set_ask_entry_offset_plus_3_script",
+      "hotkeys_set_bid_entry_offset_minus_1_script",
+      "hotkeys_set_bid_entry_offset_minus_2_script",
+      "hotkeys_set_bid_entry_offset_minus_3_script",
+      "hotkeys_set_bid_entry_offset_plus_1_script",
+      "hotkeys_set_bid_entry_offset_plus_3_script",
+      "hotkeys_set_order_route_bestl_script",
+      "hotkeys_set_order_route_flash1l_script",
+      "hotkeys_set_order_route_smrtl_script",
+      "hotkeys_set_qty_mult_0_5_script",
+      "hotkeys_set_qty_mult_1_0_script",
+      "hotkeys_set_qty_mult_1_5_script",
+      "hotkeys_set_qty_mult_2_0_script",
+      "hotkeys_set_qty_mult_3_0_script",
+      "hotkeys_swap_internal_script",
+      "hotkeys_toggle_apply_live_guards_to_sim_script",
+      "hotkeys_toggle_position_window_script",
+      "hotkeys_toggle_single_position_guard_script",
+      "hotkeys_toggle_spread_check_feature_script",
+      "hotkeys_toggle_stp_feature_script",
+      "hotkeys_toggle_tp_feature_script",
+      "keymap_file",
+      "keymap_momo_internal_binding",
+      "keymap_script_groups",
+      "keymap_short_offset_migration",
+      "readme_script_metadata",
+      "readme_validation_boundary",
+      "userguide_momo_swap",
+      "userguide_streamdeck_sync"
+    ],
+    "2": [
       "hotkeys_load_position_context_script",
       "hotkeys_set_order_route_arcal_script",
       "hotkeys_set_order_route_autol_script",
       "hotkeys_set_order_route_freel_script",
+      "hotkeys_show_config_script",
       "ref_node_assert_strict",
       "ref_node_fs",
       "ref_node_path",
@@ -39,47 +145,11 @@
       "tools_tests_trade_isolation_test_test",
       "tools_tests_trade_isolation_test_translate",
       "tools_tests_trade_isolation_test_userobject",
-      "tools_tests_trade_isolation_test_vm"
+      "tools_tests_trade_isolation_test_vm",
+      "userguide_manual_diagnostics"
     ],
-    "1": [
-      "assets_streamdeck_ask_offset_red_image",
-      "assets_streamdeck_ask_offset_red_microchip_outline",
-      "assets_streamdeck_bid_offset_green_image",
-      "assets_streamdeck_bid_offset_green_microchip_outline",
-      "assets_streamdeck_readme_file",
-      "assets_streamdeck_readme_offset_icons",
-      "readme_scalein_guards",
-      "readme_signed_offsets",
-      "todo_exposure_guard",
-      "todo_file",
-      "todo_loss_streak_guard",
-      "todo_profit_giveback_guard",
-      "todo_time_window_lock",
-      "userguide_autol",
-      "userguide_entry_guards",
-      "userguide_file",
-      "userguide_fixed_stops",
-      "userguide_gtfo_pricing",
-      "userguide_hijack_protection",
-      "userguide_inline_arming",
-      "userguide_liquidity_prediction",
-      "userguide_ordinary_exit_pricing",
-      "userguide_partial_exits",
-      "userguide_registry_lifecycle",
-      "userguide_rehab_mode",
-      "userguide_route_operational_limits",
-      "userguide_short_documentation_conflict",
-      "userguide_short_protection",
-      "userguide_signed_positions",
-      "userguide_sim_guard_scope",
-      "userguide_single_long_guard",
-      "userguide_streamdeck_sync",
-      "userguide_take_profit_alerts",
-      "userguide_timer_arming",
-      "userguide_tp_identity",
-      "userguide_trade_isolation"
-    ],
-    "2": [
+    "3": [
+      "changelog_signed_entry_fix",
       "hotkeys_cover_1_1_ask_script",
       "hotkeys_cover_1_1_bid_script",
       "hotkeys_cover_1_2_ask_script",
@@ -96,7 +166,6 @@
       "hotkeys_resolve_order_route_script",
       "hotkeys_sell_1_1_ask_script",
       "hotkeys_sell_1_1_bid_script",
-      "hotkeys_set_auto_stop_be_1_2_script",
       "hotkeys_short_tier1_ask_minus_script",
       "hotkeys_short_tier1_ask_script",
       "hotkeys_short_tier1_bid_minus_script",
@@ -113,41 +182,10 @@
       "hotkeys_short_tier4_ask_script",
       "hotkeys_short_tier4_bid_minus_script",
       "hotkeys_short_tier4_bid_script",
-      "userguide_action_lease"
-    ],
-    "3": [
-      "hotkeys_check_working_sells_script",
-      "hotkeys_enable_rehab_mode_script",
-      "hotkeys_select_primary_order_entry_script",
-      "hotkeys_set_0_10_stop_script",
-      "hotkeys_set_0_20_stop_script",
-      "hotkeys_set_0_30_stop_script",
-      "hotkeys_set_0_50_stop_script",
-      "hotkeys_set_ask_entry_offset_minus_1_script",
-      "hotkeys_set_ask_entry_offset_minus_2_script",
-      "hotkeys_set_ask_entry_offset_minus_3_script",
-      "hotkeys_set_ask_entry_offset_plus_1_script",
-      "hotkeys_set_ask_entry_offset_plus_3_script",
-      "hotkeys_set_bid_entry_offset_minus_1_script",
-      "hotkeys_set_bid_entry_offset_minus_2_script",
-      "hotkeys_set_bid_entry_offset_minus_3_script",
-      "hotkeys_set_bid_entry_offset_plus_1_script",
-      "hotkeys_set_bid_entry_offset_plus_3_script",
-      "hotkeys_set_order_route_bestl_script",
-      "hotkeys_set_order_route_flash1l_script",
-      "hotkeys_set_order_route_smrtl_script",
-      "hotkeys_set_qty_mult_0_5_script",
-      "hotkeys_set_qty_mult_1_0_script",
-      "hotkeys_set_qty_mult_1_5_script",
-      "hotkeys_set_qty_mult_2_0_script",
-      "hotkeys_set_qty_mult_3_0_script",
-      "hotkeys_toggle_apply_live_guards_to_sim_script",
-      "hotkeys_toggle_position_window_script",
-      "hotkeys_toggle_single_position_guard_script",
-      "hotkeys_toggle_spread_check_feature_script",
-      "hotkeys_toggle_stp_feature_script",
-      "hotkeys_toggle_tp_feature_script",
-      "keymap_file"
+      "userguide_entry_offsets",
+      "userguide_manual_short_entries",
+      "userguide_native_covers",
+      "userguide_short_offset_bindings"
     ],
     "4": [
       "hotkeys_buy_25_ask_plus_sl_script",
@@ -173,13 +211,11 @@
       "hotkeys_load_trade_context_trade_entrypending",
       "hotkeys_load_trade_context_trade_entrystage",
       "hotkeys_load_trade_context_trade_entrywatch",
-      "hotkeys_load_trade_context_trade_laststop",
       "hotkeys_read_position_only_script",
       "hotkeys_read_trade_position_script",
       "hotkeys_set_auto_stop_be_scale_1_1_script",
       "hotkeys_set_auto_stop_script",
       "hotkeys_set_take_profit_script",
-      "hotkeys_show_config_script",
       "hotkeys_timer_entry_handler_script"
     ],
     "5": [
@@ -188,6 +224,7 @@
       "hotkeys_load_trade_context_trade_exitpending",
       "hotkeys_load_trade_context_trade_exitstage",
       "hotkeys_load_trade_context_trade_generation",
+      "hotkeys_load_trade_context_trade_laststop",
       "hotkeys_load_trade_context_trade_stoparmed",
       "hotkeys_load_trade_context_trade_tpname",
       "hotkeys_sell_1_2_ask_script",
@@ -195,11 +232,30 @@
       "hotkeys_sell_1_4_ask_script",
       "hotkeys_sell_1_4_bid_script",
       "hotkeys_set_auto_stop_be_1_1_script",
+      "hotkeys_set_auto_stop_be_1_2_script",
       "hotkeys_take_profit_executor_script",
       "hotkeys_timer_exit_handler_script",
-      "hotkeys_timer_short_stop_handler_script"
+      "hotkeys_timer_short_stop_handler_script",
+      "userguide_full_breakeven"
     ],
     "6": [
+      "changelog_file",
+      "changelog_release_history",
+      "changelog_retired_features",
+      "changelog_version_0_1_0",
+      "changelog_version_0_1_1",
+      "changelog_version_0_1_2",
+      "changelog_version_0_1_3",
+      "changelog_version_0_1_4",
+      "changelog_version_0_1_5",
+      "changelog_version_0_2_0",
+      "changelog_version_0_2_1",
+      "changelog_version_0_3_0",
+      "changelog_version_0_3_1",
+      "changelog_version_0_3_2",
+      "changelog_version_0_3_3"
+    ],
+    "7": [
       "agents_file",
       "agents_graphify_das_aware_refresh",
       "agents_graphify_evidence_limits",
@@ -211,53 +267,23 @@
       "agents_graphify_source_verification",
       "agents_graphify_vocabulary_and_paths",
       "agents_source_only_workflow"
-    ],
-    "7": [
-      "hotkeys_set_global_variables_script",
-      "other_scripts_timer_script",
-      "readme_build_workflow",
-      "readme_das_hotkey_tools",
-      "readme_file",
-      "readme_repository",
-      "readme_rollback_installation",
-      "readme_runtime_requirements",
-      "readme_tier_sizing"
-    ],
-    "8": [
-      "changelog_file",
-      "changelog_release_history",
-      "changelog_retired_features",
-      "readme_exit_overlap_risk"
-    ],
-    "9": [
-      "hotkeys_swap_internal_script",
-      "readme_validation_boundary",
-      "userguide_momo_swap"
-    ],
-    "10": [
-      "hotkeys_switch_to_live_script",
-      "hotkeys_switch_to_sim_script",
-      "readme_account_placeholders"
     ]
   },
   "cohesion": {
-    "0": 0.07692307692307693,
-    "1": 0.0761904761904762,
-    "2": 0.24064171122994651,
-    "3": 0.0625,
-    "4": 0.4150537634408602,
-    "5": 0.37142857142857144,
-    "6": 0.32727272727272727,
-    "7": 0.3611111111111111,
-    "8": 0.6666666666666666,
-    "9": 0.6666666666666666,
-    "10": 0.6666666666666666
+    "0": 0.06168831168831169,
+    "1": 0.06060606060606061,
+    "2": 0.06097560975609756,
+    "3": 0.24324324324324326,
+    "4": 0.458128078817734,
+    "5": 0.3006535947712418,
+    "6": 0.2571428571428571,
+    "7": 0.32727272727272727
   },
   "gods": [
     {
       "id": "keymap_file",
       "label": "Canonical hotkey bindings",
-      "degree": 108
+      "degree": 113
     },
     {
       "id": "hotkeys_end_trade_action_script",
@@ -267,12 +293,12 @@
     {
       "id": "hotkeys_load_trade_context_script",
       "label": "Load Trade Context",
-      "degree": 57
+      "degree": 58
     },
     {
       "id": "hotkeys_resolve_order_route_script",
       "label": "Resolve Order Route",
-      "degree": 53
+      "degree": 54
     },
     {
       "id": "hotkeys_load_trade_context_trade_active",
@@ -307,26 +333,15 @@
   ],
   "surprises": [
     {
-      "source": "Proposed pre-trade dollar exposure guard",
-      "target": "Entry spread, slippage, size and risk guards",
+      "source": "Canonical hotkey bindings",
+      "target": "Toggle Rehab Mode",
       "source_files": [
-        "TODO.md",
-        "USERGUIDE.md"
+        "keymap.yaml",
+        "hotkeys/enable_rehab_mode.das"
       ],
-      "confidence": "INFERRED",
-      "relation": "semantically_similar_to",
-      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; semantically similar concepts with no structural link"
-    },
-    {
-      "source": "Proposed time-window trading lock",
-      "target": "AUTOL has no fallback, retry or session gating",
-      "source_files": [
-        "TODO.md",
-        "USERGUIDE.md"
-      ],
-      "confidence": "INFERRED",
-      "relation": "semantically_similar_to",
-      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; semantically similar concepts with no structural link"
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "crosses file types (code \u2194 doc); connects across different repos/directories; bridges separate communities; peripheral node `Toggle Rehab Mode` unexpectedly reaches hub `Canonical hotkey bindings`"
     },
     {
       "source": "Canonical hotkey bindings",
@@ -337,7 +352,7 @@
       ],
       "confidence": "EXTRACTED",
       "relation": "references",
-      "why": "connects across different repos/directories; bridges separate communities; peripheral node `Set Order Route ARCA1L` unexpectedly reaches hub `Canonical hotkey bindings`"
+      "why": "crosses file types (code \u2194 doc); connects across different repos/directories; bridges separate communities; peripheral node `Set Order Route ARCA1L` unexpectedly reaches hub `Canonical hotkey bindings`"
     },
     {
       "source": "Canonical hotkey bindings",
@@ -348,7 +363,7 @@
       ],
       "confidence": "EXTRACTED",
       "relation": "references",
-      "why": "connects across different repos/directories; bridges separate communities; peripheral node `Set Order Route AUTOL` unexpectedly reaches hub `Canonical hotkey bindings`"
+      "why": "crosses file types (code \u2194 doc); connects across different repos/directories; bridges separate communities; peripheral node `Set Order Route AUTOL` unexpectedly reaches hub `Canonical hotkey bindings`"
     },
     {
       "source": "Canonical hotkey bindings",
@@ -359,24 +374,31 @@
       ],
       "confidence": "EXTRACTED",
       "relation": "references",
-      "why": "connects across different repos/directories; bridges separate communities; peripheral node `Set Order Route FREE1L` unexpectedly reaches hub `Canonical hotkey bindings`"
+      "why": "crosses file types (code \u2194 doc); connects across different repos/directories; bridges separate communities; peripheral node `Set Order Route FREE1L` unexpectedly reaches hub `Canonical hotkey bindings`"
+    },
+    {
+      "source": "Canonical hotkey bindings",
+      "target": "Switch to Live",
+      "source_files": [
+        "keymap.yaml",
+        "hotkeys/switch_to_live.das"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "crosses file types (code \u2194 doc); connects across different repos/directories; bridges separate communities; peripheral node `Switch to Live` unexpectedly reaches hub `Canonical hotkey bindings`"
     }
   ],
   "questions": [
     {
       "type": "ambiguous_edge",
-      "question": "What is the exact relationship between `Automatic protection for actual short fills` and `Conflicting manual-short protection descriptions`?",
-      "why": "Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low."
+      "question": "What is the exact relationship between `Documented global configuration defaults` and `Full-position bidirectional breakeven protection`?",
+      "why": "Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low.",
+      "low_confidence": true
     },
     {
       "type": "bridge_node",
-      "question": "Why does `Resolve Order Route` connect `Manual Order Execution` to `Regression Test Harness`, `Trading Rules and Risks`, `Bindings and Presets`, `Long Entry Protection`, `Exit and Short Protection`?",
-      "why": "High betweenness centrality (0.078) - this node is a cross-community bridge."
-    },
-    {
-      "type": "bridge_node",
-      "question": "Why does `Load Trade Context` connect `Manual Order Execution` to `Regression Test Harness`, `Trading Rules and Risks`, `Bindings and Presets`, `Long Entry Protection`, `Exit and Short Protection`?",
-      "why": "High betweenness centrality (0.066) - this node is a cross-community bridge."
+      "question": "Why does `Resolve Order Route` connect `Manual Order Execution` to `Trading Rules and Risks`, `Bindings and Presets`, `Regression Test Harness`, `Long Entry Protection`, `Exit and Short Protection`?",
+      "why": "High betweenness centrality (0.067) - this node is a cross-community bridge."
     }
   ]
 }

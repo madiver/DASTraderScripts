@@ -4,10 +4,14 @@ All notable changes to this repository will be documented in this file.
 
 ## 0.3.3 - Unreleased
 
+### Added
+- Independent long/short no-fill entry timeout presets: 10s, 15s, 30s, INDEF (0), with 10s defaults. Capture deadlines per submitted entry, handle midnight rollover, monitor shorts even with protection off, and yield unfilled inline buys to the timer. Add LONG TIMEOUT / SHORT TIMEOUT controls on settings page 5 of both Stream Deck profiles. Keep partial-fill and exit rules unchanged.
+
 ### Removed
 - Remove FLASH CRASH TRIG: delete the trigger, alert builder and exit executor; remove its three keymap entries, runtime state, timer dispatch and configuration fields. Clear its button slot in both physical and Virtual Stream Deck profiles. Keep GTFO, stops, take profit, hijack protection and routing behavior unchanged.
 
 ### Fixes
+- Add signed entry offsets consistently for both buys and shorts: negative values price below Bid/Ask and positive values price above. Correct all eight offset-short scripts, preserve the already-correct offset buys and routing logic, move offset-short shortcuts to Ctrl+Alt+Shift+F1–F8 to avoid Windows shell conflicts, and label offset entry buttons ASK±/BID± across both Stream Deck profiles. Keep the five-choice selectors on page 5 only and retain separate exit cushions. Log the reference quote, signed offset and limit; reject short limits that round to zero.
 - Use BESTL in AUTOL's $1-and-above band after FREE1 destination-availability cancellations. Keep FREE1L as a manual preset; add no automatic fallback, retry, or rerouting.
 - Keep the fixed-dollar cushion for ordinary full/half/quarter Bid- sells and Ask+ covers, capped by `$exitOffsetMaxPct` (default `0.05`, or 5% of the current reference quote; `0` disables the cap). Enforce the ceiling after tick rounding, use a single native precision for covers below $0.25, and log the final submitted cover limit. Preserve stop-limit, GTFO, backstop, and hijack pricing. Add regression cases for the reported LUCD/GPUS price-distance failures.
 - Correct the SMRT limit route identifier to `SMRTL` in both the manual preset and AUTOL resolver, removing the extra A that selected the wrong route. Rename the preset source and keymap entry to match; retain `Alt+Ctrl+Win+6`.

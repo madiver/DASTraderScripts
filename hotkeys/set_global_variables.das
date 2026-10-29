@@ -26,7 +26,8 @@ SetVar("SHORT_STOP_TIMER", 0);
 SetVar("SHORT_STOP_BE", 0);
 SetVar("TP_EXPECTED_DIRECTION", 0);
 $entryCooldownSeconds = 1; // inline entry pacing; GetSecond has 1-second resolution
-$entryMaxTicks = 10;    // timeout while waiting for a fill
+$longEntryTimeoutSeconds = 10;  // 10, 15, 30, or 0 (indefinite); future long entries
+$shortEntryTimeoutSeconds = 10; // independent no-fill timeout for future shorts
 $HIJACKED_LOCKED = 0;
 $trade_ok = 1;
 $testMode = 0;
@@ -60,7 +61,8 @@ $resetStopOnCancel = "Yes";
 
 // ---- 2) Risk & Execution Variables ----
 
-// Independent signed offsets: added by plus buys, subtracted by minus shorts.
+// Signed entry offsets are added to Bid/Ask for both buys and shorts.
+// Negative values price below the reference quote; positive values price above.
 // Presets: -0.03, -0.02, -0.01, +0.01, +0.03; defaults BID +0.01, ASK -0.01.
 $entryBidOffset = 0.01;
 $entryAskOffset = -0.01;

@@ -1,0 +1,29 @@
+{
+  "backup": "C:\\Users\\mark\\AppData\\Roaming\\Elgato\\StreamDeck\\RouteBackups\\entry-timeouts-20261028-090812",
+  "page": 5,
+  "positions": {
+    "long": "6,0",
+    "short": "7,0"
+  },
+  "choices": [
+    "10s",
+    "15s",
+    "30s",
+    "INDEF"
+  ],
+  "profiles": [
+    {
+      "profile_id": "745FB1B7-C443-4B86-A3A6-2D00992981F7",
+      "page_id": "BE407EE5-89B3-42DB-891F-A3BDB837E0D8"
+    },
+    {
+      "profile_id": "D2CB2156-42FE-43EC-89B4-A1F690A13A46",
+      "page_id": "0F8773CE-67F5-493F-8BA7-9FD5430B3047"
+    }
+  ],
+  "verification": {
+    "configuration": "Both profiles contain the four-state buttons; unrelated actions preserved.",
+    "rendering": "Blocked: Stream Deck unloads installed Advanced Toggles with missing ownership verification after restart, including existing toggle controls. Normal app relaunch did not resolve it.",
+    "das_installation": "Source only; no hotkey compilation, installation or trading application changes."
+  }
+}

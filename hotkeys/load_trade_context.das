@@ -85,6 +85,15 @@ if ($trade.Get("directionalTpStateVersion") != 1) {
     $trade.shortStopBE = 0;
     $trade.Set("directionalTpStateVersion", 1);
 }
+// Capture defaults for contexts retained across a source upgrade. New orders
+// overwrite these snapshots; selector changes never move an existing deadline.
+if ($trade.Get("entryTimeoutStateVersion") != 1) {
+    $trade.entryTimeoutSeconds = $longEntryTimeoutSeconds;
+    $trade.entryStarted = GetSecond();
+    $trade.shortEntryTimeoutSeconds = $shortEntryTimeoutSeconds;
+    $trade.shortEntryStarted = GetSecond();
+    $trade.Set("entryTimeoutStateVersion", 1);
+}
 // Reuse inactive slots; DAS limits each while loop to 200 iterations.
 if ($trade.listed != 1) {
     $tcSlot = 0;

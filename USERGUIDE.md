@@ -40,14 +40,14 @@ exit before further testing. The former reference-specific recovery is obsolete.
 
 Important: update `$TRSIM` and `$LIVEACT` in `hotkeys/set_global_variables.das` with your actual account identifiers if they are not already populated (they are shown in the config display for reference). Hijack protection defaults to off (`$hijackProtection = 0`); set it to `1` to enable it. `$applyLiveGuardsToSim` controls whether enabled live-only guards (hijack, rehab) also apply in SIM; it defaults to `0`. Set it to `1` to apply those enabled guards in SIM. Also verify that any `%%SIMULATED%%` and `%%LIVE%%` placeholders have been replaced in the SIM/LIVE switch scripts (the VS Code extension handles this during build; if you copy scripts manually, you must replace them yourself).
 
-By default (`$useTimerArming = 1`), a buy hotkey sends the limit order, records entry context, and returns immediately. A timer-driven handler arms stop loss / take profit on the first 1-second tick that sees a clean fresh fill. If there are working SELLs, or this is a scale-in, it cancels existing SELLs and submits replacement protection on a subsequent tick. A bounded order-history check falls back to ordinary cancellation staging if it cannot prove that no working SELL exists. If position size increases on later ticks, the handler resizes the stop and only re-arms TP when the TP reset conditions are met. If no fill appears within `$entryMaxTicks`, it cancels the working buy order and clears pending state. With `$useTimerArming = 0`, buy hotkeys poll for actual fills up to `$maxPolls * $pollMs` and cancel any remainder before protecting shares received. They do not add the former 1,000 ms padding wait before protection. A second inline buy in the same account/symbol is blocked during `$entryCooldownSeconds` instead; this uses whole-second clock values, not millisecond precision.
+By default (`$useTimerArming = 1`), a buy hotkey sends the limit order, records entry context, and returns immediately. A timer-driven handler arms stop loss / take profit on the first 1-second tick that sees a clean fresh fill. If there are working SELLs, or this is a scale-in, it cancels existing SELLs and submits replacement protection on a subsequent tick. A bounded order-history check falls back to ordinary cancellation staging if it cannot prove that no working SELL exists. If position size increases on later ticks, the handler resizes the stop and only re-arms TP when the TP reset conditions are met. If no fill appears within its captured `$longEntryTimeoutSeconds` (unless 0/INDEF), it cancels the working buy order and clears pending state. With `$useTimerArming = 0`, buy hotkeys poll for actual fills up to `$maxPolls * $pollMs` and cancel any remainder before protecting shares received. With no fill and an open order after that bounded poll, they return and leave the captured entry deadline to the timer, including INDEF. They do not add the former 1,000 ms padding wait before protection. A second inline buy in the same account/symbol is blocked during `$entryCooldownSeconds` instead; this uses whole-second clock values, not millisecond precision.
 
 TP and half/quarter manual exits always use timer-managed fill monitoring, regardless of `$useTimerArming`. Keep the current Timer Event Script installed and enabled in both entry modes.
 
 Short fills and stop resizing also use the timer, independently of `$useTimerArming`.
 With stops enabled, the first observed partial fill receives protection; later
 fills/scale-ins resize it using the current signed position and average cost.
-An unfilled short entry is canceled after `$entryMaxTicks` (0 disables timeout),
+An unfilled short entry is canceled after its captured `$shortEntryTimeoutSeconds` (0/INDEF disables timeout),
 and a racing/late fill remains monitored until cancellation is acknowledged.
 Stops off means short entries do not start automatic protection. RESET can
 still manually place a short stop with stops off. Short take profit arms
@@ -91,8 +91,8 @@ Feature toggles and entry guards:
 - `$useTimerArming`: uses timer-based entry arming (1) or inline polling (0).
 
 Risk and execution:
-- `$entryBidOffset` / `$entryAskOffset`: independent signed offsets for Bid+ / Ask+ buys and Bid- / Ask- shorts (defaults: BID `+0.01`, ASK `-0.01`). Buys add the signed offset; shorts subtract it. For shorts, positive offsets price below the reference quote and negative offsets price above it.
-- `$exitOffset`: desired fixed-dollar cushion for ordinary Bid- long exits and Ask+ short covers (default `$0.10`), also used uncapped for stop-limit and hijack pricing.
+- `$entryBidOffset` / `$entryAskOffset`: independent signed offsets shared by offset buys and shorts (defaults: BID `+0.01`, ASK `-0.01`). Both directions add the selected signed offset to the reference quote. Negative values price below Bid/Ask; positive values price above it. Stream Deck labels these entries `BID±` and `ASK±`. The existing buy hotkey labels retain `Bid+`/`Ask+` to describe addition; short hotkey labels are now `Short T1/T2/T3/T4 Bid Offset` and `Ask Offset`.
+- `$exitOffset`: desired fixed-dollar cushion for ordinary Bid- long exits and Ask+ short covers (default `$0.10`), also used uncapped for stop-limit and hijack pricing. This is a separate exit setting: BID/ASK entry-offset selectors do not change it. Bid- sells subtract the cushion, and Ask+ covers add it, as their labels indicate.
 - `$exitOffsetMaxPct`: percentage ceiling for ordinary Bid- sells and Ask+ covers only. Default `0.05` means 5% of Bid for sells or Ask for covers. The effective cushion is the smaller of `$exitOffset` and `quote * $exitOffsetMaxPct`. Set `0` to disable the percentage ceiling. Stop-limit and hijack pricing do not use this ceiling; GTFO has its own setting below.
 - `$gtfoOffsetMaxPct`: independent percentage ceiling for GTFO's desired `$0.50` cushion. Default `0.05` means 5% of Bid for long sells or Ask for short covers. The effective cushion is `min(0.50, quote * gtfoOffsetMaxPct)`. Set `0` to disable this ceiling. GTFO rounds toward the quote when needed to stay within the ceiling and enforces a positive minimum price. It uses Last only if the required quote is unavailable. Re-run Set Global Variables after loading the updated keymap to initialize this setting.
 
@@ -140,7 +140,7 @@ Order fill polling:
 
 Trade runtime (each `$trade` belongs to exactly one account and symbol):
 - `$trade.account`, `$trade.symbol`, `$trade.key`: immutable order identity.
-- `$trade.entryPending`, `$trade.entryStage`, `$trade.entryTicks`: fill/protection staging; `$entryMaxTicks` is the shared timeout setting.
+- `$trade.entryPending`, `$trade.entryStage`, `$trade.entryTicks`: fill/protection staging; deadlines are snapshotted separately from `$longEntryTimeoutSeconds` / `$shortEntryTimeoutSeconds`.
 - `$trade.entryPosBefore`, `$trade.entryAvgBefore`, `$trade.entryScaleIn`: captured entry context.
 - `$trade.entryRefPx`: submitted entry reference, retained for diagnostics rather than substituting for an unknown average cost.
 - `$trade.entryWatch`, `$trade.entryLastPos`: detect later size increases.
@@ -181,7 +181,8 @@ baseline values when you run "Set Global Variables."
 | Runtime | `$trade.entryPending` | `0` |
 | Runtime | `$trade.entryStage` | `0` |
 | Runtime | `$trade.entryTicks` | `0` |
-| Runtime | `$entryMaxTicks` | `10` |
+| Runtime | `$longEntryTimeoutSeconds` | `10` (0 = INDEF) |
+| Runtime | `$shortEntryTimeoutSeconds` | `10` (0 = INDEF) |
 | Runtime | `$trade.entryPosBefore` | `0` |
 | Runtime | `$trade.entryAvgBefore` | `0` |
 | Runtime | `$trade.entryScaleIn` | `0` |
@@ -258,16 +259,16 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Shift+7` | `hotkeys/set_qty_mult_2_0.das` | Set the shared tier-size multiplier to 2.0x. |
 | `Alt+Ctrl+Shift+8` | `hotkeys/set_qty_mult_3_0.das` | Set the shared tier-size multiplier to 3.0x. |
 | `Alt+Ctrl+Shift+9` | `hotkeys/set_qty_mult_1_5.das` | Set the shared tier-size multiplier to 1.5x. |
-| `Alt+Ctrl+Shift+Win+6` | `hotkeys/set_bid_entry_offset_minus_3.das` | Set the Bid+ entry offset to -3 cents. |
-| `Alt+Ctrl+Shift+Win+5` | `hotkeys/set_bid_entry_offset_minus_2.das` | Set the Bid+ entry offset to -2 cents. |
-| `Alt+Ctrl+Shift+Win+7` | `hotkeys/set_bid_entry_offset_minus_1.das` | Set the Bid+ entry offset to -1 cent. |
-| `Alt+Ctrl+Shift+Win+8` | `hotkeys/set_bid_entry_offset_plus_1.das` | Restore the default Bid+ entry offset of +1 cent. |
-| `Alt+Ctrl+Shift+Win+9` | `hotkeys/set_bid_entry_offset_plus_3.das` | Set the Bid+ entry offset to +3 cents. |
-| `Alt+Ctrl+Shift+Win+F6` | `hotkeys/set_ask_entry_offset_minus_3.das` | Set the Ask+ entry offset to -3 cents. |
-| `Alt+Ctrl+Shift+Win+F5` | `hotkeys/set_ask_entry_offset_minus_2.das` | Set the Ask+ entry offset to -2 cents. |
-| `Alt+Ctrl+Shift+Win+F7` | `hotkeys/set_ask_entry_offset_minus_1.das` | Restore the default Ask+ entry offset of -1 cent. |
-| `Alt+Ctrl+Shift+Win+F8` | `hotkeys/set_ask_entry_offset_plus_1.das` | Set the Ask+ entry offset to +1 cent. |
-| `Alt+Ctrl+Shift+Win+F9` | `hotkeys/set_ask_entry_offset_plus_3.das` | Set the Ask+ entry offset to +3 cents. |
+| `Alt+Ctrl+Shift+Win+6` | `hotkeys/set_bid_entry_offset_minus_3.das` | Set the signed Bid entry offset to -3 cents. |
+| `Alt+Ctrl+Shift+Win+5` | `hotkeys/set_bid_entry_offset_minus_2.das` | Set the signed Bid entry offset to -2 cents. |
+| `Alt+Ctrl+Shift+Win+7` | `hotkeys/set_bid_entry_offset_minus_1.das` | Set the signed Bid entry offset to -1 cent. |
+| `Alt+Ctrl+Shift+Win+8` | `hotkeys/set_bid_entry_offset_plus_1.das` | Restore the default signed Bid entry offset of +1 cent. |
+| `Alt+Ctrl+Shift+Win+9` | `hotkeys/set_bid_entry_offset_plus_3.das` | Set the signed Bid entry offset to +3 cents. |
+| `Alt+Ctrl+Shift+Win+F6` | `hotkeys/set_ask_entry_offset_minus_3.das` | Set the signed Ask entry offset to -3 cents. |
+| `Alt+Ctrl+Shift+Win+F5` | `hotkeys/set_ask_entry_offset_minus_2.das` | Set the signed Ask entry offset to -2 cents. |
+| `Alt+Ctrl+Shift+Win+F7` | `hotkeys/set_ask_entry_offset_minus_1.das` | Restore the default signed Ask entry offset of -1 cent. |
+| `Alt+Ctrl+Shift+Win+F8` | `hotkeys/set_ask_entry_offset_plus_1.das` | Set the signed Ask entry offset to +1 cent. |
+| `Alt+Ctrl+Shift+Win+F9` | `hotkeys/set_ask_entry_offset_plus_3.das` | Set the signed Ask entry offset to +3 cents. |
 | `Alt+Ctrl+S` | `hotkeys/switch_to_sim.das` | Switch montage and filters to SIM. |
 | `Alt+Ctrl+L` | `hotkeys/switch_to_live.das` | Switch montage and filters to LIVE. |
 | `Alt+Ctrl+.` | `hotkeys/show_config.das` | Show current globals, account mode, guard states, and position diagnostics. |
@@ -297,14 +298,14 @@ scripts rather than direct invocation.
 | `Alt+Ctrl+Shift+J` | `hotkeys/short_tier2_bid.das` | Sell short Tier 2 at bid with no offset; automatic stops when enabled. |
 | `Alt+Ctrl+Shift+K` | `hotkeys/short_tier3_bid.das` | Sell short Tier 3 at bid with no offset; automatic stops when enabled. |
 | `Alt+Ctrl+Shift+L` | `hotkeys/short_tier4_bid.das` | Sell short Tier 4 at bid with no offset; automatic stops when enabled. |
-| `Alt+Ctrl+Shift+Win+S` | `hotkeys/short_tier1_ask_minus.das` | Sell short Tier 1 at Ask minus the signed ASK entry offset, with automatic stops when enabled. |
-| `Alt+Ctrl+Shift+Win+D` | `hotkeys/short_tier2_ask_minus.das` | Sell short Tier 2 at Ask minus the signed ASK entry offset, with automatic stops when enabled. |
-| `Alt+Ctrl+Shift+Win+F` | `hotkeys/short_tier3_ask_minus.das` | Sell short Tier 3 at Ask minus the signed ASK entry offset, with automatic stops when enabled. |
-| `Alt+Ctrl+Shift+Win+G` | `hotkeys/short_tier4_ask_minus.das` | Sell short Tier 4 at Ask minus the signed ASK entry offset, with automatic stops when enabled. |
-| `Alt+Ctrl+Shift+Win+H` | `hotkeys/short_tier1_bid_minus.das` | Sell short Tier 1 at bid minus the signed BID entry offset, with automatic stops when enabled. |
-| `Alt+Ctrl+Shift+Win+J` | `hotkeys/short_tier2_bid_minus.das` | Sell short Tier 2 at bid minus the signed BID entry offset, with automatic stops when enabled. |
-| `Alt+Ctrl+Shift+Win+K` | `hotkeys/short_tier3_bid_minus.das` | Sell short Tier 3 at bid minus the signed BID entry offset, with automatic stops when enabled. |
-| `Alt+Ctrl+Shift+Win+L` | `hotkeys/short_tier4_bid_minus.das` | Sell short Tier 4 at bid minus the signed BID entry offset, with automatic stops when enabled. |
+| `Alt+Ctrl+Shift+F1` | `hotkeys/short_tier1_ask_minus.das` | Sell short Tier 1 at Ask plus the signed ASK entry offset, with automatic stops when enabled. |
+| `Alt+Ctrl+Shift+F2` | `hotkeys/short_tier2_ask_minus.das` | Sell short Tier 2 at Ask plus the signed ASK entry offset, with automatic stops when enabled. |
+| `Alt+Ctrl+Shift+F3` | `hotkeys/short_tier3_ask_minus.das` | Sell short Tier 3 at Ask plus the signed ASK entry offset, with automatic stops when enabled. |
+| `Alt+Ctrl+Shift+F4` | `hotkeys/short_tier4_ask_minus.das` | Sell short Tier 4 at Ask plus the signed ASK entry offset, with automatic stops when enabled. |
+| `Alt+Ctrl+Shift+F5` | `hotkeys/short_tier1_bid_minus.das` | Sell short Tier 1 at Bid plus the signed BID entry offset, with automatic stops when enabled. |
+| `Alt+Ctrl+Shift+F6` | `hotkeys/short_tier2_bid_minus.das` | Sell short Tier 2 at Bid plus the signed BID entry offset, with automatic stops when enabled. |
+| `Alt+Ctrl+Shift+F7` | `hotkeys/short_tier3_bid_minus.das` | Sell short Tier 3 at Bid plus the signed BID entry offset, with automatic stops when enabled. |
+| `Alt+Ctrl+Shift+F8` | `hotkeys/short_tier4_bid_minus.das` | Sell short Tier 4 at Bid plus the signed BID entry offset, with automatic stops when enabled. |
 | `Alt+Ctrl+Shift+C` | `hotkeys/cover_1_1_ask.das` | Cover the full short position at Ask plus the capped exit cushion using DAS Reverse. |
 | `Alt+Ctrl+Shift+X` | `hotkeys/cover_1_2_ask.das` | Cover half the current position at Ask plus the capped exit cushion using DAS Reverse. |
 | `Alt+Ctrl+Shift+Z` | `hotkeys/cover_1_4_ask.das` | Cover a quarter of the current position at Ask plus the capped exit cushion using DAS Reverse. |
@@ -392,7 +393,7 @@ the display; order quantities remain the same.
   `$entryAskOffset` to ask. Positive offsets price above the reference quote;
   negative offsets price below it, before tick rounding.
 - Each side has presets for `-0.03`, `-0.02`, `-0.01`, `+0.01`, and `+0.03`. Selecting
-  a preset changes that side's offset for subsequent buys; BID OFFSET also sets Bid- short pricing.
+  a preset changes that side's offset for subsequent buys and shorts.
 - In the local **DAS Trader** Stream Deck profile, page 5, column 6, the
   Advanced Toggles **BID OFFSET** (row 1) and **ASK OFFSET** (row 2) buttons
   use green and red microchip outlines, respectively, on black backgrounds.
@@ -433,11 +434,10 @@ Changing or swapping the montage does not cancel a pending entry or clear anothe
 
 ## MANUAL SHORT ORDERS
 
-The initial short workflow is intentionally separate from the automated long
-workflow. It uses `$orderRoute` and `DAY+`, but it does not run the long entry
-guards or create stop-loss, take-profit, or timer-arming
-state. Treat the position as manually managed and verify locate availability,
-route behavior, and applicable short-sale restrictions with the broker.
+Short entries use `$orderRoute` and `DAY+` and bypass the long entry guards.
+The timer arms enabled stop-loss and take-profit protection after actual short
+fills. Verify locate availability, route behavior, and applicable short-sale
+restrictions with the broker.
 
 - `Short T1/T2/T3/T4 Ask/Bid` cancels working orders for the montage symbol, then
   sends an explicit sell-short limit order at the selected quote with no offset for
@@ -445,19 +445,26 @@ route behavior, and applicable short-sale restrictions with the broker.
   flat or add its tier to an existing short, but aborts if the current position
   is long or its direction cannot be resolved safely.
 - Page 3 of both Stream Deck profiles keeps plain Ask/Bid shorts. Page 4 uses
-  `Short T1/T2/T3/T4 Ask-` at `Ask - $entryAskOffset` and
-  `Short T1/T2/T3/T4 Bid-` at `Bid - $entryBidOffset`. Positive offsets price
-  below the reference quote; negative offsets price above it. With defaults,
-  ASK `-0.01` gives Ask plus one cent, while BID `+0.01` gives Bid minus one cent.
-  The ASK-/BID- labels name the subtraction operation, not a guarantee of a
-  price below the quote. All five quantity states and existing covers remain.
-- Page 4 also shows signed ASK OFFSET and BID OFFSET selectors in row 3,
-  columns 6 and 7 respectively. These share the existing globals and sync groups
-  with settings page 5, so changing either copy updates the corresponding
-  displayed state. LOAD CFG resets them to ASK `-0.01` and BID `+0.01` as before.
+  `Short T1/T2/T3/T4 Ask Offset` at `Ask + $entryAskOffset` and
+  `Short T1/T2/T3/T4 Bid Offset` at `Bid + $entryBidOffset`, labeled `ASK±`
+  and `BID±` on Stream Deck. Negative offsets price below the reference quote;
+  positive offsets price above it. With defaults, ASK `-0.01` gives Ask minus
+  one cent, while BID `+0.01` gives Bid plus one cent. Offset shorts now use
+  `Alt+Ctrl+Shift+F1` through `F4` for Ask tiers 1–4 and `F5` through `F8`
+  for Bid tiers 1–4, avoiding the Windows-key combinations associated with the
+  reported Explorer window. Legacy `*_minus.das` filenames/IDs are retained. All five quantity states
+  and existing covers remain. Orders with nonpositive adjusted or rounded
+  limits are rejected. Submission logs record the quote, signed offset and limit.
+- Signed ASK OFFSET and BID OFFSET selectors remain on settings page 5 only.
+  Both physical and Virtual profiles use `-0.03`, `-0.02`, `-0.01`, `+0.01`,
+  and `+0.03` in the same order, with matching sync groups and reset targets.
+  LOAD CFG resets them to ASK `-0.01` and BID `+0.01` as before.
   Other offset values must be selected through the Stream Deck controls to
   keep the displays aligned with DAS; editing a DAS variable directly does
-  not update Stream Deck. Rebuild and install the full keymap before using Ask-.
+  not update Stream Deck. Rebuild and install the full keymap before using the
+  relabeled offset short buttons. Plain entries and exit cushions are independent
+  of this change. The routing resolver is unchanged and still classifies the
+  final limit against the quotes.
 - `Cover 1/1 Ask+` cancels working orders for the montage symbol, then uses the
   native `Share=Pos; SEND=Reverse` command at Ask plus the smaller of `$exitOffset`
   and `Ask * $exitOffsetMaxPct` (or the fixed offset when the ceiling is disabled). DAS resolves the position
@@ -789,7 +796,7 @@ check order status, stop acceptance, and route behavior in DAS SIM separately.
 When `$useTimerArming = 1`, the timer handler waits for a position to appear
 before arming stops/TP. If position size increases on later ticks, the handler
 cancels existing sell orders, re-arms the stop, and only re-arms TP when the TP
-reset conditions are met. If no fill appears within `$entryMaxTicks`, the handler
+reset conditions are met. If no fill appears within its captured `$longEntryTimeoutSeconds` (unless 0/INDEF), the handler
 cancels the working buy order and clears pending state. When `$useTimerArming = 0`,
 buy orders poll for fills and can accept partials based on `$acceptPartial` and
 `$minFillShares`. If the fill criteria are not met in time, the order is canceled
@@ -842,3 +849,23 @@ binding directly as your user-facing shortcut. Loading the script does not
 qualify two-stock execution: keep Momo Inactive and the account flat for the
 required layout and user-triggered swap verification. The new windows/scripts
 have not yet passed that live qualification.
+
+## ENTRY TIMEOUT CONTROLS
+
+On settings page 5, LONG TIMEOUT and SHORT TIMEOUT each cycle through
+10s, 15s, 30s, INDEF. Both DAS defaults are 10s. INDEF stores 0 and disables
+only the no-fill entry deadline; manual cancellation and GTFO still work.
+Long presets are Ctrl+Alt+Shift+F9/F10/F11/F12, and short presets are
+Ctrl+Alt+F9/F10/F11/F12, in that order. All plain/offset buy and short tiers
+capture the selected side's timeout and submission second per account/symbol.
+Selector changes and LOAD CFG affect future entries, not pending ones.
+Cancellation is requested on the first eligible timer visit at/after the elapsed
+second deadline; a paused timer, unavailable position data or broker cancellation
+acknowledgment can delay it. First fills preserve the existing partial-fill logic.
+Short no-fill deadlines work even with automatic stop and TP features off.
+
+Buttons in the physical and Virtual profiles retain their own display state.
+They send explicit preset hotkeys, so each press sets the displayed value in DAS.
+After LOAD CFG/restarting DAS, cycle both controls back to the desired values;
+DAS resets its defaults to 10s but cannot report those values to Stream Deck.
+Compile/install the complete updated keymap before using the new buttons.

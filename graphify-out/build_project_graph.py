@@ -3,6 +3,7 @@
 Refresh DAS evidence with extract_das.py and repeat the graphify semantic workflow
 after source changes. Generic graphify update alone cannot parse .das files.
 """
+import argparse
 import copy
 import json
 import re
@@ -19,6 +20,10 @@ from graphify.report import generate
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "graphify-out"
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--accept-removed-node", action="append", default=[],
+                    help="Acknowledge an individually verified obsolete node; all removed IDs must match exactly")
+args = parser.parse_args()
 LABELS = {
     0: "Regression Test Harness",
     1: "Bindings and Presets",
@@ -34,7 +39,7 @@ LABELS = {
     11: "Source Change Policy",
 }
 
-raw = json.loads((OUT / "extraction-evidence.json").read_text())
+raw = json.loads((OUT / "extraction-evidence.json").read_text(encoding="utf-8"))
 raw_health = diagnose_extraction(copy.deepcopy(raw), directed=False, root=str(ROOT))
 (OUT / "raw-extraction-health.json").write_text(json.dumps(raw_health, indent=2))
 
@@ -57,20 +62,26 @@ for evidence in pairs.values():
 health = diagnose_extraction(copy.deepcopy(canonical), directed=False, root=str(ROOT))
 (OUT / "graph-health.json").write_text(json.dumps(health, indent=2))
 print(format_diagnostic_report(health))
+integrity_keys = ("missing_endpoint_edges", "dangling_endpoint_edges", "self_loop_edges",
+                  "undirected_same_endpoint_collapsed_edges")
+if any(health.get(key, 0) for key in integrity_keys):
+    raise RuntimeError("Graph integrity failed; retained graph outputs were not replaced")
 
 G = build_from_json(copy.deepcopy(canonical), directed=False, root=str(ROOT))
 if not G.number_of_nodes():
     raise RuntimeError("Empty graph; refusing to replace outputs")
 if raw.get("source_snapshot"):
     G.graph["source_snapshot"] = raw["source_snapshot"]
+if raw.get("intentional_removed_nodes"):
+    G.graph["intentional_removed_nodes"] = raw["intentional_removed_nodes"]
 communities = cluster(G)
 cohesion = score_all(G, communities)
 # Community numbers can change when a disconnected documentation fragment grows.
 # Match prior names by node overlap instead of attaching old names to new IDs.
 prior_analysis_path = OUT / "community-analysis.json"
 prior_labels_path = OUT / ".graphify_labels.json"
-prior_analysis = json.loads(prior_analysis_path.read_text()) if prior_analysis_path.exists() else {}
-prior_labels = json.loads(prior_labels_path.read_text()) if prior_labels_path.exists() else {}
+prior_analysis = json.loads(prior_analysis_path.read_text(encoding="utf-8")) if prior_analysis_path.exists() else {}
+prior_labels = json.loads(prior_labels_path.read_text(encoding="utf-8")) if prior_labels_path.exists() else {}
 labels = {}
 for cid, members in communities.items():
     matches = [(len(set(members) & set(old_members)), old_id)
@@ -88,12 +99,22 @@ questions += [q for q in questions_all if q["type"] == "bridge_node" and
 detection_path = OUT / ".graphify_detect.json"
 if not detection_path.exists():
     detection_path = OUT / "corpus-inventory.json"
-detection = json.loads(detection_path.read_text())
+detection = json.loads(detection_path.read_text(encoding="utf-8"))
+audit = json.loads((OUT / "das-extraction-audit.json").read_text(encoding="utf-8"))
 detection["warning"] = (f"Corpus: {detection['total_files']} files, approximately {detection['total_words']:,} words. "
-                        "Includes 107 DAS scripts through the project-specific lexical adapter.")
+                        f"Includes {audit['das_files']} DAS scripts through the project-specific lexical adapter.")
 (OUT / ".graphify_detect.json").write_text(json.dumps(detection, indent=2))
 commit = raw.get("source_commit") or subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
-if not to_json(G, communities, str(OUT / "graph.json"), community_labels=labels, built_at_commit=commit):
+accepted_removals = set(args.accept_removed_node)
+if accepted_removals:
+    previous = json.loads((OUT / "graph.json").read_text(encoding="utf-8"))
+    removed = {node["id"] for node in previous["nodes"]} - set(G.nodes)
+    documented = set(raw.get("intentional_removed_nodes", {}))
+    if removed != accepted_removals or not accepted_removals <= documented:
+        raise RuntimeError("Acknowledged removals must exactly match the missing nodes and their retained reasons")
+    G.graph["intentional_removed_nodes"] = raw["intentional_removed_nodes"]
+if not to_json(G, communities, str(OUT / "graph.json"), community_labels=labels, built_at_commit=commit,
+               force=bool(accepted_removals)):
     raise RuntimeError("Graph export shrink guard refused output")
 report = generate(G, communities, cohesion, labels, gods[:5], surprises[:2], detection,
                   {"input": 0, "output": 0}, str(ROOT), suggested_questions=questions,
@@ -101,7 +122,7 @@ report = generate(G, communities, cohesion, labels, gods[:5], surprises[:2], det
 confidence = Counter(e.get("confidence", "EXTRACTED") for e in canonical["edges"])
 report = re.sub(r"- Extraction:.*", "- Extraction: " + ", ".join(f"{v} {k}" for k, v in sorted(confidence.items())), report)
 report = report.replace("- Token cost: 0 input · 0 output",
-                        "- Token cost: unavailable for semantic subagents; their tools expose no usage counters. "
+                        "- Token cost: unavailable for semantic extraction; the agent tools expose no usage counters. "
                         "JSON token fields are zero placeholders, not measured consumption. Structural extraction used no model tokens.")
 report = report.replace("- Run `graphify update .` after code changes (no API cost).",
                         "- Refresh with the graphify workflow plus `extract_das.py`; generic `graphify update .` alone does not understand DAS.")
@@ -124,13 +145,16 @@ report += ("\n## Extraction Scope and Integrity\n"
            f"- Source snapshot: `{commit}`. No hotkeys were compiled, installed, or executed.\n"
            "- Scope: tracked project files; the ignored `DAS Trader Docs/` vendor PDFs were excluded.\n"
            "- DAS dependencies are lexical: literal `ExecHotkey` references include generated alert scripts; edges do not assert branch reachability or execution success.\n"
-           "- All 106 keymap hotkeys and the Timer Event Script are represented. No unresolved literal targets were found.\n"
+           f"- All {audit['mapped_hotkeys']} keymap hotkeys and the Timer Event Script are represented. "
+           f"Unresolved literal targets: {len(audit['missing_literal_targets'])}.\n"
            f"- Raw integrity check flagged {consolidated} parallel assertions that an undirected graph would collapse. "
            "They were consolidated into edge evidence arrays; all original assertions remain in `extraction-evidence.json`.\n"
            "- Final graph integrity: zero missing endpoints, dangling endpoints, self loops, or unpreserved parallel edges.\n"
-           "- The documentation contains conflicting descriptions of short protection; the disputed relationship is marked AMBIGUOUS.\n"
+           f"- Ambiguous retained relationships: {confidence.get('AMBIGUOUS', 0)}. Confidence tags describe evidence, not runtime qualification.\n"
            "- Small community cohesion values reflect this dependency representation, not proof of a defective module boundary.\n")
-(OUT / "GRAPH_REPORT.md").write_text(report)
+for note in raw.get("extraction_notes", []):
+    report += "- " + note + "\n"
+(OUT / "GRAPH_REPORT.md").write_text(report, encoding="utf-8")
 (OUT / ".graphify_labels.json").write_text(json.dumps({str(k): v for k, v in labels.items()}, indent=2))
 (OUT / "community-analysis.json").write_text(json.dumps(dict(communities=communities, cohesion=cohesion,
     gods=gods, surprises=surprises, questions=questions), indent=2))

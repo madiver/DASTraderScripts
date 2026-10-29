@@ -1,165 +1,662 @@
 {
   "files": {
     "code": [
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/tools/tests/trade-isolation.test.cjs",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/buy_25_ask_plus_sl.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/buy_25_ask_sl.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/buy_25_bid_plus_sl.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/buy_25_bid_sl.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/buy_50_ask_plus_sl.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/buy_50_ask_sl.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/buy_50_bid_plus_sl.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/buy_50_bid_sl.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/buy_ib_ask_plus_sl.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/buy_ib_ask_sl.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/buy_ib_bid_plus_sl.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/buy_ib_bid_sl.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/buy_mib_ask_plus_sl.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/buy_mib_ask_sl.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/buy_mib_bid_plus_sl.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/buy_mib_bid_sl.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/cancel_all.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/cancel_all_no_stops.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/check_global_guards.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/check_working_buys.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/check_working_sells.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/clear_trade_state.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/cover_1_1_ask.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/cover_1_1_bid.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/cover_1_2_ask.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/cover_1_2_bid.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/cover_1_4_ask.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/cover_1_4_bid.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/enable_rehab_mode.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/end_trade_action.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/gtfo.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/hijack_exit.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/invalidate_trade_alerts.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/load_position_context.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/load_trade_context.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/read_position_only.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/read_trade_position.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/resolve_order_route.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/select_primary_order_entry.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/sell_1_1_ask.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/sell_1_1_bid.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/sell_1_2_ask.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/sell_1_2_bid.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/sell_1_4_ask.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/sell_1_4_bid.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_0_10_stop.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_0_20_stop.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_0_30_stop.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_0_50_stop.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_ask_entry_offset_minus_1.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_ask_entry_offset_minus_2.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_ask_entry_offset_minus_3.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_ask_entry_offset_plus_1.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_ask_entry_offset_plus_3.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_auto_stop.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_auto_stop_be_1_1.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_auto_stop_be_1_2.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_auto_stop_be_scale_1_1.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_bid_entry_offset_minus_1.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_bid_entry_offset_minus_2.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_bid_entry_offset_minus_3.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_bid_entry_offset_plus_1.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_bid_entry_offset_plus_3.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_global_variables.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_order_route_arcal.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_order_route_autol.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_order_route_bestl.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_order_route_flash1l.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_order_route_freel.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_order_route_smrtl.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_qty_mult_0_5.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_qty_mult_1_0.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_qty_mult_1_5.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_qty_mult_2_0.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_qty_mult_3_0.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/set_take_profit.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/short_tier1_ask.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/short_tier1_ask_minus.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/short_tier1_bid.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/short_tier1_bid_minus.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/short_tier2_ask.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/short_tier2_ask_minus.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/short_tier2_bid.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/short_tier2_bid_minus.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/short_tier3_ask.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/short_tier3_ask_minus.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/short_tier3_bid.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/short_tier3_bid_minus.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/short_tier4_ask.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/short_tier4_ask_minus.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/short_tier4_bid.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/short_tier4_bid_minus.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/show_config.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/swap_internal.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/switch_to_live.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/switch_to_sim.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/take_profit_executor.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/timer_entry_handler.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/timer_exit_handler.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/timer_short_stop_handler.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/toggle_apply_live_guards_to_sim.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/toggle_position_window.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/toggle_single_position_guard.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/toggle_spread_check_feature.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/toggle_stp_feature.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/hotkeys/toggle_tp_feature.das",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/other scripts/timer.das"
+      "C:\\Users\\mark\\development\\DASTraderScripts\\tools\\tests\\trade-isolation.test.cjs",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\buy_25_ask_plus_sl.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\buy_25_ask_sl.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\buy_25_bid_plus_sl.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\buy_25_bid_sl.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\buy_50_ask_plus_sl.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\buy_50_ask_sl.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\buy_50_bid_plus_sl.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\buy_50_bid_sl.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\buy_ib_ask_plus_sl.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\buy_ib_ask_sl.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\buy_ib_bid_plus_sl.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\buy_ib_bid_sl.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\buy_mib_ask_plus_sl.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\buy_mib_ask_sl.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\buy_mib_bid_plus_sl.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\buy_mib_bid_sl.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\cancel_all.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\cancel_all_no_stops.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\check_global_guards.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\check_working_buys.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\check_working_sells.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\clear_trade_state.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\cover_1_1_ask.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\cover_1_1_bid.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\cover_1_2_ask.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\cover_1_2_bid.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\cover_1_4_ask.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\cover_1_4_bid.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\enable_rehab_mode.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\end_trade_action.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\gtfo.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\hijack_exit.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\invalidate_trade_alerts.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\load_position_context.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\load_trade_context.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\read_position_only.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\read_trade_position.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\resolve_order_route.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\select_primary_order_entry.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\sell_1_1_ask.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\sell_1_1_bid.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\sell_1_2_ask.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\sell_1_2_bid.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\sell_1_4_ask.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\sell_1_4_bid.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_0_10_stop.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_0_20_stop.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_0_30_stop.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_0_50_stop.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_ask_entry_offset_minus_1.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_ask_entry_offset_minus_2.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_ask_entry_offset_minus_3.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_ask_entry_offset_plus_1.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_ask_entry_offset_plus_3.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_auto_stop.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_auto_stop_be_1_1.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_auto_stop_be_1_2.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_auto_stop_be_scale_1_1.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_bid_entry_offset_minus_1.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_bid_entry_offset_minus_2.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_bid_entry_offset_minus_3.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_bid_entry_offset_plus_1.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_bid_entry_offset_plus_3.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_global_variables.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_order_route_arcal.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_order_route_autol.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_order_route_bestl.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_order_route_flash1l.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_order_route_freel.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_order_route_smrtl.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_qty_mult_0_5.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_qty_mult_1_0.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_qty_mult_1_5.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_qty_mult_2_0.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_qty_mult_3_0.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\set_take_profit.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\short_tier1_ask.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\short_tier1_ask_minus.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\short_tier1_bid.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\short_tier1_bid_minus.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\short_tier2_ask.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\short_tier2_ask_minus.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\short_tier2_bid.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\short_tier2_bid_minus.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\short_tier3_ask.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\short_tier3_ask_minus.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\short_tier3_bid.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\short_tier3_bid_minus.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\short_tier4_ask.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\short_tier4_ask_minus.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\short_tier4_bid.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\short_tier4_bid_minus.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\show_config.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\swap_internal.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\switch_to_live.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\switch_to_sim.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\take_profit_executor.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\timer_entry_handler.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\timer_exit_handler.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\timer_short_stop_handler.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\toggle_apply_live_guards_to_sim.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\toggle_position_window.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\toggle_single_position_guard.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\toggle_spread_check_feature.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\toggle_stp_feature.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\hotkeys\\toggle_tp_feature.das",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\other scripts\\timer.das"
     ],
     "document": [
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/AGENTS.md",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/CHANGELOG.md",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/README.md",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/TODO.md",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/USERGUIDE.md",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/assets/streamdeck/README.md",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/keymap.yaml"
+      "C:\\Users\\mark\\development\\DASTraderScripts\\AGENTS.md",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\CHANGELOG.md",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\README.md",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\TODO.md",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\USERGUIDE.md",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\assets\\streamdeck\\README.md",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\keymap.yaml"
     ],
     "paper": [],
     "image": [
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/assets/streamdeck/ask-offset-red.png",
-      "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/assets/streamdeck/bid-offset-green.png"
+      "C:\\Users\\mark\\development\\DASTraderScripts\\assets\\streamdeck\\ask-offset-red.png",
+      "C:\\Users\\mark\\development\\DASTraderScripts\\assets\\streamdeck\\bid-offset-green.png"
     ],
     "video": []
   },
   "total_files": 117,
-  "total_words": 75622,
+  "total_words": 75819,
   "needs_graph": false,
-  "warning": "Corpus: 117 files, approximately 75,622 words. Includes 107 DAS scripts through the project-specific lexical adapter.",
+  "warning": "Corpus is ~22,003 words - fits in a single context window. You may not need a graph.",
   "skipped_sensitive": [],
   "unclassified": [
-    "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/.gitattributes",
-    "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/.gitignore",
-    "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/LICENSE"
+    "C:\\Users\\mark\\development\\DASTraderScripts\\.gitattributes",
+    "C:\\Users\\mark\\development\\DASTraderScripts\\.gitignore",
+    "C:\\Users\\mark\\development\\DASTraderScripts\\LICENSE"
   ],
   "walk_errors": [],
   "ignored": [
-    "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/.DS_Store",
-    "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/DAS Trader Docs/"
+    "C:\\Users\\mark\\development\\DASTraderScripts\\.DS_Store",
+    "C:\\Users\\mark\\development\\DASTraderScripts\\DAS Trader Docs\\"
   ],
   "pruned_noise_dirs": [
-    "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/.git/",
-    "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts/graphify-out/"
+    "C:\\Users\\mark\\development\\DASTraderScripts\\.git\\",
+    "C:\\Users\\mark\\development\\DASTraderScripts\\graphify-out\\"
   ],
-  "graphifyignore_patterns": 3,
-  "scan_root": "/Volumes/[C] Windows Trade Station/Users/mark/development/DASTraderScripts",
+  "resolution_inputs": [],
+  "graphifyignore_patterns": 9,
+  "scan_root": "C:\\Users\\mark\\development\\DASTraderScripts",
+  "custom_binding_classification": "keymap.yaml is a DAS hotkey binding document, indexed semantically and by extract_das.py.",
   "custom_extractor": "extract_das.py: literal bindings, calls, lifecycle field references; not a DAS parser",
   "source_snapshot": {
-    "base_commit": "67a06e499c119cd997e2e2db0f7101d6246de0e2",
-    "refreshed_at": "2026-10-25T11:29:56.669596+00:00",
+    "base_commit": "aa948053bd61825371385db245babac9809eaf5e",
+    "refreshed_at": "2026-10-28T02:27:17.419228+00:00",
     "uncommitted_indexed_files": [
-      "AGENTS.md"
+      "CHANGELOG.md",
+      "README.md",
+      "USERGUIDE.md",
+      "hotkeys/set_ask_entry_offset_minus_1.das",
+      "hotkeys/set_ask_entry_offset_minus_2.das",
+      "hotkeys/set_ask_entry_offset_minus_3.das",
+      "hotkeys/set_ask_entry_offset_plus_1.das",
+      "hotkeys/set_ask_entry_offset_plus_3.das",
+      "hotkeys/set_bid_entry_offset_minus_1.das",
+      "hotkeys/set_bid_entry_offset_minus_2.das",
+      "hotkeys/set_bid_entry_offset_minus_3.das",
+      "hotkeys/set_bid_entry_offset_plus_1.das",
+      "hotkeys/set_bid_entry_offset_plus_3.das",
+      "hotkeys/set_global_variables.das",
+      "hotkeys/short_tier1_ask_minus.das",
+      "hotkeys/short_tier1_bid_minus.das",
+      "hotkeys/short_tier2_ask_minus.das",
+      "hotkeys/short_tier2_bid_minus.das",
+      "hotkeys/short_tier3_ask_minus.das",
+      "hotkeys/short_tier3_bid_minus.das",
+      "hotkeys/short_tier4_ask_minus.das",
+      "hotkeys/short_tier4_bid_minus.das",
+      "keymap.yaml",
+      "tools/tests/trade-isolation.test.cjs"
     ],
     "refreshed_files": {
       "AGENTS.md": {
-        "sha256": "c47c86235c4e0c0ce74993c66e278b5a560a498567525e0d2724cea610e72032"
+        "sha256": "c47c86235c4e0c0ce74993c66e278b5a560a498567525e0d2724cea610e72032",
+        "method": "semantic_document"
+      },
+      "CHANGELOG.md": {
+        "sha256": "ba5bb7aed418d55096699e71ed7c1954abd9b3f3f8d2b9618b222ce9c46773e5",
+        "method": "semantic_document"
+      },
+      "README.md": {
+        "sha256": "c3e5b17255599c36f9cb950b99e929cf47cac07d99965166e4bde28bd92de433",
+        "method": "semantic_document"
+      },
+      "TODO.md": {
+        "sha256": "327a64bced434b982584a1507bda1be6aab82dd3b572bef022b8f94734269e2e",
+        "method": "semantic_document"
+      },
+      "USERGUIDE.md": {
+        "sha256": "5d7dfdc4bf5d198d4c7a7b8b74d31dc526b9b1fc0c43590f29da59af1432a78b",
+        "method": "semantic_document"
+      },
+      "assets/streamdeck/README.md": {
+        "sha256": "94056b32f3860f4816eda62b9bc558bf8f922959fc310328e1364fae62550df8",
+        "method": "semantic_document"
+      },
+      "assets/streamdeck/ask-offset-red.png": {
+        "sha256": "2634f43937b3b935ff6638c1be94d08d4b7ee8a0a2d666c1eb2bd8457cf5fe90",
+        "method": "semantic_vision"
+      },
+      "assets/streamdeck/bid-offset-green.png": {
+        "sha256": "3040535cd74f5415c1938947dd5d1fd6f792d2aedfc837f6928cf53e97d909f7",
+        "method": "semantic_vision"
+      },
+      "hotkeys/buy_25_ask_plus_sl.das": {
+        "sha256": "4d632ca733a647541c3df602c5d7a8090cf404fdeb040d557d3ac72ddb161ba3",
+        "method": "das_lexical"
+      },
+      "hotkeys/buy_25_ask_sl.das": {
+        "sha256": "c76954c058fd045142d129cbdd7002b0bdcbc71eed0cdc18a0ad41730e4cc405",
+        "method": "das_lexical"
+      },
+      "hotkeys/buy_25_bid_plus_sl.das": {
+        "sha256": "8793b1572af589ec2a3b720eb8c3b1fe81da2ebb0b2c8f0af26293ec373b69a6",
+        "method": "das_lexical"
+      },
+      "hotkeys/buy_25_bid_sl.das": {
+        "sha256": "64cdd0f65cf44ecd9246b3f7c36e6fd297fed1ca76fbb9cb0eacb39f59c59ded",
+        "method": "das_lexical"
+      },
+      "hotkeys/buy_50_ask_plus_sl.das": {
+        "sha256": "128802f651de4466f86499021487c282159ebb157b4989e0804e34de5a679897",
+        "method": "das_lexical"
+      },
+      "hotkeys/buy_50_ask_sl.das": {
+        "sha256": "cb92216735af2a25d308665e5a753e4cf680f315198b529a6f28dcd3bae3a00a",
+        "method": "das_lexical"
+      },
+      "hotkeys/buy_50_bid_plus_sl.das": {
+        "sha256": "15a62e1ebea474d19498e13f9c6b6c1573d1937777175ed2279fa6f210e61c00",
+        "method": "das_lexical"
+      },
+      "hotkeys/buy_50_bid_sl.das": {
+        "sha256": "801c4e447929d1015654f83ba67cacaec6f793796ae8767abbbf8c76e60fa510",
+        "method": "das_lexical"
+      },
+      "hotkeys/buy_ib_ask_plus_sl.das": {
+        "sha256": "e140bc32b4a74fc1e04b64038d463fde7ed1196a888eaac5af1f8ea7ade82b97",
+        "method": "das_lexical"
+      },
+      "hotkeys/buy_ib_ask_sl.das": {
+        "sha256": "432232daa2f2937c36defd069bd82d2a70182ce23bf3b39b3073e1f610ad680a",
+        "method": "das_lexical"
+      },
+      "hotkeys/buy_ib_bid_plus_sl.das": {
+        "sha256": "a2bfa23b72445339557d3ba04a46e343dbf5f018c0bd313dbf402527caf06cd9",
+        "method": "das_lexical"
+      },
+      "hotkeys/buy_ib_bid_sl.das": {
+        "sha256": "1dd8b875bff2c2253b7e14f5948f35391fbfb7ce28ad5bf00634597c4c877a14",
+        "method": "das_lexical"
+      },
+      "hotkeys/buy_mib_ask_plus_sl.das": {
+        "sha256": "fe5da3fcd0a7e45a1d72d8c61b073a1e1e9cce22dc5b4884e80002a741f6ae9d",
+        "method": "das_lexical"
+      },
+      "hotkeys/buy_mib_ask_sl.das": {
+        "sha256": "5831464eed8bd29816dbd0b55b5c2b463d2a8c00abf095414f28b09547355e90",
+        "method": "das_lexical"
+      },
+      "hotkeys/buy_mib_bid_plus_sl.das": {
+        "sha256": "5c403d0278470eb7a279dcaa943fafee46ba352567bb777c6f490ec93e0def12",
+        "method": "das_lexical"
+      },
+      "hotkeys/buy_mib_bid_sl.das": {
+        "sha256": "7d9329f75ffd4245b0ec6961c3a7aaabbd9a0222f518eef77fd1c15fc78292d3",
+        "method": "das_lexical"
+      },
+      "hotkeys/cancel_all.das": {
+        "sha256": "e16a237219449617f393d60c133fefbab74e8d83c49e0880ca02aac50f29e683",
+        "method": "das_lexical"
+      },
+      "hotkeys/cancel_all_no_stops.das": {
+        "sha256": "a6b9a08a2ec7a2ef7d670fd6a2acdc3b6467b7d66c45708888d2bfd059ae2d41",
+        "method": "das_lexical"
+      },
+      "hotkeys/check_global_guards.das": {
+        "sha256": "a7b55b9d400fa91f541508e9260c42ba0047aec91c32d2879e13f7756fac0091",
+        "method": "das_lexical"
+      },
+      "hotkeys/check_working_buys.das": {
+        "sha256": "184690b9bf19b71024fb9c0444dc8a449d3abb6ba697cde909491730c67c8be9",
+        "method": "das_lexical"
+      },
+      "hotkeys/check_working_sells.das": {
+        "sha256": "fc4aacbfc092ba9db59f82464d436915368d2fae250fe2c0feed4bd769b242a3",
+        "method": "das_lexical"
+      },
+      "hotkeys/clear_trade_state.das": {
+        "sha256": "14f02d79d6543bcf025a6b2f903ab335de395343262927cfe8539d0486401648",
+        "method": "das_lexical"
+      },
+      "hotkeys/cover_1_1_ask.das": {
+        "sha256": "774b8e17ab9cccde021d7e6d82b75e81f51cb9e9ec3680e1880fc40f39d7fd59",
+        "method": "das_lexical"
+      },
+      "hotkeys/cover_1_1_bid.das": {
+        "sha256": "a9f7f97638a23f0306336b52f90b428f2e65eb06b1be92afe479ba2a8bc34dec",
+        "method": "das_lexical"
+      },
+      "hotkeys/cover_1_2_ask.das": {
+        "sha256": "eccc1546d159777f497496162c701da7ec297d341e9881069bdf22a17a5ab620",
+        "method": "das_lexical"
+      },
+      "hotkeys/cover_1_2_bid.das": {
+        "sha256": "f44f01c063fa3cfff5449cc596ee82d8073bd44e4042faefac0c063c7e6535c4",
+        "method": "das_lexical"
+      },
+      "hotkeys/cover_1_4_ask.das": {
+        "sha256": "1e4fc805c6bb8f75ef9bba3a40cbb6cd6befbbb3a67e6b901b9f8309d26d88f0",
+        "method": "das_lexical"
+      },
+      "hotkeys/cover_1_4_bid.das": {
+        "sha256": "3a94a2f4495639513958ba22ae199e0af154cbab3f5fd284a5e5f3fc85d101ec",
+        "method": "das_lexical"
+      },
+      "hotkeys/enable_rehab_mode.das": {
+        "sha256": "74b70d66c9bbf748c6bd37189473990c14ee568a9067e52025222affca12e286",
+        "method": "das_lexical"
+      },
+      "hotkeys/end_trade_action.das": {
+        "sha256": "7ae453795757e4fc7e1affa9f51d38697918b75632995aa196f6ab67fdfd254a",
+        "method": "das_lexical"
+      },
+      "hotkeys/gtfo.das": {
+        "sha256": "1e8761c179ba07ddb1da77daf8a0e0c99ed582e557ba6a3950d7a06c5b9d3de3",
+        "method": "das_lexical"
+      },
+      "hotkeys/hijack_exit.das": {
+        "sha256": "b149d353ab4950895712cad058980967733bd99cb28547aa2205a417f06b06a1",
+        "method": "das_lexical"
+      },
+      "hotkeys/invalidate_trade_alerts.das": {
+        "sha256": "52409b5afe6b1700207659b0af0dad6435e0597a794005c975a46efc75b5cfb5",
+        "method": "das_lexical"
+      },
+      "hotkeys/load_position_context.das": {
+        "sha256": "b0563a593812f0d9c9dce8c07d33fc3b2de34c03bf5690f7f6294076eaf60464",
+        "method": "das_lexical"
+      },
+      "hotkeys/load_trade_context.das": {
+        "sha256": "5d4efe3a757facb8af332f1e8bed10348a867297b3a040560a98a36b677f492c",
+        "method": "das_lexical"
+      },
+      "hotkeys/read_position_only.das": {
+        "sha256": "13b34763db95d8e60e67a7459c9151da35a0191553b7fe14296b087647643f7d",
+        "method": "das_lexical"
+      },
+      "hotkeys/read_trade_position.das": {
+        "sha256": "8e87a3647c819daf339ab19eb3555c66c95c0a76aa4a41264486c2d0e1a1bc0d",
+        "method": "das_lexical"
+      },
+      "hotkeys/resolve_order_route.das": {
+        "sha256": "0d6ea6308f191bacfb9a9f0a3717877e9231a770b2373a1d3a0641b41752eeac",
+        "method": "das_lexical"
+      },
+      "hotkeys/select_primary_order_entry.das": {
+        "sha256": "6a6e4ae3f3dabe9f038fc16f2049368a1711a10439abee96221e2f6a5a62eaf3",
+        "method": "das_lexical"
+      },
+      "hotkeys/sell_1_1_ask.das": {
+        "sha256": "d984f7b1014cff25f7015f45a63246cefb62d2a706e447e59520f48ff0a60e27",
+        "method": "das_lexical"
+      },
+      "hotkeys/sell_1_1_bid.das": {
+        "sha256": "7bc77bc1b56a04deca6dd5744c6b4f8c18e64d19f3fc6419d7eed52a7592d189",
+        "method": "das_lexical"
+      },
+      "hotkeys/sell_1_2_ask.das": {
+        "sha256": "cb8b0dc65d666bfcee939db5405c03aa6cf82c811b0a1472171c47344d2ef9fd",
+        "method": "das_lexical"
+      },
+      "hotkeys/sell_1_2_bid.das": {
+        "sha256": "ed6194ce5b152f0c6b61a598d1117b3447ee2ea7aca8c67fdb3f51df461819a3",
+        "method": "das_lexical"
+      },
+      "hotkeys/sell_1_4_ask.das": {
+        "sha256": "608cbab135bec25c777187408a36882c5a346d2583d8d0773f4b55f0843e5b2b",
+        "method": "das_lexical"
+      },
+      "hotkeys/sell_1_4_bid.das": {
+        "sha256": "fa5ea28e6d046dcaf1d343ed60658bc0b6287cda956112330786196a04b23b4e",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_0_10_stop.das": {
+        "sha256": "85dc8a2bc666244378248f6a8220c4680edb971d739c56aededec299c96494dd",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_0_20_stop.das": {
+        "sha256": "1ae7ddd282fec954655d4bed6d4126b2ee0f7c15450e4fb7d5a3b7baae4fd649",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_0_30_stop.das": {
+        "sha256": "564f4d15dd4394cf0869dfc78e5df313b1349c460f975d34ef7581d14a2bf6e1",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_0_50_stop.das": {
+        "sha256": "67c1f0c8d1649aae9513d6409129b9c93043beca2022b6bba60e7149c8115a60",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_ask_entry_offset_minus_1.das": {
+        "sha256": "a640e447ca5b52488c0da3db76f80eaff22bd8ce25f299167ea5bdd239c02b8d",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_ask_entry_offset_minus_2.das": {
+        "sha256": "01f58c19fa1f3976680b25d8305dce67bf37646018b1ca5a720dc76d119bdc80",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_ask_entry_offset_minus_3.das": {
+        "sha256": "22f550add76109e7688a65a9796dfe0f953e85aeded46ccfee4de97e6ed129cd",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_ask_entry_offset_plus_1.das": {
+        "sha256": "0a941e7e772dcef630bc6258ffb84123a60c8734578c1d3394fbde4ca2e7e377",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_ask_entry_offset_plus_3.das": {
+        "sha256": "12d10e9732f0e65051c19066ce300ab6e92404bfe9425dcbb00617f75044b83b",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_auto_stop.das": {
+        "sha256": "948114a2129ae2aab1d1338df4af32ff03ab9485ccc4eef4e8bf1004392ee1d4",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_auto_stop_be_1_1.das": {
+        "sha256": "ff3d093e4319894f0db99e73247a3b28322ebbb4100090f79a7528014f49d9a6",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_auto_stop_be_1_2.das": {
+        "sha256": "fb436d409e51b2b9204b4ee0aba1a060667a57759ecdf796197a81e30591dcbf",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_auto_stop_be_scale_1_1.das": {
+        "sha256": "bb70ef804d8585b48ec125f7022a71e27f0148402c26631d88b1d1356bf7893c",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_bid_entry_offset_minus_1.das": {
+        "sha256": "37e2d5f11167d6de2c9692b59e3c615014426a2f150754ebb7b0ac379a2ea22c",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_bid_entry_offset_minus_2.das": {
+        "sha256": "bd8d6876d33fd2b06947576427e60e6ba48134755aa40578943d1e29e901e6be",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_bid_entry_offset_minus_3.das": {
+        "sha256": "66ad8bd4eaded546d22c1efca6cabcf672abd426b143edd8d3b3114d0d2d4de8",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_bid_entry_offset_plus_1.das": {
+        "sha256": "a67cc8866f7d6c41063dbe67a8e52b0bb9f1aba56c61b74f8529f45a587246e3",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_bid_entry_offset_plus_3.das": {
+        "sha256": "af3f23e1f526e9f406b815668e06380809e7563a00e817150aaf9f7e1d60342a",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_global_variables.das": {
+        "sha256": "e3323d4979916187e779a27d12589df3f5019e5d0a654f0169801750d51cdad1",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_order_route_arcal.das": {
+        "sha256": "6acbe8ce868580556bb9b46d7bdd69e7ab77e91c09a715f97b8da78b66241e3d",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_order_route_autol.das": {
+        "sha256": "43b62667fd624eb25964864d38a7cdf1a9a79fe179da78b641a2321b346294e1",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_order_route_bestl.das": {
+        "sha256": "73c6fddad3d71ecf0ff6b07431a29bca99214b97cb313e73f60554925022c998",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_order_route_flash1l.das": {
+        "sha256": "7a57d9301636f3e497691fc214cf3a4f4a6201b77244c93912fef5c4f67a4c4f",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_order_route_freel.das": {
+        "sha256": "8a470153aa5721f773db84bf199001e838db6a4fe2ba644b1bba634811c87e70",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_order_route_smrtl.das": {
+        "sha256": "44f819b1653f206db8b00ca55c8d12032871970e8960afc07c50ec9e8b3c8024",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_qty_mult_0_5.das": {
+        "sha256": "47b6d78496b3616c978fcf1604d71964eac85816e63e9f3f5a1ddcc0f824156f",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_qty_mult_1_0.das": {
+        "sha256": "a11f17a4dbf61bb6aeecaaa94e85f9e8470fbd7c2c2a833cae4376ddcf4c1d50",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_qty_mult_1_5.das": {
+        "sha256": "07fabb0a5279313b13ebed5491795b7f4bc0ad2354bbdb0e97bbb1661cc8419a",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_qty_mult_2_0.das": {
+        "sha256": "33d137eeca7b4c33e59870477dcfcb6f8e604b8582883312144d59ffda53c302",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_qty_mult_3_0.das": {
+        "sha256": "778d4e4bf5870d51ebb4bee3506e4f284774caa20b22c511f00470cb00a19fe3",
+        "method": "das_lexical"
+      },
+      "hotkeys/set_take_profit.das": {
+        "sha256": "8e626c650e96f4a350b3520601c92270d3534b6c0e939b81cc67124d0e0f794a",
+        "method": "das_lexical"
+      },
+      "hotkeys/short_tier1_ask.das": {
+        "sha256": "761a19c3cc847cee3fb74850ac81b11cd1a8dd924941d13455d0b57b3a78211f",
+        "method": "das_lexical"
+      },
+      "hotkeys/short_tier1_ask_minus.das": {
+        "sha256": "37f34fcb91054dd086502a0c2262cdeee1865a200f70dffdbebd0c62b9042f58",
+        "method": "das_lexical"
+      },
+      "hotkeys/short_tier1_bid.das": {
+        "sha256": "5bd69a85e1f761c091bd14615e6e048a21aaf13423f8782005efadca777b80f8",
+        "method": "das_lexical"
+      },
+      "hotkeys/short_tier1_bid_minus.das": {
+        "sha256": "e3b9117acbbd9752216745c80fbe63035e39088e9f91f8f9de634658526d69a0",
+        "method": "das_lexical"
+      },
+      "hotkeys/short_tier2_ask.das": {
+        "sha256": "0b07c35b87c1585cfe7325dee3c292617a74b1dcc37d6051908ee9c95d968102",
+        "method": "das_lexical"
+      },
+      "hotkeys/short_tier2_ask_minus.das": {
+        "sha256": "93d7a2bf3a5ff9e49ba8b3ce3318d16183ae4884904caa6b4f67b12cb0740d8a",
+        "method": "das_lexical"
+      },
+      "hotkeys/short_tier2_bid.das": {
+        "sha256": "9a56fa6c2219b53b90417aa34891c6a52ba4317d3306d03505489438902966b4",
+        "method": "das_lexical"
+      },
+      "hotkeys/short_tier2_bid_minus.das": {
+        "sha256": "104efe55160c2cc74d9bb14595d43f665c3ed32d3084dbdee786147e23665936",
+        "method": "das_lexical"
+      },
+      "hotkeys/short_tier3_ask.das": {
+        "sha256": "b714b5498c88ff9b879aae83ea1bb453da52d403be32304520215f86f51cfbe6",
+        "method": "das_lexical"
+      },
+      "hotkeys/short_tier3_ask_minus.das": {
+        "sha256": "5af38303ce37f4c1255ddcab4d3f5c1ff675e40845d0d082edc3370b73f00130",
+        "method": "das_lexical"
+      },
+      "hotkeys/short_tier3_bid.das": {
+        "sha256": "a11092586127de3650c8527bde76e28b5d6ed1519e91ea9a7c527d15d76b184c",
+        "method": "das_lexical"
+      },
+      "hotkeys/short_tier3_bid_minus.das": {
+        "sha256": "feb06c6df0094589da57493ebe1c45c9cd855f0cb3ff975fff16754969b81f54",
+        "method": "das_lexical"
+      },
+      "hotkeys/short_tier4_ask.das": {
+        "sha256": "38c72bb5d6ad9fb6ceb538e92f66e18ab03abc83c7e30030de61b29f9f84ca6c",
+        "method": "das_lexical"
+      },
+      "hotkeys/short_tier4_ask_minus.das": {
+        "sha256": "843fc5b849bcb11c73e35d79aaa3655cfc0dc462a58a62ab840b0320fb2f0079",
+        "method": "das_lexical"
+      },
+      "hotkeys/short_tier4_bid.das": {
+        "sha256": "0170ab833ee84c7352fede80f70e0fc4b26c454086313c549a54736d9eef9b27",
+        "method": "das_lexical"
+      },
+      "hotkeys/short_tier4_bid_minus.das": {
+        "sha256": "87c59ed80b7ad190112d6a3d82a9fcaab47de7e89f77b30a64aec4ee0d1330fc",
+        "method": "das_lexical"
+      },
+      "hotkeys/show_config.das": {
+        "sha256": "0382f4a35496ba919dddcfcca6626005eae7b29e04acfaa5785217a50ebb4d72",
+        "method": "das_lexical"
+      },
+      "hotkeys/swap_internal.das": {
+        "sha256": "d1b4d42753512dd7f99523121ac7160654a3501131a20f86efb1591005c0f1d3",
+        "method": "das_lexical"
+      },
+      "hotkeys/switch_to_live.das": {
+        "sha256": "406e2fe795f423bfb182f2df005c880a0165a05b3b575faffc5a60ebbf83ece8",
+        "method": "das_lexical"
+      },
+      "hotkeys/switch_to_sim.das": {
+        "sha256": "c903f7e1b764ab91052bfc7d018f6dfc385d52e539177d6dabf24ecfd237c17e",
+        "method": "das_lexical"
+      },
+      "hotkeys/take_profit_executor.das": {
+        "sha256": "f374621a1891dc9b7cb1e1613b6f71cb1afa961bb32fd12ca1c89715337af42c",
+        "method": "das_lexical"
+      },
+      "hotkeys/timer_entry_handler.das": {
+        "sha256": "efb2388e85726b8ca9ea7dccc6bda89533d529050821b6e1b5c93217c1640a6d",
+        "method": "das_lexical"
+      },
+      "hotkeys/timer_exit_handler.das": {
+        "sha256": "10406757a277f176e4015b490f76be500ebfc0df6f0a9256b291e029343def6b",
+        "method": "das_lexical"
+      },
+      "hotkeys/timer_short_stop_handler.das": {
+        "sha256": "e07b81d63b79e216128a189e95dddd9f812253fc25235825a38c30a580c4b76a",
+        "method": "das_lexical"
+      },
+      "hotkeys/toggle_apply_live_guards_to_sim.das": {
+        "sha256": "45a90bbb9632b60e188cbbe27c99952b269ef1b29cb0265d0d499081edd640c3",
+        "method": "das_lexical"
+      },
+      "hotkeys/toggle_position_window.das": {
+        "sha256": "e465628022ef8857b070a3fc725e1e3d9010c460ee6149a5f187caeaee09f42a",
+        "method": "das_lexical"
+      },
+      "hotkeys/toggle_single_position_guard.das": {
+        "sha256": "31884c00653a8203ef0ef3eedff6619716852679fecf0cf75ed0f6a2108286b0",
+        "method": "das_lexical"
+      },
+      "hotkeys/toggle_spread_check_feature.das": {
+        "sha256": "93bc0f3ca2c3820ed19ede3e39e9af168783de5cf224130b1a809679df6f0781",
+        "method": "das_lexical"
+      },
+      "hotkeys/toggle_stp_feature.das": {
+        "sha256": "5d0d1d8cc3f93c43673a3beaecc7e5388873e6629ecc859cbe7a6542a2d3340e",
+        "method": "das_lexical"
+      },
+      "hotkeys/toggle_tp_feature.das": {
+        "sha256": "4147db3fb055c1aa9adefa9cc83fc5f6c45435b42799613bf305c53a7a5e030c",
+        "method": "das_lexical"
+      },
+      "keymap.yaml": {
+        "sha256": "e8126da598d51b3c7b035b46356554455f070b475601a83d410e35bbf3e49e60",
+        "method": "semantic_document"
+      },
+      "other scripts/timer.das": {
+        "sha256": "1a477cbd22ccbadcc379f6c8a1ca72096013b1374b4f4b566e4810a92947bb1f",
+        "method": "das_lexical"
+      },
+      "tools/tests/trade-isolation.test.cjs": {
+        "sha256": "451983483e08a8a6a9c8774a3409ecae5250c4b255f10beae519dbc0b8666397",
+        "method": "javascript_ast"
       }
     },
-    "unchanged_indexed_files_verified": 116,
+    "extracted_file_counts": {
+      "das": 107,
+      "javascript": 1,
+      "documents": 7,
+      "images": 2
+    },
+    "graphify_version": "0.9.97",
+    "semantic_prompt_sha256": "e14c596c524ae8c41c796788af00ae9574ff7c5fe131ecbd2ca9def92a19a9cb",
     "token_usage_status": "unavailable"
   }
 }

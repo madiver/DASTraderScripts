@@ -60,7 +60,6 @@ $msg =
 "entryPending: " + $trade.entryPending + "\n" +
 "entryStage: " + $trade.entryStage + "\n" +
 "entryTicks: " + $trade.entryTicks + "\n" +
-"entryMaxTicks: " + $entryMaxTicks + "\n" +
 "entryPosBefore: " + $trade.entryPosBefore + "\n" +
 "entryAvgBefore: " + $trade.entryAvgBefore + "\n" +
 "entryScaleIn: " + $trade.entryScaleIn + "\n" +
@@ -84,6 +83,10 @@ $msg =
 "useAutoStop: " + $useAutoStop + "\n" +
 "useTakeProfit: " + $useTakeProfit + "\n" +
 "resetStopOnCancel: " + $resetStopOnCancel + "\n\n" +
+
+"ENTRY TIMEOUTS (0 = INDEF; future entries)\n" +
+"long: " + $longEntryTimeoutSeconds + "s\n" +
+"short: " + $shortEntryTimeoutSeconds + "s\n\n" +
 
 "RISK\n" +
 "-----------------\n" +

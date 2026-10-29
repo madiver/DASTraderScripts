@@ -1,7 +1,268 @@
 {
-  "status": "current",
-  "files": [],
-  "details": {},
-  "last_refresh": "agents-refresh-receipt.json",
-  "completed_at": "2026-10-25T11:31:17.072582+00:00"
+  "status": "pending",
+  "files": [
+    "CHANGELOG.md",
+    "README.md",
+    "USERGUIDE.md",
+    "assets/streamdeck/entry-timeout-installation.json",
+    "hotkeys/buy_25_ask_plus_sl.das",
+    "hotkeys/buy_25_ask_sl.das",
+    "hotkeys/buy_25_bid_plus_sl.das",
+    "hotkeys/buy_25_bid_sl.das",
+    "hotkeys/buy_50_ask_plus_sl.das",
+    "hotkeys/buy_50_ask_sl.das",
+    "hotkeys/buy_50_bid_plus_sl.das",
+    "hotkeys/buy_50_bid_sl.das",
+    "hotkeys/buy_ib_ask_plus_sl.das",
+    "hotkeys/buy_ib_ask_sl.das",
+    "hotkeys/buy_ib_bid_plus_sl.das",
+    "hotkeys/buy_ib_bid_sl.das",
+    "hotkeys/buy_mib_ask_plus_sl.das",
+    "hotkeys/buy_mib_ask_sl.das",
+    "hotkeys/buy_mib_bid_plus_sl.das",
+    "hotkeys/buy_mib_bid_sl.das",
+    "hotkeys/load_trade_context.das",
+    "hotkeys/set_global_variables.das",
+    "hotkeys/set_long_entry_timeout_10.das",
+    "hotkeys/set_long_entry_timeout_15.das",
+    "hotkeys/set_long_entry_timeout_30.das",
+    "hotkeys/set_long_entry_timeout_indef.das",
+    "hotkeys/set_short_entry_timeout_10.das",
+    "hotkeys/set_short_entry_timeout_15.das",
+    "hotkeys/set_short_entry_timeout_30.das",
+    "hotkeys/set_short_entry_timeout_indef.das",
+    "hotkeys/short_tier1_ask.das",
+    "hotkeys/short_tier1_ask_minus.das",
+    "hotkeys/short_tier1_bid.das",
+    "hotkeys/short_tier1_bid_minus.das",
+    "hotkeys/short_tier2_ask.das",
+    "hotkeys/short_tier2_ask_minus.das",
+    "hotkeys/short_tier2_bid.das",
+    "hotkeys/short_tier2_bid_minus.das",
+    "hotkeys/short_tier3_ask.das",
+    "hotkeys/short_tier3_ask_minus.das",
+    "hotkeys/short_tier3_bid.das",
+    "hotkeys/short_tier3_bid_minus.das",
+    "hotkeys/short_tier4_ask.das",
+    "hotkeys/short_tier4_ask_minus.das",
+    "hotkeys/short_tier4_bid.das",
+    "hotkeys/short_tier4_bid_minus.das",
+    "hotkeys/show_config.das",
+    "hotkeys/timer_entry_handler.das",
+    "hotkeys/timer_short_stop_handler.das",
+    "keymap.yaml",
+    "tools/tests/trade-isolation.test.cjs"
+  ],
+  "details": {
+    "assets/streamdeck/entry-timeout-installation.json": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "48df98005a232c9980f9cc95f0ae8743bef80b44f09fb9adcad04e8fdbe62346"
+    },
+    "CHANGELOG.md": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "a50c63dae20345f91730d8fde56eeabcda216d68e2a9e39a8a4612bc41751b24"
+    },
+    "hotkeys/buy_25_ask_plus_sl.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "aaa285751f04f1d263200241d8ebe5853ba7e88e0d32171975e80230d2c0a72e"
+    },
+    "hotkeys/buy_25_ask_sl.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "68fa7a952987c3fc2987265c8b5630fe307a70bcd68903231bc17813adcbe3f3"
+    },
+    "hotkeys/buy_25_bid_plus_sl.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "4958575bd67fe86ae371fc599b80ce8ef921950841d58d3b0d72546a3cd1cc93"
+    },
+    "hotkeys/buy_25_bid_sl.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "23e0122bb45fad08330ebb9588ed5ec3df39f57eb9d0cdd8e07c19dda29fa37c"
+    },
+    "hotkeys/buy_50_ask_plus_sl.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "6146d7e093f13bed6dad494260f51a3ec1780dd6367d84d2c18b0052c06d392c"
+    },
+    "hotkeys/buy_50_ask_sl.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "b4b476520111a03f692bb903a47b583a70a703213ca7028a15683e0d1d50d976"
+    },
+    "hotkeys/buy_50_bid_plus_sl.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "82811acf2e8d0420d8fa4c81cf2b54bde32f8e81a7b5d5aef5691a9e493e237d"
+    },
+    "hotkeys/buy_50_bid_sl.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "5769c9cf95c1765d39888556222c0aa07c85240a1e63b0a0491562fde5564b8b"
+    },
+    "hotkeys/buy_ib_ask_plus_sl.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "ecdb5c609d5f1d21e60c718510d44973c3f6a51d3ae2e07acd7a2f154f3fc704"
+    },
+    "hotkeys/buy_ib_ask_sl.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "223b8e8ddf85d83de981bde6a8762cc08a56b9e4bbf4f54c08e4f929d23933a4"
+    },
+    "hotkeys/buy_ib_bid_plus_sl.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "2cbbd7a341e3c802cb07e3243dd5e5181658ded02f4024f7153b544a87e19ce2"
+    },
+    "hotkeys/buy_ib_bid_sl.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "371dddc95e18d40247e8bdc791d4e99887b46214112a50964e65e3bb558781c5"
+    },
+    "hotkeys/buy_mib_ask_plus_sl.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "d4264d1f1f1a347d22ca055fb5670bf96f6af175db00659d1da3d72d3f09207c"
+    },
+    "hotkeys/buy_mib_ask_sl.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "36075f7d334ff950f89c707c4af9e33553493271cacd8fdce0ecc5f925b7fb7f"
+    },
+    "hotkeys/buy_mib_bid_plus_sl.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "ba03276cd8ad93527896acd4b6179a0abaf5e4350e58be7225c538e427e670c6"
+    },
+    "hotkeys/buy_mib_bid_sl.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "66577f5e6e7c56b64bb0aed0391679d4072f27192e033e6403d6e06c03031e0a"
+    },
+    "hotkeys/load_trade_context.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "5392d860500bf63b1adf0f0ff5b1a7f6d739cbec7e68d52fa3e80f826075fb14"
+    },
+    "hotkeys/set_global_variables.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "607088900da7c7f6295954c7de9e38dcf7345f19186ac8c893368c82d67bbe62"
+    },
+    "hotkeys/set_long_entry_timeout_10.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "4b5734fc23d2700a822f27a0dbd2f7f61d7a3d60d121a0abe44aa7b91ebeefef"
+    },
+    "hotkeys/set_long_entry_timeout_15.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "0dae4a933086c335c7b5ec781e2cf90287baff5da9c38febc7c4d675b4330837"
+    },
+    "hotkeys/set_long_entry_timeout_30.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "6293ed9fdd8f7cf8263d8700b40f65bdb1b39ab27a6037a81c810619ad712e03"
+    },
+    "hotkeys/set_long_entry_timeout_indef.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "ea4fc7eda5bfe46a6ede5702848858e243705444fcf65948dce8c188f281aaf7"
+    },
+    "hotkeys/set_short_entry_timeout_10.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "2aee27618d270c6253dbf4ccb449f5d0284ef942ddf32906b57fef976f26674d"
+    },
+    "hotkeys/set_short_entry_timeout_15.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "0a5e912aa7459f89a3682d0720569b25ff4859b0cf8ee336a8ab7ce100f9a07f"
+    },
+    "hotkeys/set_short_entry_timeout_30.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "49f6e05c3a282711decef5d3bf06d679784cb77a8d4774c05d38a874a6587cdd"
+    },
+    "hotkeys/set_short_entry_timeout_indef.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "1775b00895d95fb5d8eb69f67b6d56ce0b1237838429a4a508faea6c4e38502e"
+    },
+    "hotkeys/short_tier1_ask.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "c256dede496cba6d457b7a1db5e1bc68dd924510eb9b301848e25412d262b749"
+    },
+    "hotkeys/short_tier1_ask_minus.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "ca6c325ae15643f70e3bb2515c98877c82e613d636b9fbd5d5cb7917b6ed7eeb"
+    },
+    "hotkeys/short_tier1_bid.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "50ede1201a3cfe0b5fad520b4d5f1f015bb372fe51304c74f873866fc04ed601"
+    },
+    "hotkeys/short_tier1_bid_minus.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "40dbd7569f87ce4087e5f1aac3420939c6b52ea270bb5a9575c45500b2ad3aa0"
+    },
+    "hotkeys/short_tier2_ask.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "894550385a5f5f1c719469885abc119af891204d60d2ee2868d1519f151de47b"
+    },
+    "hotkeys/short_tier2_ask_minus.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "94dbd4daee9f770a1d96021a7933fdf3ff042c5d6539d214c448105385088664"
+    },
+    "hotkeys/short_tier2_bid.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "b4feefe86136911736758aa94ac5b36ba8d9ed74a1a638a29b101f3efcf26816"
+    },
+    "hotkeys/short_tier2_bid_minus.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "479fd66c9052ae8310e564eb7b934c07b3a3b58ea98313a99e2852f7e0564a3f"
+    },
+    "hotkeys/short_tier3_ask.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "52db8981e71c7da7a8aed1932199a5023fcfa3f966ac77b08d722233df90c157"
+    },
+    "hotkeys/short_tier3_ask_minus.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "0aef0be8c519494a8c7c68f2dac0639489e38bbfec5604864bb3d6c0c5c05351"
+    },
+    "hotkeys/short_tier3_bid.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "7110a1ef833028797ecb7fa2dd974c68a2e04cab8f04329d8a6955f2250f4765"
+    },
+    "hotkeys/short_tier3_bid_minus.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "d672109983aacb1a4bdf8a27cfd8cd6fb28a4ef6308137b73891324733510a78"
+    },
+    "hotkeys/short_tier4_ask.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "d452a58be25dbb13e429000b04945192aa56a1316076fb24ea69c8024321da63"
+    },
+    "hotkeys/short_tier4_ask_minus.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "e5d385f5780b7514cbed10381dffbc9c7dd8ba09bb0f3f3ec871d4ae67e6a0d5"
+    },
+    "hotkeys/short_tier4_bid.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "4844c650a64110b8375e59205859664234f5abc4d52c49e949a3d891cc8cebd1"
+    },
+    "hotkeys/short_tier4_bid_minus.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "23a42939af431e691342e68c738e27ae5a00e6cff0cd8f92f05904bf586c5331"
+    },
+    "hotkeys/show_config.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "ec732c24e2cf00935c642db0d966cc6b9acb46707d5a6f54e1650276778cdb56"
+    },
+    "hotkeys/timer_entry_handler.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "6152a7fed3f8c2581b77529aa4944559a000075390121dbb21bf0a468a41b127"
+    },
+    "hotkeys/timer_short_stop_handler.das": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "87988fab429adbf34da8699af739436a176eacd30acd13fd0964dd62c5d33fdb"
+    },
+    "keymap.yaml": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "25185828a5b739eacd0c1d985118352497670c83404e87392ed8c84f45048071"
+    },
+    "README.md": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "de7bb52c5a965bb1b1329376eb8ff4b9d0273f2a05c692eced3f209bad257845"
+    },
+    "tools/tests/trade-isolation.test.cjs": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "8e199ad931350259db7c0b392d6e3bed4b31be198cf4914204798f35e17f00bd"
+    },
+    "USERGUIDE.md": {
+      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
+      "sha256": "e8c0de3011ec253118d14605ccc870fe641428b3b0b5189608073d6b2b1f1ad6"
+    }
+  },
+  "last_refresh": "windows-refresh-receipt.json",
+  "completed_at": "2026-10-28T02:31:12.127379+00:00",
+  "source_head": "aa948053bd61825371385db245babac9809eaf5e",
+  "source_hashes_verified": 117,
+  "remaining_scope": "Entry timeout source, tests, documentation and Stream Deck installation receipt listed above require DAS-aware extraction and semantic merge. Existing graph retained as navigation hints.",
+  "recorded_at": "2026-10-28T13:09:02.555655+00:00"
 }

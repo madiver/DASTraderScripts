@@ -28,7 +28,9 @@ if ($trade.entryStage == 0) {
         $trade.entryStage = 1;
         $trade.entryTicks = 0;
     } else {
-        if ($entryMaxTicks > 0 && $trade.entryTicks >= $entryMaxTicks) {
+        $entryElapsed = GetSecond() - $trade.entryStarted;
+        if ($entryElapsed < 0) { $entryElapsed = $entryElapsed + 86400; }
+        if ($trade.entryTimeoutSeconds > 0 && $entryElapsed >= $trade.entryTimeoutSeconds) {
             $tradeAccountObj.CancelOrder("BUY", $mySym, 0);
             $trade.entryPending = 0;
             $trade.entryStage = 0;

@@ -78,10 +78,10 @@ Momo uses this fixed shortcut automatically. See [Momo swap setup](USERGUIDE.md#
   tick before stop submission. If position size increases on later ticks, the handler
   re-arms the stop (cancels existing sells first) and re-arms TP only when the
   TP reset conditions are met.
-  If no fill appears within `$entryMaxTicks`, the handler cancels the working
+  If no fill appears within its captured `$longEntryTimeoutSeconds` (unless 0/INDEF), the handler cancels the working
   buy order. Install `other scripts/timer.das` in DAS Trader's Timer Event Scripts and keep
   `hotkeys/timer_entry_handler.das` in your keymap; set `$useTimerArming = 0` to
-  revert to inline polling.
+  use bounded inline polling; an open entry with no fill then yields to the timer for its captured timeout.
 - TP and half/quarter manual sells submit their order, then release the action
   lease. `Timer Exit Handler` monitors actual fills and cancels residual shares
   at timeout before resizing protection. GTFO and manual cancellation interrupt
@@ -108,7 +108,7 @@ Example:
 Current groups used in `hotkeys/`:
 Buy orders: Ask SL, Buy orders: Ask+ SL, Buy orders: Bid SL, Buy orders: Bid+ SL,
 Cover orders: Ask+, Global controls & config, Sell orders: Ask, Sell orders: Bid-,
-Short orders: Ask, Short orders: Bid, Short orders: Bid-, Stops, Take profit, Utilities & toggles.
+Short orders: Ask, Short orders: Ask offset, Short orders: Bid, Short orders: Bid offset, Stops, Take profit, Utilities & toggles.
 
 ## Scaling Behavior
 
@@ -121,7 +121,7 @@ Short orders: Ask, Short orders: Bid, Short orders: Bid-, Stops, Take profit, Ut
 ## Manual Shorting
 
 - `Short T1/T2/T3/T4 Ask/Bid` sends `round($tierNShareSize * $qtyMult)` shares as an explicit sell-short limit order at the selected quote, with no offset. These hotkeys can open a short or add to an existing short, but reject long positions.
-- Page 3 has plain Ask/Bid shorts. Page 4 of both Stream Deck profiles has Tier 1-4 `ASK-` and `BID-` shorts using `Ask - $entryAskOffset` and `Bid - $entryBidOffset`. Default ASK `-0.01` prices one cent above Ask; default BID `+0.01` prices one cent below Bid. All five quantity states remain, and signed offset controls on page 4 sync with settings page 5.
+- Page 3 has plain Ask/Bid shorts. Page 4 of both Stream Deck profiles has Tier 1-4 `ASK±` and `BID±` shorts using `Ask + $entryAskOffset` and `Bid + $entryBidOffset`. Negative offsets price below the selected quote; positive offsets price above it. Default ASK `-0.01` prices one cent below Ask; default BID `+0.01` prices one cent above Bid. All five quantity states remain. Offset buy buttons on page 2 also use `ASK±`/`BID±` and already add the signed offset. Shared ASK/BID selectors remain on settings page 5 only, with identical five-choice lists in both profiles.
 - `Cover 1/1 Ask+` cancels current-symbol orders and uses DAS `Share=Pos; SEND=Reverse` at Ask plus the smaller of `$exitOffset` and `Ask * $exitOffsetMaxPct`. Defaults retain the $0.10 desired cushion with a 5% ceiling; set `$exitOffsetMaxPct = 0` to disable the percentage ceiling. For a short position, DAS resolves the current quantity and sends a buy. This does not guarantee that a previous order cannot still fill.
 - `Cover 1/2 Ask+` and `Cover 1/4 Ask+` use the same pricing and native Reverse behavior for half or a quarter of the current position, rounded down to whole shares with a minimum of one share. Page 3 has Cover 1/4, Cover 1/2, and Cover 1/1 from left to right on both Stream Deck profiles.
 - `Cover 1/1`, `Cover 1/2`, and `Cover 1/4 Bid` use plain Bid with no offset and the same native Reverse quantity behavior. Page 3 places Tier 1â€“4 Bid shorts across the top right, with quarter/half/full Bid covers on the second row at the left.
@@ -154,3 +154,22 @@ and test hotkeys before use in DAS Trader.
 ## Script regression checks
 
 Run `node tools/tests/trade-isolation.test.cjs`. The harness executes the DAS source decisions against signed positions, orders, alerts, and montage changes in memory. It does not connect to DAS, send real orders, or validate broker execution.
+
+## Entry timeout selectors
+
+Settings page 5 of both DAS Trader Stream Deck profiles has independent LONG
+TIMEOUT and SHORT TIMEOUT buttons: 10s → 15s → 30s → INDEF → 10s.
+`$longEntryTimeoutSeconds` and `$shortEntryTimeoutSeconds` default to 10;
+0 means indefinite. Each submitted entry captures its setting. Changing a
+selector or loading configuration does not change a pending order's deadline.
+The timer checks elapsed seconds since submission (including midnight rollover),
+so cancellation is requested on the first eligible timer tick at/after the deadline.
+It applies only while no fill has appeared; partial-fill and exit behavior is unchanged.
+Short entries remain monitored even with automatic stop/TP features off.
+The timer must remain installed and running in both entry modes.
+
+Compile and install the updated canonical keymap before using these buttons.
+Long presets use Ctrl+Alt+Shift+F9–F12; shorts use Ctrl+Alt+F9–F12,
+in the displayed choice order. Button state is maintained by Stream Deck, not
+read back from DAS: after restarting DAS or LOAD CFG, cycle each selector back
+to the desired value to synchronize its display and DAS. Both defaults reset to 10s in DAS.

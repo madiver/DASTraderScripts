@@ -200,40 +200,40 @@
   label: Short T4 Bid
   scriptPath: hotkeys/short_tier4_bid.das
 
-# Short orders: Ask-
+# Short orders: Ask signed offset
 - id: short_tier1_ask_minus
-  key: Alt+Ctrl+Shift+Win+S
-  label: Short T1 Ask-
+  key: Alt+Ctrl+Shift+F1
+  label: Short T1 Ask Offset
   scriptPath: hotkeys/short_tier1_ask_minus.das
 - id: short_tier2_ask_minus
-  key: Alt+Ctrl+Shift+Win+D
-  label: Short T2 Ask-
+  key: Alt+Ctrl+Shift+F2
+  label: Short T2 Ask Offset
   scriptPath: hotkeys/short_tier2_ask_minus.das
 - id: short_tier3_ask_minus
-  key: Alt+Ctrl+Shift+Win+F
-  label: Short T3 Ask-
+  key: Alt+Ctrl+Shift+F3
+  label: Short T3 Ask Offset
   scriptPath: hotkeys/short_tier3_ask_minus.das
 - id: short_tier4_ask_minus
-  key: Alt+Ctrl+Shift+Win+G
-  label: Short T4 Ask-
+  key: Alt+Ctrl+Shift+F4
+  label: Short T4 Ask Offset
   scriptPath: hotkeys/short_tier4_ask_minus.das
 
-# Short orders: Bid-
+# Short orders: Bid signed offset
 - id: short_tier1_bid_minus
-  key: Alt+Ctrl+Shift+Win+H
-  label: Short T1 Bid-
+  key: Alt+Ctrl+Shift+F5
+  label: Short T1 Bid Offset
   scriptPath: hotkeys/short_tier1_bid_minus.das
 - id: short_tier2_bid_minus
-  key: Alt+Ctrl+Shift+Win+J
-  label: Short T2 Bid-
+  key: Alt+Ctrl+Shift+F6
+  label: Short T2 Bid Offset
   scriptPath: hotkeys/short_tier2_bid_minus.das
 - id: short_tier3_bid_minus
-  key: Alt+Ctrl+Shift+Win+K
-  label: Short T3 Bid-
+  key: Alt+Ctrl+Shift+F7
+  label: Short T3 Bid Offset
   scriptPath: hotkeys/short_tier3_bid_minus.das
 - id: short_tier4_bid_minus
-  key: Alt+Ctrl+Shift+Win+L
-  label: Short T4 Bid-
+  key: Alt+Ctrl+Shift+F8
+  label: Short T4 Bid Offset
   scriptPath: hotkeys/short_tier4_bid_minus.das
 
 # Cover orders: Ask+
@@ -468,3 +468,37 @@
   key:
   label: Resolve Order Route
   scriptPath: hotkeys/resolve_order_route.das
+
+# Independent no-fill entry timeout selectors (0 = indefinite).
+- id: set_long_entry_timeout_10
+  key: Alt+Ctrl+Shift+F9
+  label: Set Long Entry Timeout 10s
+  scriptPath: hotkeys/set_long_entry_timeout_10.das
+- id: set_long_entry_timeout_15
+  key: Alt+Ctrl+Shift+F10
+  label: Set Long Entry Timeout 15s
+  scriptPath: hotkeys/set_long_entry_timeout_15.das
+- id: set_long_entry_timeout_30
+  key: Alt+Ctrl+Shift+F11
+  label: Set Long Entry Timeout 30s
+  scriptPath: hotkeys/set_long_entry_timeout_30.das
+- id: set_long_entry_timeout_indef
+  key: Alt+Ctrl+Shift+F12
+  label: Set Long Entry Timeout INDEF
+  scriptPath: hotkeys/set_long_entry_timeout_indef.das
+- id: set_short_entry_timeout_10
+  key: Alt+Ctrl+F9
+  label: Set Short Entry Timeout 10s
+  scriptPath: hotkeys/set_short_entry_timeout_10.das
+- id: set_short_entry_timeout_15
+  key: Alt+Ctrl+F10
+  label: Set Short Entry Timeout 15s
+  scriptPath: hotkeys/set_short_entry_timeout_15.das
+- id: set_short_entry_timeout_30
+  key: Alt+Ctrl+F11
+  label: Set Short Entry Timeout 30s
+  scriptPath: hotkeys/set_short_entry_timeout_30.das
+- id: set_short_entry_timeout_indef
+  key: Alt+Ctrl+F12
+  label: Set Short Entry Timeout INDEF
+  scriptPath: hotkeys/set_short_entry_timeout_indef.das

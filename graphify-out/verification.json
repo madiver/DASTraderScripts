@@ -1,27 +1,23 @@
 {
-  "source_commit": "67a06e499c119cd997e2e2db0f7101d6246de0e2",
-  "source_snapshot": {
-    "base_commit": "67a06e499c119cd997e2e2db0f7101d6246de0e2",
-    "refreshed_at": "2026-10-25T11:29:56.669596+00:00",
-    "uncommitted_indexed_files": [
-      "AGENTS.md"
-    ],
-    "refreshed_files": {
-      "AGENTS.md": {
-        "sha256": "c47c86235c4e0c0ce74993c66e278b5a560a498567525e0d2724cea610e72032"
-      }
-    },
-    "unchanged_indexed_files_verified": 116,
-    "token_usage_status": "unavailable"
+  "completed_at": "2026-10-28T02:31:12.127379+00:00",
+  "validation": "passed",
+  "source_hashes_verified": 117,
+  "semantic_cache_files_verified": 9,
+  "non_graph_files_unchanged": 120,
+  "nodes": 252,
+  "edges": 991,
+  "communities": 8,
+  "hyperedges": 2,
+  "raw_evidence_edges_preserved": 1000,
+  "source_locations_verified": 1252,
+  "integrity": {
+    "missing_endpoint_edges": 0,
+    "dangling_endpoint_edges": 0,
+    "self_loop_edges": 0,
+    "undirected_same_endpoint_collapsed_edges": 0
   },
-  "nodes": 217,
-  "edges": 853,
-  "communities": 11,
-  "browser_render_verified": true,
-  "browser_error": "Only favicon.ico 404; graph canvas and controls rendered",
-  "trading_sources_unchanged": true,
-  "non_agents_evidence_unchanged": true,
-  "agents_query_verified": true,
-  "pending_refresh_cleared": true,
-  "verified_at": "2026-10-25T11:31:49.932466+00:00"
+  "viewer_screenshot": "preview.png",
+  "viewer_counts": "252 nodes, 991 edges, 8 communities",
+  "preserved_ambiguities": "USERGUIDE.md L539-L549 contradicts itself about useAutoStop gating of BE variants; retained AMBIGUOUS, no trading source changed.",
+  "receipt": "windows-refresh-receipt.json"
 }

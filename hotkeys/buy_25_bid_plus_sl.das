@@ -219,6 +219,9 @@ $order.Type    = "L";      // Limit
 $order.Price   = $pxEntry;
 $order.Share   = $addShares;
 $trade.lastEntrySecond = GetSecond() + 1;
+$trade.entryTimeoutSeconds = $longEntryTimeoutSeconds;
+$trade.entryStarted = GetSecond();
+$trade.entryStage = 0;
 $order.Send();
 $trade.entryPending = 1;
 $trade.entryWatch = 0;
@@ -248,6 +251,13 @@ while ($i < $maxPolls && $filled == 0) {
     $i = $i + 1;
 }
 
+
+// No fill yet: let the timer enforce the captured deadline, including INDEF.
+// Keep inline polling bounded so DAS is never held in an indefinite Wait loop.
+if ($filledQty <= 0 && $order.Open != 0) {
+    ExecHotkey("End Trade Action");
+    return;
+}
 
 // Cancel remaining entry shares before sizing protection from actual fills.
 $order.Cancel();

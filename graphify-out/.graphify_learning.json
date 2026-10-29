@@ -1,0 +1,54 @@
+{
+  "generated_at": "2026-10-28T02:30:25.007307+00:00",
+  "nodes": {
+    "hotkeys_resolve_order_route_script": {
+      "code_fingerprint": "0d6ea6308f191bacfb9a9f0a3717877e9231a770b2373a1d3a0641b41752eeac",
+      "label": "Resolve Order Route",
+      "last": "2026-10-28T02:30:24.108636+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-28T02:30:24.108636+00:00",
+          "outcome": "useful",
+          "q": "How do signed entry offsets connect to short scripts and route selection?"
+        }
+      ],
+      "score": 0.99999976,
+      "source_file": "hotkeys/resolve_order_route.das",
+      "status": "tentative",
+      "uses": 1
+    },
+    "hotkeys_short_tier1_ask_minus_script": {
+      "code_fingerprint": "37f34fcb91054dd086502a0c2262cdeee1865a200f70dffdbebd0c62b9042f58",
+      "label": "Short T1 Ask Offset",
+      "last": "2026-10-28T02:30:24.108636+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-28T02:30:24.108636+00:00",
+          "outcome": "useful",
+          "q": "How do signed entry offsets connect to short scripts and route selection?"
+        }
+      ],
+      "score": 0.99999976,
+      "source_file": "hotkeys/short_tier1_ask_minus.das",
+      "status": "tentative",
+      "uses": 1
+    },
+    "userguide_entry_offsets": {
+      "code_fingerprint": "5d7dfdc4bf5d198d4c7a7b8b74d31dc526b9b1fc0c43590f29da59af1432a78b",
+      "label": "Quote plus signed offset for buys and shorts",
+      "last": "2026-10-28T02:30:24.108636+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-28T02:30:24.108636+00:00",
+          "outcome": "useful",
+          "q": "How do signed entry offsets connect to short scripts and route selection?"
+        }
+      ],
+      "score": 0.99999976,
+      "source_file": "USERGUIDE.md",
+      "status": "tentative",
+      "uses": 1
+    }
+  },
+  "version": 1
+}

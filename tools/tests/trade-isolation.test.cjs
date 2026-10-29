@@ -119,7 +119,61 @@ function runtime() {
 }
 let count=0;
 function test(name,f) {try{f();count++;}catch(e){console.error('FAIL:',name);throw e;}}
+test('keymap shortcuts are unique and offset shorts avoid Windows-key combinations',()=>{
+  const bindings=[...fs.readFileSync(path.join(root,'keymap.yaml'),'utf8')
+    .matchAll(/- id: (.+)\r?\n\s+key:[ \t]*([^\r\n]*)\r?\n/g)];
+  const used=new Map();let offsetShorts=0;
+  for(const [,id,key] of bindings) {
+    if(!key.trim()) continue;
+    const normalized=key.trim().toUpperCase().split('+').sort().join('+');
+    assert(!used.has(normalized),`${id} duplicates ${used.get(normalized)}: ${key}`);
+    used.set(normalized,id);
+    if(/^short_tier[1-4]_(ask|bid)_minus$/.test(id)) {
+      assert(!key.split('+').includes('Win'),`${id} must avoid Windows shell shortcuts`);
+      offsetShorts++;
+    }
+  }
+  assert.equal(offsetShorts,8);
+});
 const buyLabels=[...scripts.keys()].filter(s=>/^Buy .* SL$/.test(s));
+for (const side of ['Long','Short']) for (const seconds of [10,15,30,0]) {
+  const suffix=seconds ? seconds+'s' : 'INDEF';
+  test(side+' timeout selector '+suffix+' only changes its own default',()=>{
+    const r=runtime();r.run(`Set ${side} Entry Timeout ${suffix}`);
+    assert.equal(r.ctx[side==='Long'?'$longEntryTimeoutSeconds':'$shortEntryTimeoutSeconds'],seconds);
+    assert.equal(r.ctx[side==='Long'?'$shortEntryTimeoutSeconds':'$longEntryTimeoutSeconds'],10);
+    assert.equal(r.orders.length,0);assert.equal(r.cancels.length,0);
+  });
+  const labels=side==='Long'?buyLabels:[...scripts.keys()].filter(s=>/^Short T/.test(s));
+  for (const label of labels) test(label+' captures '+suffix+' no-fill deadline',()=>{
+    const r=runtime();r.run(`Set ${side} Entry Timeout ${suffix}`);r.run(label);
+    const entry=r.orders[0];assert(entry);
+    // Changing the selector and reloading config must not alter this entry.
+    r.run(`Set ${side} Entry Timeout ${seconds===15?'30s':'15s'}`);r.run('Set Global Variables');
+    for(let i=1;i<(seconds||40);i++){r.tick();assert.equal(entry.canceled,undefined);}
+    r.tick();assert.equal(entry.canceled,seconds?true:undefined);
+    assert.equal(r.ctx.$tradeActionDepth,0);
+  });
+}
+for(const label of ['Buy MIB Bid SL','Short T1 Bid']) test(label+' timeout handles midnight rollover',()=>{
+  const r=runtime();r.seconds=86395;r.run(label);const entry=r.orders[0];
+  for(let i=0;i<9;i++)r.tick();assert.equal(entry.canceled,undefined);
+  r.tick();assert.equal(entry.canceled,true);
+});
+test('short no-fill timeout remains active when stop and TP features are off',()=>{
+  const r=runtime();r.ctx.$useAutoStop='No';r.ctx.$useTakeProfit='No';r.run('Short T1 Bid');
+  const entry=r.orders[0];for(let i=0;i<10;i++)r.tick();
+  assert.equal(entry.canceled,true);assert.equal(r.orders.length,1);
+});
+for(const seconds of [10,15,30,0]) test('inline no-fill buy yields and retains '+seconds+' second deadline',()=>{
+  const r=runtime();r.ctx.$useTimerArming=0;r.ctx.$longEntryTimeoutSeconds=seconds;r.run('Buy MIB Bid SL');
+  const entry=r.orders[0],t=r.state('LIVE','AAA');assert.equal(t.entryPending,1);
+  assert.equal(entry.canceled,undefined);assert.equal(r.ctx.$tradeActionDepth,0);
+  assert.equal(r.waits.length,20);
+  const start=t.entryStarted;
+  r.seconds=start+(seconds?seconds-1:40);r.runFile('other scripts/timer.das');assert.equal(entry.canceled,undefined);
+  if(seconds){r.seconds=start+seconds;r.runFile('other scripts/timer.das');assert.equal(entry.canceled,true);}
+});
 const longLabels=[...scripts.keys()].filter(s=>!['Set Auto Stop','Set Auto Stop BE 1/1','Set Take Profit'].includes(s)&&/^Sell |^Set Auto Stop/.test(s));
 for(const label of [...buyLabels,...longLabels]) test(label+' rejects short before cancel/send',()=>{
   const r=runtime();r.position('LIVE','AAA',-100);r.availableOverride=0;r.run(label);
@@ -297,7 +351,7 @@ test('guard off supports independently staged long entries',()=>{
   assert.equal(r.state('LIVE','AAA').lastStop,9.5);assert.equal(r.state('LIVE','BBB').lastStop,19.5);
 });
 test('pending timeout cancels original account/symbol after montage swap',()=>{
-  const r=runtime();r.run('Buy MIB Bid SL');r.ctx.$entryMaxTicks=2;r.select('TRSIM','SHORT');r.position('TRSIM','SHORT',-100);r.quote('SHORT');
+  const r=runtime();r.ctx.$longEntryTimeoutSeconds=2;r.run('Buy MIB Bid SL');r.select('TRSIM','SHORT');r.position('TRSIM','SHORT',-100);r.quote('SHORT');
   r.tick();r.tick();assert(r.cancels.every(c=>c.account==='LIVE'&&c.symbol==='AAA'));
   assert.equal(r.state('LIVE','AAA').entryPending,0);
 });
@@ -573,56 +627,78 @@ for(const label of buyLabels) test(label+' inline protection has no throttle pad
   assert.equal(r.orders.at(-1).Type,'SLP');assert.equal(r.orders.at(-1).Share,r.orders[0].Share);
 });
 
-for(let tier=1;tier<=4;tier++) for(const offset of [-0.03,-0.02,-0.01,0.01,0.03]) {
-  test('Bid- short tier '+tier+' applies signed offset '+offset+' and multiplier',()=>{
+for(let tier=1;tier<=4;tier++) for(const offset of [-0.03,-0.02,-0.01,0,0.01,0.03]) {
+  test('Bid offset short tier '+tier+' applies signed offset '+offset+' and multiplier',()=>{
     const r=runtime();r.ctx.$entryBidOffset=offset;r.ctx.$qtyMult=1.5;
-    r.run('Short T'+tier+' Bid-');
+    r.run('Short T'+tier+' Bid Offset');
     assert.equal(r.orders.length,1);const o=r.orders[0];
     assert.equal(o.Side,'SS');assert.equal(o.Type,'L');
     assert.equal(o.Account,'LIVE');assert.equal(o.Symbol,'AAA');
     assert.equal(o.Share,[100,200,300,500][tier-1]*1.5);
-    assert(Math.abs(o.Price-(10-offset))<1e-8);
+    assert(Math.abs(o.Price-(10+offset))<1e-8);
     assert.equal(r.alerts.size,0);assert.equal(r.ctx.$tradeActionDepth,0);
   });
 }
+for(const label of buyLabels.filter(label=>/ (Ask|Bid)\+ SL$/.test(label))) {
+  for(const offset of [-0.03,-0.02,-0.01,0,0.01,0.03]) {
+    test(label+' adds signed entry offset '+offset,()=>{
+      const r=runtime();const ask=label.includes('Ask+');
+      r.ctx.$entryAskOffset=ask?offset:0.13;r.ctx.$entryBidOffset=ask?0.13:offset;
+      r.run(label);assert.equal(r.orders.length,1);const o=r.orders[0];
+      const expected=(ask?10.02:10)+offset;
+      assert.equal(o.Side,'B');assert.equal(o.Type,'L');assert(Math.abs(o.Price-expected)<1e-8);
+      assert.equal(o.Route,expected<10.02?'ARCA1L':'BESTL');
+      assert.equal(r.ctx.$tradeActionDepth,0);
+    });
+  }
+}
+for(let tier=1;tier<=4;tier++) for(const side of ['Ask','Bid']) {
+  test('Short T'+tier+' '+side+' Offset rejects a limit rounded to zero',()=>{
+    const r=runtime();r.quote('AAA',0.0301,0.0301,0.0301);
+    r.ctx['$entry'+side+'Offset']=-0.03;
+    r.run('Short T'+tier+' '+side+' Offset');
+    assert.equal(r.orders.length,0);assert.equal(r.ctx.$tradeActionDepth,0);
+    assert(r.logs.some(s=>s.includes('rounded limit must be positive')));
+  });
+}
 for(let tier=1;tier<=4;tier++) {
-  test('Bid- short tier '+tier+' rejects long before cancellation',()=>{
-    const r=runtime();r.position('LIVE','AAA',100);r.run('Short T'+tier+' Bid-');
+  test('Bid offset short tier '+tier+' rejects long before cancellation',()=>{
+    const r=runtime();r.position('LIVE','AAA',100);r.run('Short T'+tier+' Bid Offset');
     assert.equal(r.orders.length,0);assert.equal(r.cancels.length,0);
   });
 }
-test('Bid- short adds to an existing short and uses the quote after cancellation',()=>{
+test('Bid offset short adds to an existing short and uses the quote after cancellation',()=>{
   const r=runtime();r.position('LIVE','AAA',-50);r.ctx.$entryBidOffset=0.02;
-  r.waitHook=()=>r.quote('AAA',9.9,9.92);r.run('Short T1 Bid-');
-  assert.equal(r.orders.length,1);assert(Math.abs(r.orders[0].Price-9.88)<1e-8);
+  r.waitHook=()=>r.quote('AAA',9.9,9.92);r.run('Short T1 Bid Offset');
+  assert.equal(r.orders.length,1);assert(Math.abs(r.orders[0].Price-9.92)<1e-8);
 });
-test('Bid- short rejects invalid adjusted price and changed montage',()=>{
-  const r=runtime();r.quote('AAA',0.01,0.02);r.ctx.$entryBidOffset=0.03;
-  r.run('Short T1 Bid-');assert.equal(r.orders.length,0);
+test('Bid offset short rejects invalid adjusted price and changed montage',()=>{
+  const r=runtime();r.quote('AAA',0.01,0.02);r.ctx.$entryBidOffset=-0.03;
+  r.run('Short T1 Bid Offset');assert.equal(r.orders.length,0);
   const other=runtime();other.waitHook=()=>other.select('LIVE','BBB');
-  other.run('Short T1 Bid-');assert.equal(other.orders.length,0);
+  other.run('Short T1 Bid Offset');assert.equal(other.orders.length,0);
 });
-test('Bid- short rejects missing bid even when a negative offset gives a positive price',()=>{
-  const r=runtime();r.ctx.$entryBidOffset=-0.01;r.waitHook=()=>r.quote('AAA',0,0.02);r.run('Short T1 Bid-');assert.equal(r.orders.length,0);
+test('Bid offset short rejects missing bid even when a positive offset gives a positive price',()=>{
+  const r=runtime();r.ctx.$entryBidOffset=0.01;r.waitHook=()=>r.quote('AAA',0,0.02);r.run('Short T1 Bid Offset');assert.equal(r.orders.length,0);
 });
 
-for(let tier=1;tier<=4;tier++) for(const offset of [-0.03,-0.02,-0.01,0.01,0.03]) {
-  test('Ask- short tier '+tier+' subtracts signed ASK offset '+offset+' across all size states',()=>{
+for(let tier=1;tier<=4;tier++) for(const offset of [-0.03,-0.02,-0.01,0,0.01,0.03]) {
+  test('Ask offset short tier '+tier+' adds signed ASK offset '+offset+' across all size states',()=>{
     for(const multiplier of [1,1.5,2,3,0.5]) {
       const r=runtime();r.ctx.$entryAskOffset=offset;r.ctx.$entryBidOffset=0.13;r.ctx.$qtyMult=multiplier;
-      r.run('Short T'+tier+' Ask-');
+      r.run('Short T'+tier+' Ask Offset');
       assert.equal(r.orders.length,1);const o=r.orders[0];
       assert.equal(o.Side,'SS');assert.equal(o.Type,'L');
       assert.equal(o.Account,'LIVE');assert.equal(o.Symbol,'AAA');
       assert.equal(o.Share,[100,200,300,500][tier-1]*multiplier);
-      assert(Math.abs(o.Price-(10.02-offset))<1e-8);
+      assert(Math.abs(o.Price-(10.02+offset))<1e-8);
       assert.equal(r.alerts.size,0);assert.equal(r.ctx.$tradeActionDepth,0);
     }
   });
 }
 for(let tier=1;tier<=4;tier++) {
-  test('Ask- short tier '+tier+' rejects long before cancellation',()=>{
-    const r=runtime();r.position('LIVE','AAA',100);r.run('Short T'+tier+' Ask-');
+  test('Ask offset short tier '+tier+' rejects long before cancellation',()=>{
+    const r=runtime();r.position('LIVE','AAA',100);r.run('Short T'+tier+' Ask Offset');
     assert.equal(r.orders.length,0);assert.equal(r.cancels.length,0);
   });
   test('page 3 plain Ask and Bid tier '+tier+' ignore both entry offsets',()=>{
@@ -633,27 +709,27 @@ for(let tier=1;tier<=4;tier++) {
     }
   });
 }
-test('Ask- short uses fresh quote after cancellation and adds to an existing short',()=>{
+test('Ask offset short uses fresh quote after cancellation and adds to an existing short',()=>{
   const r=runtime();r.position('LIVE','AAA',-50);r.ctx.$entryAskOffset=-0.01;
-  r.waitHook=()=>r.quote('AAA',9.9,9.92);r.run('Short T1 Ask-');
-  assert.equal(r.orders.length,1);assert(Math.abs(r.orders[0].Price-9.93)<1e-8);
+  r.waitHook=()=>r.quote('AAA',9.9,9.92);r.run('Short T1 Ask Offset');
+  assert.equal(r.orders.length,1);assert(Math.abs(r.orders[0].Price-9.91)<1e-8);
 });
-test('Ask- short rejects missing Ask despite a negative offset, invalid limits, and changed context',()=>{
-  const r=runtime();r.ctx.$entryAskOffset=-0.01;r.waitHook=()=>r.quote('AAA',0.01,0);r.run('Short T1 Ask-');
+test('Ask offset short rejects missing Ask despite a positive offset, invalid limits, and changed context',()=>{
+  const r=runtime();r.ctx.$entryAskOffset=0.01;r.waitHook=()=>r.quote('AAA',0.01,0);r.run('Short T1 Ask Offset');
   assert.equal(r.orders.length,0);
-  const invalid=runtime();invalid.quote('AAA',0.01,0.02);invalid.ctx.$entryAskOffset=0.03;
-  invalid.run('Short T1 Ask-');assert.equal(invalid.orders.length,0);
+  const invalid=runtime();invalid.quote('AAA',0.01,0.02);invalid.ctx.$entryAskOffset=-0.03;
+  invalid.run('Short T1 Ask Offset');assert.equal(invalid.orders.length,0);
   const switched=runtime();switched.waitHook=()=>switched.select('LIVE','BBB');
-  switched.run('Short T1 Ask-');assert.equal(switched.orders.length,0);
+  switched.run('Short T1 Ask Offset');assert.equal(switched.orders.length,0);
   const turnedLong=runtime();turnedLong.waitHook=()=>turnedLong.position('LIVE','AAA',100);
-  turnedLong.run('Short T1 Ask-');assert.equal(turnedLong.orders.length,0);
+  turnedLong.run('Short T1 Ask Offset');assert.equal(turnedLong.orders.length,0);
 });
-test('Ask- AUTOL uses taking bands when crossing Bid and ARCA when resting',()=>{
-  const r=runtime();r.quote('AAA',1,1.02,1);r.ctx.$entryAskOffset=0.04;
-  r.run('Set Order Route AUTOL');r.run('Short T1 Ask-');
+test('Ask offset AUTOL uses taking bands when crossing Bid and ARCA when resting',()=>{
+  const r=runtime();r.quote('AAA',1,1.02,1);r.ctx.$entryAskOffset=-0.04;
+  r.run('Set Order Route AUTOL');r.run('Short T1 Ask Offset');
   assert.equal(r.orders[0].Price,0.98);assert.equal(r.orders[0].Route,'BESTL');
-  const passive=runtime();passive.quote('AAA',0.98,0.99,0.99);passive.ctx.$entryAskOffset=-0.03;
-  passive.run('Set Order Route AUTOL');passive.run('Short T1 Ask-');
+  const passive=runtime();passive.quote('AAA',0.98,0.99,0.99);passive.ctx.$entryAskOffset=0.03;
+  passive.run('Set Order Route AUTOL');passive.run('Short T1 Ask Offset');
   assert.equal(passive.orders[0].Price,1.02);assert.equal(passive.orders[0].Route,'ARCA1L');
 });
 
@@ -991,12 +1067,12 @@ test('a partial short-stop fill keeps its already-working remaining BUY shares',
   assert.equal(r.state('LIVE','AAA').shortStopQty,40);
 });
 test('short no-fill timeout waits for cancellation and does not arm a stop while flat',()=>{
-  const r=runtime();r.ctx.$entryMaxTicks=2;r.run('Short T1 Bid');const entry=r.orders[0];
+  const r=runtime();r.ctx.$shortEntryTimeoutSeconds=2;r.run('Short T1 Bid');const entry=r.orders[0];
   r.tick();r.tick();assert.equal(entry.canceled,true);r.tick();
   assert.equal(r.orders.length,1);assert.equal(r.state('LIVE','AAA').active,0);
 });
 test('short fill racing timeout cancellation still receives protection',()=>{
-  const r=runtime();r.ctx.$entryMaxTicks=1;r.run('Short T1 Bid');const entry=r.orders[0];
+  const r=runtime();r.ctx.$shortEntryTimeoutSeconds=1;r.run('Short T1 Bid');const entry=r.orders[0];
   r.cancelHook=o=>{o.Open=0;r.position('LIVE','AAA',-25,10);};r.tick();r.cancelHook=null;r.tick();
   assert.equal(r.orders.length,2);assert.equal(r.orders[1].Share,25);assert.equal(r.orders[1].Type,'SLP');
 });

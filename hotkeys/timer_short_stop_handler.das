@@ -11,7 +11,9 @@ if ($trade.shortEntryPending == 1 && IsObj($tsEntryOrder)) {
         $trade.shortEntryPending = 0;
     } else {
         $trade.shortEntryTicks = $trade.shortEntryTicks + 1;
-        if ($entryMaxTicks > 0 && $trade.shortEntryTicks >= $entryMaxTicks) {
+        $shortEntryElapsed = GetSecond() - $trade.shortEntryStarted;
+        if ($shortEntryElapsed < 0) { $shortEntryElapsed = $shortEntryElapsed + 86400; }
+        if ($trade.shortEntryTimeoutSeconds > 0 && $shortEntryElapsed >= $trade.shortEntryTimeoutSeconds) {
             $tsEntryOrder.Cancel();
             // Keep checking until cancellation (or a racing fill) is visible.
             return;

@@ -80,8 +80,8 @@ SetVar("TRADE_CONTEXT_ACCOUNT", $myAcc);
 SetVar("TRADE_CONTEXT_SYMBOL", $mySym);
 ExecHotkey("Load Trade Context");
 if ($tradeContextValid == 1) { ExecHotkey("Invalidate Trade Alerts"); }
-if (($useAutoStop == "Yes" || $useTakeProfit == "Yes") && $tradeContextValid != 1) {
-    MsgLog("Short entry aborted: protection context unavailable.");
+if ($tradeContextValid != 1) {
+    MsgLog("Short entry aborted: entry context unavailable.");
     ExecHotkey("End Trade Action");
     return;
 }
@@ -144,8 +144,10 @@ $order.Side    = "SS";
 $order.Type    = "L";
 $order.Price   = $px;
 $order.Share   = $qty;
+$trade.shortEntryTimeoutSeconds = $shortEntryTimeoutSeconds;
+$trade.shortEntryStarted = GetSecond();
 $order.Send();
-if (($useAutoStop == "Yes" || $useTakeProfit == "Yes") && $tradeContextValid == 1) {
+if ($tradeContextValid == 1) {
     $trade.active = 1;
     $trade.shortWatch = 1;
     $trade.shortEntryPending = 1;

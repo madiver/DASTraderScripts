@@ -6,17 +6,18 @@ if (GetVar("tradeActionDepth") * 1 > 0 && GetVar("TRADE_CONTEXT_ACCOUNT") == "")
 $tradeActionDepth = GetVar("tradeActionDepth") * 1 + 1;
 if ($tradeActionDepth == 1) { $tradeActionUntil = GetSecond() + 30; }
 // =====================
-// SHORT TIER 1 AT BID - OFFSET
-// Group: Short orders: Bid-
+// SHORT TIER 1 AT BID + SIGNED OFFSET
+// Group: Short orders: Bid offset
 // =====================
-// Sends a Tier 1 sell-short limit order at Bid - $entryBidOffset.
+// Sends a Tier 1 sell-short limit order at Bid + $entryBidOffset.
+// Negative offsets price below the quote; positive offsets price above it.
 // Actual short fills arm stop/TP through the timer when their features are enabled.
 
 FocusWindow Primary_OE;
 
 $M = GetWindowObj("Primary_OE");
 if (!IsObj($M)) {
-    MsgBox("Short Tier 1 Bid- aborted: Primary_OE montage unavailable.");
+    MsgBox("Short Tier 1 Bid offset aborted: Primary_OE montage unavailable.");
     ExecHotkey("End Trade Action");
     return;
 }
@@ -26,7 +27,7 @@ $mySym  = StrTrim("" + $M.Symb);
 $posNow = $M.GetCurrPos();
 
 if ($myAcc == "" || $mySym == "") {
-    MsgBox("Short Tier 1 Bid- aborted: account or symbol unavailable.");
+    MsgBox("Short Tier 1 Bid offset aborted: account or symbol unavailable.");
     ExecHotkey("End Trade Action");
     return;
 }
@@ -40,17 +41,17 @@ while ($posNow == 0 && $M.Pos != 0 && $shortPosPoll < 10) {
     $shortPosPoll = $shortPosPoll + 1;
 }
 if ($posNow == 0 && $M.Pos != 0) {
-    MsgBox("Short Tier 1 Bid- aborted: unable to resolve current position direction.");
+    MsgBox("Short Tier 1 Bid offset aborted: unable to resolve current position direction.");
     ExecHotkey("End Trade Action");
     return;
 }
 if ($posNow > 0) {
-    MsgBox("Short Tier 1 Bid- aborted: close the long position first.");
+    MsgBox("Short Tier 1 Bid offset aborted: close the long position first.");
     ExecHotkey("End Trade Action");
     return;
 }
 if ($orderRoute == "") {
-    MsgBox("Short Tier 1 Bid- aborted: orderRoute is not configured.");
+    MsgBox("Short Tier 1 Bid offset aborted: orderRoute is not configured.");
     ExecHotkey("End Trade Action");
     return;
 }
@@ -59,12 +60,12 @@ $rawShares = $tier1ShareSize * $qtyMult;
 $roundedShares = $rawShares + 0.5;
 $qty = $roundedShares - ($roundedShares % 1);
 if ($qty < 1) {
-    MsgBox("Short Tier 1 Bid- aborted: invalid Tier 1 share size.");
+    MsgBox("Short Tier 1 Bid offset aborted: invalid Tier 1 share size.");
     ExecHotkey("End Trade Action");
     return;
 }
 if (Bid <= 0) {
-    MsgBox("Short Tier 1 Bid- aborted: Bid or offset-adjusted price is invalid.");
+    MsgBox("Short Tier 1 Bid offset aborted: Bid or offset-adjusted price is invalid.");
     ExecHotkey("End Trade Action");
     return;
 }
@@ -80,8 +81,8 @@ SetVar("TRADE_CONTEXT_ACCOUNT", $myAcc);
 SetVar("TRADE_CONTEXT_SYMBOL", $mySym);
 ExecHotkey("Load Trade Context");
 if ($tradeContextValid == 1) { ExecHotkey("Invalidate Trade Alerts"); }
-if (($useAutoStop == "Yes" || $useTakeProfit == "Yes") && $tradeContextValid != 1) {
-    MsgLog("Short entry aborted: protection context unavailable.");
+if ($tradeContextValid != 1) {
+    MsgLog("Short entry aborted: entry context unavailable.");
     ExecHotkey("End Trade Action");
     return;
 }
@@ -90,7 +91,7 @@ Wait(100);
 // Recheck direction after the cancel delay so this hotkey cannot reverse a long.
 $symNow = StrTrim("" + $M.Symb);
 if ($symNow != $mySym || StrTrim("" + $M.Account) != $myAcc) {
-    MsgBox("Short Tier 1 Bid- aborted: montage account or symbol changed.");
+    MsgBox("Short Tier 1 Bid offset aborted: montage account or symbol changed.");
     ExecHotkey("End Trade Action");
     return;
 }
@@ -102,19 +103,21 @@ while ($posNow == 0 && $M.Pos != 0 && $shortPosPoll < 10) {
     $shortPosPoll = $shortPosPoll + 1;
 }
 if ($posNow == 0 && $M.Pos != 0) {
-    MsgBox("Short Tier 1 Bid- aborted: unable to resolve position direction after cancelling orders.");
+    MsgBox("Short Tier 1 Bid offset aborted: unable to resolve position direction after cancelling orders.");
     ExecHotkey("End Trade Action");
     return;
 }
 if ($posNow > 0) {
-    MsgBox("Short Tier 1 Bid- aborted: position became long.");
+    MsgBox("Short Tier 1 Bid offset aborted: position became long.");
     ExecHotkey("End Trade Action");
     return;
 }
 
-$px = Bid - $entryBidOffset;
-if (Bid <= 0 || $px <= 0) {
-    MsgBox("Short Tier 1 Bid- aborted: Bid or offset-adjusted price is invalid.");
+$shortOffsetRef = Bid;
+$shortOffsetSelected = $entryBidOffset;
+$px = $shortOffsetRef + $shortOffsetSelected;
+if ($shortOffsetRef <= 0 || $px <= 0) {
+    MsgBox("Short Tier 1 Bid offset aborted: Bid or offset-adjusted price is invalid.");
     ExecHotkey("End Trade Action");
     return;
 }
@@ -122,6 +125,11 @@ $inc = 0.01;
 if ($px < 1)    { $inc = 0.001; }
 if ($px < 0.25) { $inc = 0.0005; }
 $px = Round($px, 102, $inc);
+if ($px <= 0) {
+    MsgBox("Short Tier 1 Bid offset aborted: rounded limit must be positive.");
+    ExecHotkey("End Trade Action");
+    return;
+}
 
 // Resolve AUTOL immediately before this submission; manual routes pass through.
 $routeRequest = $orderRoute;
@@ -144,8 +152,10 @@ $order.Side    = "SS";
 $order.Type    = "L";
 $order.Price   = $px;
 $order.Share   = $qty;
+$trade.shortEntryTimeoutSeconds = $shortEntryTimeoutSeconds;
+$trade.shortEntryStarted = GetSecond();
 $order.Send();
-if (($useAutoStop == "Yes" || $useTakeProfit == "Yes") && $tradeContextValid == 1) {
+if ($tradeContextValid == 1) {
     $trade.active = 1;
     $trade.shortWatch = 1;
     $trade.shortEntryPending = 1;
@@ -154,6 +164,6 @@ if (($useAutoStop == "Yes" || $useTakeProfit == "Yes") && $tradeContextValid == 
     $trade.shortEntryPosBefore = $posNow;
 }
 
-MsgLog("Short Tier 1 Bid-: sent " + $qty + " " + $mySym + " at Bid- " + $px + " via " + $resolvedOrderRoute + ".");
+MsgLog("Short Tier 1 Bid offset: sent " + $qty + " " + $mySym + " at limit " + $px + " (Bid " + $shortOffsetRef + "; offset " + $shortOffsetSelected + ") via " + $resolvedOrderRoute + ".");
 
 ExecHotkey("End Trade Action");

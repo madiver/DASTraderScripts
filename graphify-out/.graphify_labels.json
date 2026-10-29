@@ -1,13 +1,10 @@
 {
-  "0": "Regression Test Harness",
-  "1": "Trading Rules and Risks",
-  "2": "Manual Order Execution",
-  "3": "Bindings and Presets",
+  "0": "Trading Rules and Risks",
+  "1": "Bindings and Presets",
+  "2": "Regression Test Harness",
+  "3": "Manual Order Execution",
   "4": "Long Entry Protection",
   "5": "Exit and Short Protection",
-  "6": "Repository Graphify Policy",
-  "7": "Initialization and Timer",
-  "8": "History and Rollback",
-  "9": "Momo Swap Qualification",
-  "10": "Account Mode Switching"
+  "6": "History and Rollback",
+  "7": "Repository Graphify Policy"
 }
