@@ -1,5 +1,10 @@
 # USER GUIDE
 
+Reviewed against repository source on 2026-10-29. Runtime behavior below describes
+the scripts, not a guarantee that the same revision is installed in DAS.
+`keymap.yaml` is the binding authority; `hotkeys/set_global_variables.das` is the
+default-setting authority. Historical migrations are identified separately.
+
 ## OVERVIEW
 
 These scripts are the hotkeys I use in DAS Trader for active, discretionary day trading. They focus on fast, repeatable order entry with guard rails. I treat the micro ice breaker and ice breaker (Buy MIB/IB) entries as the first tests of a trade thesis. Trade state is isolated by account and symbol, so a protected short in another symbol can coexist with an automated long. The default single-position guard allows one tracked automated long per account; manual shorts do not occupy that guard.
@@ -10,27 +15,27 @@ Repository structure: the `hotkeys/` folder contains the `.das` hotkey scripts, 
 
 These scripts assume you have a primary montage window named `Primary_OE` (Primary Order Entry) and a chart window named `Primary_Chart`. If that montage name does not exist, many scripts will fail or behave incorrectly. The chart name is used for symbol synchronization. You can reference my DAS Trader desktop and chart settings here: https://github.com/madiver/DASTraderConfig
 
-Regardless of the method you choose, the timer script must be installed manually in DAS Trader under "Timer Event Scripts," and the chart script must be installed manually under the chart "Scripting" section (see details below). I also recommend adding `ExecHotKey("Set Global Variables");` to your Desktop Load Scripts so globals are initialized every time DAS starts.
+Regardless of the method you choose, install `other scripts/timer.das` manually in DAS Trader under "Timer Event Scripts." There is no chart scripting file in the current repository; the named chart is used for symbol synchronization, not a required chart study script. I also recommend adding `ExecHotKey("Set Global Variables");` to your Desktop Load Scripts so globals are initialized every time DAS starts.
 
 ## QUICK START
 
-1) Build or import hotkeys:
-   - Use the DAS Hotkey Tools VS Code extension to compile `keymap.yaml` into `Hotkey.htk`, then load it in DAS, or
-   - Copy/paste the `.das` scripts into DAS manually.
-2) If you use the VS Code extension, set these settings first:
+1) Before compiling, configure the DAS Hotkey Tools VS Code extension:
    - `dasHotkeyTools.outputPath` (required).
    - `dasHotkeyTools.liveAccount` and `dasHotkeyTools.simulatedAccount` for `%%LIVE%%` / `%%SIMULATED%%` substitution.
    - Optional: `dasHotkeyTools.placeholders.failOnMissing` to block builds when placeholders are unresolved.
+2) Build the complete `keymap.yaml` and load the resulting hotkey file through your normal installation workflow, or copy every mapped `.das` script manually using its exact keymap label. Internal/unbound helpers are required too.
 3) Ensure your montage is named `Primary_OE`, the timer script `other scripts/timer.das` is installed under Timer Event Scripts, and the chart used for symbol synchronization is named `Primary_Chart`.
-4) Run `switch_to_sim.das` or `switch_to_live.das` to set the montage account and filters.
-5) Run `set_global_variables.das` to initialize globals. On this upgrade, replace the installed Timer Event Script with the new `other scripts/timer.das` as well as recompiling/reloading all hotkeys. Existing symbol-only TP alerts are ignored by the new executor; recreate those alerts with the updated builder.
+4) Run **Set Global Variables** to initialize defaults, then **Switch to Sim** for initial validation. Use **Switch to Live** only when intentionally changing to your live account.
+5) Run **Show Config** to confirm account mode, defaults, guard states, and entry timeouts. Recreate legacy TP alerts with the current builder after an upgrade.
+6) Keep the timer enabled in both entry modes. Stream Deck profiles are external to this repository; configure the buttons to match the installed keymap. See [Stream Deck controls](#entry-timeout-controls) and [asset/setup notes](assets/streamdeck/README.md).
+
+### Migration from older installations
 
 FLASH CRASH TRIG has been retired. Replace the complete hotkey map to remove
 the old `Set Backstop Trigger`, `Backstop Exit Executor`, and `Build Backstop
 Alert` entries, including `Alt+Ctrl+Win+8`. Delete any previously armed
-`Backstop ...` alerts in DAS. Its button slot is now empty in both physical and
-Virtual Stream Deck profiles.
-6) Use `show_config.das` to confirm account mode, defaults, and guard states.
+`Backstop ...` alerts in DAS. The retired action is absent from the current
+local profile setup; see the Stream Deck notes for the new timeout controls.
 
 For the exit-coordinator rollback, install while flat with no working orders.
 Replace both the compiled hotkeys and the complete Timer Event Script, save the
@@ -42,7 +47,7 @@ Important: update `$TRSIM` and `$LIVEACT` in `hotkeys/set_global_variables.das` 
 
 By default (`$useTimerArming = 1`), a buy hotkey sends the limit order, records entry context, and returns immediately. A timer-driven handler arms stop loss / take profit on the first 1-second tick that sees a clean fresh fill. If there are working SELLs, or this is a scale-in, it cancels existing SELLs and submits replacement protection on a subsequent tick. A bounded order-history check falls back to ordinary cancellation staging if it cannot prove that no working SELL exists. If position size increases on later ticks, the handler resizes the stop and only re-arms TP when the TP reset conditions are met. If no fill appears within its captured `$longEntryTimeoutSeconds` (unless 0/INDEF), it cancels the working buy order and clears pending state. With `$useTimerArming = 0`, buy hotkeys poll for actual fills up to `$maxPolls * $pollMs` and cancel any remainder before protecting shares received. With no fill and an open order after that bounded poll, they return and leave the captured entry deadline to the timer, including INDEF. They do not add the former 1,000 ms padding wait before protection. A second inline buy in the same account/symbol is blocked during `$entryCooldownSeconds` instead; this uses whole-second clock values, not millisecond precision.
 
-TP and half/quarter manual exits always use timer-managed fill monitoring, regardless of `$useTimerArming`. Keep the current Timer Event Script installed and enabled in both entry modes.
+Automatic TP exits and half/quarter long sells use timer-managed fill monitoring, regardless of `$useTimerArming`. Native manual covers are different: they have no scripted fill deadline, and short protection waits for working BUY orders to finish/cancel. Keep the current Timer Event Script installed and enabled in both entry modes.
 
 Short fills and stop resizing also use the timer, independently of `$useTimerArming`.
 With stops enabled, the first observed partial fill receives protection; later
@@ -53,7 +58,7 @@ Stops off means short entries do not start automatic protection. RESET can
 still manually place a short stop with stops off. Short take profit arms
 independently when `$useTakeProfit = "Yes"`, even if automatic stops are off.
 
-Stops are placed as STOP/SLP orders routed to the broker, which means the stop logic lives on the broker side once submitted. Take-profit is implemented with DAS alerts that fire when price reaches the configured R target and then execute the Take Profit hotkey; those alerts are client-side and require DAS to remain open with live data.
+The scripts submit STOP/SLP orders. Verify acceptance, trigger hosting, session eligibility, and stop-limit behavior with your broker; submission alone does not establish protection. Take-profit is implemented with DAS alerts that fire when price reaches the configured R target and then execute the Take Profit hotkey; those alerts are client-side and require DAS to remain open with live data.
 
 ## GLOBAL VARIABLES
 
@@ -76,15 +81,14 @@ Feature toggles and entry guards:
 - `$useSlippageMargin`: enables the stop-vs-bid margin check in buy scripts.
 - `$slipTicksMin`: minimum tick margin for slippage checks.
 - `$slipSpreadFrac`: fraction of spread added to the slippage margin.
-- `$acceptPartial`: allows partial fills within the polling window.
-- `$minFillShares`: minimum shares to accept when partial fills are allowed.
-- `$cancelRemainderOnPartial`: cancels the unfilled remainder before arming stops.
+- `$acceptPartial` / `$minFillShares`: allow inline buy polling to end early when a sufficient partial fill appears. If the poll window expires with any actual fill, the script still cancels the remainder and protects the filled shares. These settings do not gate timer-mode first-fill detection.
+- `$cancelRemainderOnPartial`: retained legacy configuration/display field; current execution scripts do not read it. Inline buys cancel their remainder once a fill is processed. Timer-mode entries leave the remainder working and resize protection on later fills.
 - `$usePerTradeRiskCap`: blocks entries if projected net risk to the planned stop exceeds `$riskCapDollars`.
 - `$useSpreadCheck`: enables spread-vs-R safety checks before entries.
 - `$pegToBid`: when enabled, BE limit sells can peg to bid instead of AvgCost.
 - `$hijackProtection`: enables the position-size hijack backstop (LIVE, and SIM when `$applyLiveGuardsToSim = 1`); defaults to `0` (disabled).
 - `$applyLiveGuardsToSim`: when set to 1, apply hijack and rehab guards in SIM; defaults to 0 (live-only).
-- `$singlePositionGuard`: when set to 1 (default), block new entries on a different symbol (script-tracked).
+- `$singlePositionGuard`: when set to 1 (default), block new long entries while another tracked long in the same account remains active. Other pending long entries block buys even when this toggle is off; short entries bypass these long-side guards.
 - `$useAutoStop`: toggles auto stop placement.
 - `$useTakeProfit`: toggles take-profit alerts/executor behavior.
 - `$resetStopOnCancel`: restores the stop after `cancel_all.das` for either direction when stops are enabled; shorts wait for BUY cancellations through the timer.
@@ -131,9 +135,9 @@ Sizing and risk limits:
 
 Order fill polling:
 - `$pollMs`: polling interval in milliseconds.
-- `$maxPolls`: maximum number of polls before canceling an unfilled order.
-  Inline buys use these directly; manual partial exits use their product as a
-  timeout in seconds, checked on timer ticks. TP has a fixed three-second timeout.
+- `$maxPolls`: maximum inline buy fill polls before returning to timer monitoring if the order is still open with no fill. It is not the long-entry cancellation deadline.
+- `$longEntryTimeoutSeconds` / `$shortEntryTimeoutSeconds`: independent no-fill entry deadlines captured at submission; presets are 10, 15, 30 seconds and 0 (INDEF). Both default to 10.
+- Half/quarter long sells use `($maxPolls * $pollMs) / 1000` as their timer-managed exit deadline (default 2 seconds); automatic TP exits use 3 seconds. Native manual covers do not use those deadlines.
 - `$entryCooldownSeconds`: minimum difference between whole-second send timestamps
   for inline entries in the same account/symbol (default `1`; `0` disables it).
   This guard returns immediately and does not delay stop arming.
@@ -141,6 +145,8 @@ Order fill polling:
 Trade runtime (each `$trade` belongs to exactly one account and symbol):
 - `$trade.account`, `$trade.symbol`, `$trade.key`: immutable order identity.
 - `$trade.entryPending`, `$trade.entryStage`, `$trade.entryTicks`: fill/protection staging; deadlines are snapshotted separately from `$longEntryTimeoutSeconds` / `$shortEntryTimeoutSeconds`.
+- `$trade.entryStarted`, `$trade.entryTimeoutSeconds`: submission second and captured long no-fill deadline.
+- `$trade.shortEntryStarted`, `$trade.shortEntryTimeoutSeconds`: corresponding short snapshot.
 - `$trade.entryPosBefore`, `$trade.entryAvgBefore`, `$trade.entryScaleIn`: captured entry context.
 - `$trade.entryRefPx`: submitted entry reference, retained for diagnostics rather than substituting for an unknown average cost.
 - `$trade.entryWatch`, `$trade.entryLastPos`: detect later size increases.
@@ -170,7 +176,9 @@ The timer reads signed `GetAccountObj(account).GetPosition(symbol).Share`, inclu
 ### Defaults table
 
 Defaults are pulled from `hotkeys/set_global_variables.das` and reflect the
-baseline values when you run "Set Global Variables."
+configuration values when you run "Set Global Variables." Rows for `$trade.*`
+describe initialization of new contexts, not values overwritten on LOAD CFG;
+existing trade objects and their captured deadlines are preserved.
 
 | Category | Variable | Default |
 | --- | --- | --- |
@@ -198,7 +206,7 @@ baseline values when you run "Set Global Variables."
 | Toggles | `$slipSpreadFrac` | `0.25` |
 | Toggles | `$acceptPartial` | `1` |
 | Toggles | `$minFillShares` | `1` |
-| Toggles | `$cancelRemainderOnPartial` | `1` |
+| Toggles | `$cancelRemainderOnPartial` | `1` (legacy; not read by execution scripts) |
 | Toggles | `$usePerTradeRiskCap` | `1` |
 | Toggles | `$useSpreadCheck` | `1` |
 | Toggles | `$pegToBid` | `0` |
@@ -353,6 +361,15 @@ scripts rather than direct invocation.
 | Unbound | `hotkeys/load_trade_context.das`, `hotkeys/read_trade_position.das` | Select an account/symbol trade and read signed position/quote data. |
 | Unbound | `hotkeys/clear_trade_state.das`, `hotkeys/invalidate_trade_alerts.das` | Clean up one closed trade or suspend its automation for a manual cancel/exit. |
 | Unbound | `hotkeys/end_trade_action.das` | Release the trade action lease and process queued GTFO requests. |
+| `Ctrl+Shift+F12` | `hotkeys/swap_internal.das` | Internal Momo symbol swap; invoke through Momo after its checks, not as a direct trading shortcut. |
+| `Alt+Ctrl+Shift+F9` | `hotkeys/set_long_entry_timeout_10.das` | Set future long-entry no-fill timeout to 10s. |
+| `Alt+Ctrl+Shift+F10` | `hotkeys/set_long_entry_timeout_15.das` | Set future long-entry no-fill timeout to 15s. |
+| `Alt+Ctrl+Shift+F11` | `hotkeys/set_long_entry_timeout_30.das` | Set future long-entry no-fill timeout to 30s. |
+| `Alt+Ctrl+Shift+F12` | `hotkeys/set_long_entry_timeout_indef.das` | Set future long-entry no-fill timeout to INDEF. |
+| `Alt+Ctrl+F9` | `hotkeys/set_short_entry_timeout_10.das` | Set future short-entry no-fill timeout to 10s. |
+| `Alt+Ctrl+F10` | `hotkeys/set_short_entry_timeout_15.das` | Set future short-entry no-fill timeout to 15s. |
+| `Alt+Ctrl+F11` | `hotkeys/set_short_entry_timeout_30.das` | Set future short-entry no-fill timeout to 30s. |
+| `Alt+Ctrl+F12` | `hotkeys/set_short_entry_timeout_indef.das` | Set future short-entry no-fill timeout to INDEF. |
 
 ## BUY ORDERS
 
@@ -362,8 +379,10 @@ Rehab mode is a safety throttle for live trading. When enabled (`$rehab = 1`), t
 
 ### Configurable entry tiers
 
-The physical and Virtual Stream Deck DAS Trader profiles each have 20 buy,
-buy-offset, and short buttons displaying these share counts for each multiplier:
+The keymap contains 16 buy variants (four tiers across Bid, Ask, Bid+ and Ask+)
+and 16 short variants (four tiers across plain and offset Ask/Bid). The local
+physical and Virtual profiles use the following quantity labels; the profiles
+themselves are not distributed by this repository:
 
 | Multiplier | Tier 1 (MIB) | Tier 2 (IB) | Tier 3 | Tier 4 |
 | --- | ---: | ---: | ---: | ---: |
@@ -387,8 +406,9 @@ the display; order quantities remain the same.
 - The `buy_25_*` scripts use `$tier3ShareSize` (default 300 shares), and the
   `buy_50_*` scripts use `$tier4ShareSize` (default 500 shares). Their legacy
   filenames and IDs are retained to avoid breaking existing integrations.
-- All buy scripts enforce `$maxPositionSize` and `$riskCapDollars` before
-  sending an order.
+- All buy scripts clip the requested add to remaining `$maxPositionSize` capacity
+  (when the cap is positive) and reject excessive projected risk when
+  `$usePerTradeRiskCap` is enabled. Short entries do not use these long-side caps.
 - Bid+ versions add `$entryBidOffset` to bid; Ask+ versions add
   `$entryAskOffset` to ask. Positive offsets price above the reference quote;
   negative offsets price below it, before tick rounding.
@@ -421,8 +441,9 @@ position has moved at least 1R in your favor.
 - When adding to a position, the scripts arm the scale-in BE stop
   (`Set Auto Stop BE Scale 1/1`) so the combined position is protected.
 - Rehab mode (`$rehab = 1`) blocks scale-ins entirely in LIVE and SIM when `$applyLiveGuardsToSim = 1`.
-- Entries are rejected if `$maxPositionSize` or the net risk to the planned stop
-  would exceed `$riskCapDollars` after the add.
+- Buy sizing is clipped to the remaining `$maxPositionSize` capacity; no order
+  is sent when capacity is exhausted. The risk-cap check rejects an add when
+  projected net risk to its planned stop exceeds `$riskCapDollars`.
 - Spread safety checks and slippage margins guard entries before an order is
   sent.
 
@@ -477,7 +498,9 @@ restrictions with the broker.
   Quantities are calculated after cancelling older orders, rounded down to
   whole shares, and clamped to at least one share and at most the current position.
   They do nothing while flat and abort if the montage account or symbol changes.
-  Like Cover 1/1, they reduce a long if invoked while long.
+  Like Cover 1/1, they reduce a long if invoked while long. That long-side use
+  does not enter the half/quarter sell protection workflow and does not restore
+  long protection automatically; use the Sell hotkeys for managed long partials.
   On page 3 of both Stream Deck profiles, the buttons are arranged
   Cover 1/4, Cover 1/2, Cover 1/1 from left to right.
 - `Cover 1/1 Bid`, `Cover 1/2 Bid`, and `Cover 1/4 Bid` use plain Bid
@@ -527,7 +550,7 @@ protection rather than inventing a quantity or price.
 - Ask sells place a limit order at the current Ask (price first).
 - Bid- sells place a limit order at Bid minus the smaller of `$exitOffset` and
   `Bid * $exitOffsetMaxPct` (or the fixed offset when the ceiling is disabled).
-- Bid- prices are snapped to valid tick sizes and clamped to non-negative values.
+- Bid- prices are snapped to valid tick sizes and kept positive.
 - After a full fill, partial fill, rejection, or timeout on half/quarter sells,
   the timer restores `Set Auto Stop` and `Set Take Profit` when enabled and a
   remaining long is confirmed. These stages never use `Wait`.
@@ -536,18 +559,22 @@ protection rather than inventing a quantity or price.
 
 ### Break-even stop losses / sell orders
 
-Break-even (BE) scripts move protection to breakeven once a position is working.
-They do not check `$useAutoStop`, so BE hotkeys (and TP-driven BE adjustments)
-still work even when automatic stops are disabled.
+Break-even (BE) scripts move protection toward breakeven once a position is
+working. Manual BE remains available with automatic stops off; timer-driven
+TP adjustments are gated by `$useAutoStop` in the exit handler.
 
 - For the standard BE scripts (1/1 and 1/2), if price has not reached the BE
   trigger (currently `$0.03` above avg cost), they place a BE limit sell.
-- Once price clears the trigger, those scripts place a stop-limit above
-  breakeven (stop at avg + offset, limit at avg).
+- For longs, once Bid reaches the rounded average plus $0.03, those scripts
+  place a stop-limit with that trigger and a limit at rounded average. Full-BE
+  for shorts mirrors this: trigger at average minus $0.03 and limit at average;
+  if Ask is above the trigger, it uses a buy limit near average instead.
 - The scale-in BE script uses a stop-limit even before the trigger (stop at
   avg cost), then moves to a stop above BE once the trigger is cleared.
-- Variants protect the full position or a fraction (1/1, 1/2, or scale-in
-  versions), and they honor `$useAutoStop`.
+- Full-position BE supports longs and shorts. Half-position BE and scale-in BE
+  support longs only. The helpers themselves do not gate on `$useAutoStop`;
+  automatic entry/exit callers invoke them only when automatic stops are enabled.
+  Thus a manual BE action can still submit protection with automatic stops off.
 
 ## STOP LOSSES
 
@@ -677,7 +704,7 @@ These controls help prevent low-quality fills and oversized risk.
   SIM when `$applyLiveGuardsToSim = 1`), the timer submits a direction-aware
   full-position emergency exit, locks all montage order buttons, and sets
   `$HIJACKED_LOCKED` to block new buys. Longs exit at `Bid - $exitOffset` and
-  shorts cover at `Ask + $exitOffset` through `$gtfoRoute` using native
+  shorts cover at `Ask + $exitOffset` through BESTL in AUTOL mode or `$gtfoRoute` in manual mode using native
   `SEND=Reverse`. Re-running `Set Global Variables` clears the script lock;
   montage unlock is manual (see reset instructions below).
 - Single-position guard: when `$singlePositionGuard = 1`, buy hotkeys block another tracked long in the same account. Manual shorts are independent. The timer checks original account/symbol position records across montage changes. A confirmed flat/short releases the guard; unavailable position data retains it.
@@ -687,7 +714,7 @@ These controls help prevent low-quality fills and oversized risk.
 SIM vs LIVE: enabled hijack protection and rehab gating apply only in LIVE
 unless `$applyLiveGuardsToSim = 1`; that setting defaults to `0`.
 Hijack protection itself defaults to off and requires `$hijackProtection = 1`.
-All other guard rails apply in both SIM and LIVE.
+All other long-entry guard rails apply to buys in both SIM and LIVE; manual shorts bypass them.
 
 ### Hijack protection (position-size backstop)
 
@@ -704,7 +731,7 @@ Disabling it does not clear a lock that has already triggered. To clear that
 lock explicitly, run `$HIJACKED_LOCKED = 0; LockAllMontage Unlock;`.
 
 If the timer detects a position larger than `$maxPositionSize`, it:
-- Submits a full-position native `Reverse` through `$gtfoRoute`: sells a long at
+- Submits a full-position native `Reverse` through BESTL in AUTOL mode or `$gtfoRoute` in manual mode: sells a long at
   `Bid - $exitOffset` or covers a short at `Ask + $exitOffset`.
 - Locks all montage order buttons via `LockAllMontage Lock`.
 - Sets `$HIJACKED_LOCKED` to block new buys.
@@ -783,7 +810,7 @@ running action. Missing average-cost data postpones arming further. Set
 `$useTimerArming = 0` and tune `$pollMs` and `$maxPolls` if you prefer inline
 polling and more immediate protection.
 
-Half/quarter exits and TP monitor fills on timer ticks instead of holding the
+Half/quarter long sells and automatic TP exits monitor fills on timer ticks instead of holding the
 global action lease for two or three seconds. The timer interval still affects
 when residual orders are canceled and remaining shares receive protection.
 Delayed cancellation acknowledgment extends that window; after 30 seconds the
@@ -799,8 +826,12 @@ cancels existing sell orders, re-arms the stop, and only re-arms TP when the TP
 reset conditions are met. If no fill appears within its captured `$longEntryTimeoutSeconds` (unless 0/INDEF), the handler
 cancels the working buy order and clears pending state. When `$useTimerArming = 0`,
 buy orders poll for fills and can accept partials based on `$acceptPartial` and
-`$minFillShares`. If the fill criteria are not met in time, the order is canceled
-and protection is armed for any actual shares received; a rejected order with zero open shares is not treated as a fill.
+`$minFillShares`. If polling ends with any actual fill, the remainder is canceled
+and protection is sized from fresh position data. If polling ends with no fill
+and the order is still open, the script returns and the timer enforces the
+original captured long deadline, including INDEF. A closed/rejected order with
+no actual fill does not create protection. The poll duration is not added to
+the captured timeout, although the action lease can delay timer processing.
 
 Both modes intentionally wait for a fill before arming protection to avoid
 mismatched AvgCost. Bypassing the fill check risks placing protection against a
@@ -852,6 +883,20 @@ have not yet passed that live qualification.
 
 ## ENTRY TIMEOUT CONTROLS
 
+### Which orders have a fill deadline?
+
+| Order path | Scripted deadline / behavior |
+| --- | --- |
+| Long entry with no observed fill | Captured long timeout: 10s / 15s / 30s / INDEF |
+| Short entry with no observed fill | Captured short timeout: 10s / 15s / 30s / INDEF, even with stop/TP features off |
+| Timer-managed entry after first fill | No-fill deadline no longer applies; remainder can fill later and protection is resized |
+| Inline buy after any fill | Cancels remainder after processing that fill or exhausting its bounded polling window |
+| Half/quarter long sell | Default 2s, from `$maxPolls * $pollMs / 1000`; cancel residual and confirm before protection |
+| Automatic TP sell/cover | 3s; cancel residual and confirm before protection |
+| Full long sell, native manual cover, GTFO, or an ordinary BE limit | No scripted fill timeout; monitor/cancel the working limit order |
+| STOP/SLP protection | No entry-timeout cancellation; triggering and order lifetime depend on DAS/broker handling and TIF |
+
+
 On settings page 5, LONG TIMEOUT and SHORT TIMEOUT each cycle through
 10s, 15s, 30s, INDEF. Both DAS defaults are 10s. INDEF stores 0 and disables
 only the no-fill entry deadline; manual cancellation and GTFO still work.
@@ -869,3 +914,16 @@ They send explicit preset hotkeys, so each press sets the displayed value in DAS
 After LOAD CFG/restarting DAS, cycle both controls back to the desired values;
 DAS resets its defaults to 10s but cannot report those values to Stream Deck.
 Compile/install the complete updated keymap before using the new buttons.
+
+## ORDER DISPLAY / RESERVE SIZE
+
+Entry orders created with `NewOrderObj()` set total shares but do not explicitly
+set displayed shares. The repository does not implement a hidden/reserve mode.
+Do not infer that an unset field guarantees full display or inherits montage
+settings; that behavior has not been verified for this object API.
+
+DAS documents `SShare` for montage-based commands, which is a separate path from
+our order-object submissions. Reserve support on the exact broker route,
+including short sales and extended hours, also needs confirmation. Do not add
+an assumed `$order.Display` / `$order.SShare` property or treat a successful
+in-memory test as proof that DAS accepts it. See the [review/setup status](README.md#documentation-and-deployment-status).

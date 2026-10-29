@@ -1,6 +1,8 @@
 # Changelog
 
 All notable changes to this repository will be documented in this file.
+Entries are historical and can describe behavior superseded by later entries,
+including within Unreleased. Use README/USERGUIDE and current source for setup.
 
 ## 0.3.3 - Unreleased
 
@@ -11,6 +13,7 @@ All notable changes to this repository will be documented in this file.
 - Remove FLASH CRASH TRIG: delete the trigger, alert builder and exit executor; remove its three keymap entries, runtime state, timer dispatch and configuration fields. Clear its button slot in both physical and Virtual Stream Deck profiles. Keep GTFO, stops, take profit, hijack protection and routing behavior unchanged.
 
 ### Fixes
+- Review shared documentation against current source: correct inline no-fill handoff and legacy partial-fill settings, distinguish native cover and timer-owned exit deadlines, document all timeout bindings and reset behavior, clarify manual versus automatic BE, installation scope, and unverified Display/reserve behavior. Identify retained graph outputs as an older extraction snapshot.
 - Add signed entry offsets consistently for both buys and shorts: negative values price below Bid/Ask and positive values price above. Correct all eight offset-short scripts, preserve the already-correct offset buys and routing logic, move offset-short shortcuts to Ctrl+Alt+Shift+F1–F8 to avoid Windows shell conflicts, and label offset entry buttons ASK±/BID± across both Stream Deck profiles. Keep the five-choice selectors on page 5 only and retain separate exit cushions. Log the reference quote, signed offset and limit; reject short limits that round to zero.
 - Use BESTL in AUTOL's $1-and-above band after FREE1 destination-availability cancellations. Keep FREE1L as a manual preset; add no automatic fallback, retry, or rerouting.
 - Keep the fixed-dollar cushion for ordinary full/half/quarter Bid- sells and Ask+ covers, capped by `$exitOffsetMaxPct` (default `0.05`, or 5% of the current reference quote; `0` disables the cap). Enforce the ceiling after tick rounding, use a single native precision for covers below $0.25, and log the final submitted cover limit. Preserve stop-limit, GTFO, backstop, and hijack pricing. Add regression cases for the reported LUCD/GPUS price-distance failures.
@@ -29,10 +32,10 @@ All notable changes to this repository will be documented in this file.
 - Make short page 4 an offset page: add Tier 1-4 Ask-minus shorts at `Ask - $entryAskOffset` on `Alt+Ctrl+Shift+Win+S/D/F/G`, alongside the existing Bid-minus shorts. Preserve page 3's plain Ask/Bid shorts and all five quantity states. Add signed ASK/BID offset controls in empty page 4 slots, synchronized with settings page 5 in both physical and Virtual profiles. Defaults price Ask-minus one cent above Ask and Bid-minus one cent below Bid.
 - Add AUTOL (`Alt+Ctrl+Win+7`): resolve every limit submission using BESTL at $1+, SMRTL above the $0.0015/0.0036 crossover and below $1, and BESTL at/below the crossover. FREE1L remains a manual option. Marketable orders use the opposite quote; resting orders use the limit. Urgent GTFO/backstop/hijack exits use BESTL in AUTOL mode. Preserve native STOP routing and manual presets; add no route retry or fallback. Put green AUTOL first on page 5 of both Stream Deck profiles, followed by white FREE1L/BESTL/SMRTL and red ARCA1L/FLSH1L, using the local six-state Advanced Toggles update.
 - Add a SMRTL limit order route preset, bound to `Alt+Ctrl+Win+6`, and enable the fifth option on the existing route button in both Stream Deck profiles.
-- Insert a duplicate of short-entry page 3 as page 4 in the physical and Virtual Stream Deck profiles, moving settings to page 5. Replace the copied Bid shorts with Tier 1â€“4 Bid- hotkeys (`Alt+Ctrl+Shift+Win+H/J/K/L`) using the signed `$entryBidOffset`, preserving all five quantity states and the original page.
+- Insert a duplicate of short-entry page 3 as page 4 in the physical and Virtual Stream Deck profiles, moving settings to page 5. Replace the copied Bid shorts with Tier 1–4 Bid- hotkeys (`Alt+Ctrl+Shift+Win+H/J/K/L`) using the signed `$entryBidOffset`, preserving all five quantity states and the original page.
 - Add a FLASH1L limit order route preset, bound to `Alt+Ctrl+Win+F4`, and a fourth option with orange text on the existing route button in both Stream Deck profiles.
 - Add a BESTL limit order route preset, bound to `Alt+Ctrl+Win+4`, alongside ARCA1L and FREE1L. Update the existing route button on both physical and Virtual Stream Deck profiles to cycle through all three routes.
-- Add Tier 1â€“4 short-at-Bid hotkeys (`Alt+Ctrl+Shift+H/J/K/L`) and full/half/quarter cover-at-Bid hotkeys (`Alt+Ctrl+Shift+N/B/V`), all with no offset. Add matching buttons to page 3 of both Stream Deck profiles, including all five multiplier states for Bid shorts.
+- Add Tier 1–4 short-at-Bid hotkeys (`Alt+Ctrl+Shift+H/J/K/L`) and full/half/quarter cover-at-Bid hotkeys (`Alt+Ctrl+Shift+N/B/V`), all with no offset. Add matching buttons to page 3 of both Stream Deck profiles, including all five multiplier states for Bid shorts.
 - Add half and quarter Ask+ cover hotkeys (`Alt+Ctrl+Shift+X` / `Alt+Ctrl+Shift+Z`) with whole-share sizing, and place their buttons to the left of Cover 1/1 on page 3 of both physical and Virtual Stream Deck profiles.
 - Update route codes from `ARCAL` to `ARCA1L`, `FLASHL` to `FLSH1L`, and `FREEL` to `FREE1L`, including route preset hotkeys and physical/Virtual Stream Deck labels.
 - Display full entry-button quantities exceeding three digits on their own line on both physical and Virtual Stream Deck profiles.
@@ -41,10 +44,10 @@ All notable changes to this repository will be documented in this file.
 - Disable position-size hijack protection by default (`$hijackProtection = 0`); set it to `1` to opt in.
 - Add independent Bid+ and Ask+ buy-entry offsets, each with `-0.03`, `-0.02`, `-0.01`, `+0.01`, and `+0.03` presets and a separate five-state Stream Deck toggle reset by LOAD CFG. Defaults are BID `+0.01` and ASK `-0.01` in the scripts and Stream Deck reset actions.
 - Bind the new -2-cent presets to `Alt+Ctrl+Shift+Win+5` (BID) and `Alt+Ctrl+Shift+Win+F5` (ASK), and insert them between -3 and -1 cents on the page 4 Stream Deck buttons.
-- Add configurable tier base sizesâ€”`$tier1ShareSize` 100 (MIB), `$tier2ShareSize` 200 (IB), `$tier3ShareSize` 300 (`buy_25_*`), and `$tier4ShareSize` 500 (`buy_50_*`)â€”scaled together by `$qtyMult` (default `1.0`).
+- Add configurable tier base sizes—`$tier1ShareSize` 100 (MIB), `$tier2ShareSize` 200 (IB), `$tier3ShareSize` 300 (`buy_25_*`), and `$tier4ShareSize` 500 (`buy_50_*`)—scaled together by `$qtyMult` (default `1.0`).
 - Add hotkey presets for setting `$qtyMult` to `0.5x`, `1.0x`, `1.5x`, `2.0x`, or `3.0x`.
 - Derive `$maxPositionSize` from `$tier4ShareSize * $qtyMult` and recalculate it whenever a multiplier preset changes.
-- Add isolated manual hotkeys to sell short Tiers 1â€“4 at Ask and cover 100% at Ask without arming long-side stops, take profit, or entry state.
+- Add isolated manual hotkeys to sell short Tiers 1–4 at Ask and cover 100% at Ask without arming long-side stops, take profit, or entry state.
 - Default `$applyLiveGuardsToSim` to `0` so hijack and rehab guards remain live-only unless explicitly enabled in SIM.
 - Add a `$0.30` fixed stop-loss preset bound to `Alt+Ctrl+Win+=`.
 - Add a `$0.50` fixed stop-loss preset bound to `Alt+Ctrl+Win+5`.
@@ -55,7 +58,7 @@ All notable changes to this repository will be documented in this file.
 ### Bug Fixes
 - Isolate automated long entry, stop, TP, backstop, and timer state by account and symbol. Reject shorts in long-only workflows, keep protection tied to its original trade across montage/account swaps, and give alerts account identity plus a trade generation. Scope all order cancellations to the selected account/symbol, defer alerts during active cancel/fill actions, preserve a queued GTFO request for its original account/symbol, and preserve trade state when configuration is reloaded.
 - Interpret the single-position guard as one tracked automated long per account; manual shorts do not occupy it. Validate fills and exit quantities from signed position data and recheck after cancellation waits.
-- Correct the physical and Virtual Stream Deck plain-ASK buttons to use the matching Tier 1â€“4 Ask hotkeys in every multiplier state.
+- Correct the physical and Virtual Stream Deck plain-ASK buttons to use the matching Tier 1–4 Ask hotkeys in every multiplier state.
 - Correct all five size states of the local Stream Deck MIB Bid+ button (including **BUY 25 BID+** at `0.5x`) to send `Alt+Ctrl+Shift+Win+0`; the previous plain-Bid shortcut skipped the configured offset.
 - Bind all `GetCurrPos()` reads to the `Primary_OE` montage object so timer-triggered Hijack Exit and other hotkeys do not rely on the caller's window context.
 - Make hijack exits direction-aware so oversized longs sell at `Bid - $exitOffset` and oversized shorts cover at `Ask + $exitOffset` using native `SEND=Reverse`.

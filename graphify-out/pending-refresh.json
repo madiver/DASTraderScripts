@@ -3,7 +3,9 @@
   "files": [
     "CHANGELOG.md",
     "README.md",
+    "TODO.md",
     "USERGUIDE.md",
+    "assets/streamdeck/README.md",
     "assets/streamdeck/entry-timeout-installation.json",
     "hotkeys/buy_25_ask_plus_sl.das",
     "hotkeys/buy_25_ask_sl.das",
@@ -59,8 +61,8 @@
       "sha256": "48df98005a232c9980f9cc95f0ae8743bef80b44f09fb9adcad04e8fdbe62346"
     },
     "CHANGELOG.md": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "a50c63dae20345f91730d8fde56eeabcda216d68e2a9e39a8a4612bc41751b24"
+      "reason": "2026-10-29 documentation review against current scripts, bindings, defaults and installation evidence; semantic extraction/merge not yet refreshed.",
+      "sha256": "cdf817e31826564eb887d037a1685567983bd843b70b66b8fb62ff0ec4381329"
     },
     "hotkeys/buy_25_ask_plus_sl.das": {
       "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
@@ -247,22 +249,31 @@
       "sha256": "25185828a5b739eacd0c1d985118352497670c83404e87392ed8c84f45048071"
     },
     "README.md": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "de7bb52c5a965bb1b1329376eb8ff4b9d0273f2a05c692eced3f209bad257845"
+      "reason": "2026-10-29 documentation review against current scripts, bindings, defaults and installation evidence; semantic extraction/merge not yet refreshed.",
+      "sha256": "a0c6b594777a442581c12259b141c45b9668bb04d0bffb0961bd73d473e793a1"
     },
     "tools/tests/trade-isolation.test.cjs": {
       "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
       "sha256": "8e199ad931350259db7c0b392d6e3bed4b31be198cf4914204798f35e17f00bd"
     },
     "USERGUIDE.md": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "e8c0de3011ec253118d14605ccc870fe641428b3b0b5189608073d6b2b1f1ad6"
+      "reason": "2026-10-29 documentation review against current scripts, bindings, defaults and installation evidence; semantic extraction/merge not yet refreshed.",
+      "sha256": "7fdace06d0e29d8dea22649cfb0115f169192771260cef6b359a9b975ff4556d"
+    },
+    "TODO.md": {
+      "reason": "2026-10-29 documentation review against current scripts, bindings, defaults and installation evidence; semantic extraction/merge not yet refreshed.",
+      "sha256": "3726008719f2135c39d2f53183c087171e8bc763efda63b3799ebb2f0e531ee5"
+    },
+    "assets/streamdeck/README.md": {
+      "reason": "2026-10-29 documentation review against current scripts, bindings, defaults and installation evidence; semantic extraction/merge not yet refreshed.",
+      "sha256": "35acf8401264124ecab04bfebbbe3c57b4a68fa2d98267811987c02b30478e48"
     }
   },
   "last_refresh": "windows-refresh-receipt.json",
   "completed_at": "2026-10-28T02:31:12.127379+00:00",
   "source_head": "aa948053bd61825371385db245babac9809eaf5e",
   "source_hashes_verified": 117,
-  "remaining_scope": "Entry timeout source, tests, documentation and Stream Deck installation receipt listed above require DAS-aware extraction and semantic merge. Existing graph retained as navigation hints.",
-  "recorded_at": "2026-10-28T13:09:02.555655+00:00"
+  "remaining_scope": "Existing timeout source/tests and the full documentation review listed in files require fresh DAS-aware extraction plus semantic/test-code merge. Retained graph/report/HTML describe the earlier snapshot; no extraction freshness is claimed.",
+  "recorded_at": "2026-10-29T11:48:26.567287+00:00",
+  "reviewed_source_head": "f4b801872f78d3bb84b3fef8ff94334217d9a3ee"
 }

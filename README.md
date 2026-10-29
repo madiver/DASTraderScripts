@@ -45,13 +45,14 @@ Serious about day trading? You can find me on Discord here:  https://discord.gg/
 2. Ensure `keymap.yaml` is present at the repo root.
 3. Run `DAS: Build Hotkey File`.
 4. Use the generated `output.htk` in DAS Trader.
-5. For this performance upgrade, also replace the installed Timer Event Script with `other scripts/timer.das` and run Set Global Variables. The updated timer is required for TP and manual partial exits even when entry arming is inline. Recreate any legacy symbol-only TP alerts. FLASH CRASH TRIG has been removed; delete any previously armed `Backstop ...` alerts and replace the complete hotkey map so its retired bindings are removed.
+5. Install the complete `other scripts/timer.das` manually as the Timer Event Script, keep it enabled, then run Set Global Variables. The compiler does not install the timer. It is required for entry timeouts/protection, half/quarter long sells, automatic TP exits, and short-cover cleanup even when buy entry arming is inline. Recreate legacy TP alerts after upgrading. If migrating from FLASH CRASH TRIG, remove its old hotkeys and previously armed `Backstop ...` alerts.
 
-The rollback was compared with `Hotkey-20261015-062456.htk`: all 100 public
-bindings and all entry/exit logic match that baseline. The verified order-history
-lookup correction is retained separately.
+Historical rollback checks used `Hotkey-20261015-062456.htk`; that comparison
+is not a claim that the current map or scripts still match it. Later changes
+include signed offsets, short protection, and independent entry timeouts. The
+current canonical map has 114 entries: 96 bound and 18 internal/unbound helpers.
 
-When installing the rollback, first be flat with no working orders.
+When upgrading from an older coordinator installation, first be flat with no working orders.
 Replace both the hotkey file and the complete Timer Event Script, save the
 configuration, then restart DAS and run Set Global Variables. This removes the
 old coordinator's queued session state. Test a manual 10-share SIM position and
@@ -82,7 +83,7 @@ Momo uses this fixed shortcut automatically. See [Momo swap setup](USERGUIDE.md#
   buy order. Install `other scripts/timer.das` in DAS Trader's Timer Event Scripts and keep
   `hotkeys/timer_entry_handler.das` in your keymap; set `$useTimerArming = 0` to
   use bounded inline polling; an open entry with no fill then yields to the timer for its captured timeout.
-- TP and half/quarter manual sells submit their order, then release the action
+- Automatic TP exits and half/quarter long sells submit their order, then release the action
   lease. `Timer Exit Handler` monitors actual fills and cancels residual shares
   at timeout before resizing protection. GTFO and manual cancellation interrupt
   that pending work. Timer processing is required in both entry modes.
@@ -107,12 +108,12 @@ Example:
 
 Current groups used in `hotkeys/`:
 Buy orders: Ask SL, Buy orders: Ask+ SL, Buy orders: Bid SL, Buy orders: Bid+ SL,
-Cover orders: Ask+, Global controls & config, Sell orders: Ask, Sell orders: Bid-,
+Cover orders: Ask+, Cover orders: Bid, Global controls & config, Sell orders: Ask, Sell orders: Bid-,
 Short orders: Ask, Short orders: Ask offset, Short orders: Bid, Short orders: Bid offset, Stops, Take profit, Utilities & toggles.
 
 ## Scaling Behavior
 
-- Scale-ins are allowed only when the existing position is at least 1R in profit (`$stopLossTrigger`).
+- Long buy scale-ins are allowed only when the existing position is at least 1R in profit (`$stopLossTrigger`).
 - When adding to an existing long, the scripts use the scale-in-specific BE stop hotkey (`Set Auto Stop BE Scale 1/1`).
 - Buy tiers use configurable base share counts: MIB uses `$tier1ShareSize` (100), IB uses `$tier2ShareSize` (200), the legacy `buy_25_*` family uses `$tier3ShareSize` (300), and the legacy `buy_50_*` family uses `$tier4ShareSize` (500). Each base size is multiplied by `$qtyMult` (default `1.0`) and rounded to the nearest whole share. `$maxPositionSize` is derived from the scaled Tier 4 size.
 - Multiplier preset hotkeys switch `$qtyMult` between `0.5x`, `1.0x`, `1.5x`, `2.0x`, and `3.0x` for the current session and recalculate `$maxPositionSize`.
@@ -124,7 +125,7 @@ Short orders: Ask, Short orders: Ask offset, Short orders: Bid, Short orders: Bi
 - Page 3 has plain Ask/Bid shorts. Page 4 of both Stream Deck profiles has Tier 1-4 `ASK±` and `BID±` shorts using `Ask + $entryAskOffset` and `Bid + $entryBidOffset`. Negative offsets price below the selected quote; positive offsets price above it. Default ASK `-0.01` prices one cent below Ask; default BID `+0.01` prices one cent above Bid. All five quantity states remain. Offset buy buttons on page 2 also use `ASK±`/`BID±` and already add the signed offset. Shared ASK/BID selectors remain on settings page 5 only, with identical five-choice lists in both profiles.
 - `Cover 1/1 Ask+` cancels current-symbol orders and uses DAS `Share=Pos; SEND=Reverse` at Ask plus the smaller of `$exitOffset` and `Ask * $exitOffsetMaxPct`. Defaults retain the $0.10 desired cushion with a 5% ceiling; set `$exitOffsetMaxPct = 0` to disable the percentage ceiling. For a short position, DAS resolves the current quantity and sends a buy. This does not guarantee that a previous order cannot still fill.
 - `Cover 1/2 Ask+` and `Cover 1/4 Ask+` use the same pricing and native Reverse behavior for half or a quarter of the current position, rounded down to whole shares with a minimum of one share. Page 3 has Cover 1/4, Cover 1/2, and Cover 1/1 from left to right on both Stream Deck profiles.
-- `Cover 1/1`, `Cover 1/2`, and `Cover 1/4 Bid` use plain Bid with no offset and the same native Reverse quantity behavior. Page 3 places Tier 1â€“4 Bid shorts across the top right, with quarter/half/full Bid covers on the second row at the left.
+- `Cover 1/1`, `Cover 1/2`, and `Cover 1/4 Bid` use plain Bid with no offset and the same native Reverse quantity behavior. Page 3 places Tier 1–4 Bid shorts across the top right, with quarter/half/full Bid covers on the second row at the left.
 - These scripts use `$orderRoute` and `DAY+`. They bypass long-side entry guards; the short timer arms enabled stop-loss and take-profit protection after actual fills. Confirm locate availability, broker routing, and short-sale restrictions before use.
 - `Cancel All` cancels short-side working orders and restores enabled stop protection after BUY cancellations finish. `GTFO` exits the full signed position using up to a $0.50 cushion below Bid for longs or above Ask for shorts, independently capped at 5% by `$gtfoOffsetMaxPct`. At a $0.20 quote this gives a $0.19 sell or $0.21 cover limit. AUTOL urgent routing remains BESTL; manual mode retains `$gtfoRoute`.
 
@@ -173,3 +174,31 @@ Long presets use Ctrl+Alt+Shift+F9–F12; shorts use Ctrl+Alt+F9–F12,
 in the displayed choice order. Button state is maintained by Stream Deck, not
 read back from DAS: after restarting DAS or LOAD CFG, cycle each selector back
 to the desired value to synchronize its display and DAS. Both defaults reset to 10s in DAS.
+
+## Documentation and deployment status
+
+Reviewed against source on **2026-10-29**. [USERGUIDE.md](USERGUIDE.md) explains
+current behavior and lists every mapped hotkey. `keymap.yaml` and
+`hotkeys/set_global_variables.das` are authoritative for bindings/defaults;
+[CHANGELOG.md](CHANGELOG.md) records history, including superseded behavior.
+[TODO.md](TODO.md) contains proposals, not enabled safeguards.
+
+Stream Deck profiles and compiled hotkeys are external installation artifacts.
+The [Stream Deck setup notes](assets/streamdeck/README.md) describe the local
+button layout and limitations; cloning this repository does not install them.
+The timeout installation record last reported Advanced Toggles activation
+blocked by missing ownership verification. That is a dated local verification
+result, not a live account-status check. Source regressions do not qualify
+hardware button dispatch or broker execution. Compile/install and verify through
+your normal DAS/SIM workflow; this documentation review did not change DAS or
+Stream Deck configuration.
+
+The generated graph, report, and HTML under `graphify-out/` describe an earlier
+extraction snapshot. [pending-refresh.json](graphify-out/pending-refresh.json)
+records the timeout-source and documentation scope still needing a DAS-aware
+extraction/semantic merge. Use those outputs for navigation and verify claims
+against current source; they are not current operational documentation.
+
+Order-object scripts do not explicitly request a display quantity. Full display,
+hidden orders, and reserve-order support have not been established for the
+current `NewOrderObj()` path and exact broker routes. See [order display details](USERGUIDE.md#order-display--reserve-size).
