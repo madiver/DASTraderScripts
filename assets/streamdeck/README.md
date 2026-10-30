@@ -28,13 +28,13 @@ Use case: precise-object-edit. Edit target: image 1, a 78x80 pixel Stream Deck b
 
 ## Entry timeout buttons
 
-The 2026-10-28 local setup placed two Advanced Toggles cycle actions on settings
-page 5 of both physical and Virtual DAS Trader profiles:
+Two Advanced Toggles cycle actions are on settings page 5 of both physical and
+Virtual DAS Trader profiles. Their local positions, verified on 2026-10-30, are:
 
 | Button | Location (human numbering) | Choices | Shortcuts in choice order |
 | --- | --- | --- | --- |
-| LONG TIMEOUT | Row 1, column 7 (`6,0`) | 10s, 15s, 30s, INDEF | Ctrl+Alt+Shift+F9/F10/F11/F12 |
-| SHORT TIMEOUT | Row 1, column 8 (`7,0`) | 10s, 15s, 30s, INDEF | Ctrl+Alt+F9/F10/F11/F12 |
+| LONG TIMEOUT | Row 3, column 7 (`6,2`) | 10s, 15s, 30s, INDEF | Ctrl+Alt+Shift+F9/F10/F11/F12 |
+| SHORT TIMEOUT | Row 3, column 8 (`7,2`) | 10s, 15s, 30s, INDEF | Ctrl+Alt+F9/F10/F11/F12 |
 
 The buttons reuse the green/red offset backgrounds, enable four states, start
 at 10s, and disable the remaining two plugin states. They do not control sizing
@@ -42,15 +42,37 @@ mode actions or synchronize across keys/profiles. Every press sends an explicit
 preset for future entries; it does not change a pending entry's captured deadline.
 Long and short defaults in DAS are independent and both start at 10s.
 
-LOAD CFG / restarting DAS resets the DAS defaults but does not reset these two
-button displays. Cycle each control back to the desired value after a reset or
-when switching between profiles; the display is not live feedback from DAS.
-Do not assume the offset buttons' group-reset behavior applies to the timeouts.
+Both timeout buttons use Toggle Group 5 as a reset-only group, with
+`syncAcrossKeys: false` and `controlsModeActions: false`. LOAD CFG runs the
+existing configuration hotkey, then its existing offset resets, then a group-5
+Reset Group action with `resetState: 0` and `sendTargetHotkeys: false`. This sets
+both timeout displays to 10s; the configuration hotkey sets both DAS defaults.
+Inactive profile buttons apply the recorded reset when they next appear.
+Individual LONG/SHORT presses remain independent and do not synchronize between
+profiles. The BID/ASK controls keep groups 3/4 and their original reset states
+3/2 (+1/-1 cent); all original LOAD CFG steps are preserved.
+
+Reset Group applies to every member of its group even when sync across keys is
+off. The timeouts previously inherited offset groups 3/4, causing LOAD CFG's
+offset resets to select LONG INDEF and SHORT 30s. Do not reuse an offset group
+for a timeout selector.
+
+Restarting DAS or running Set Global Variables directly still resets only DAS
+defaults. Use LOAD CFG or select explicit presets to align the displays with
+DAS after those actions or after switching profiles with different selections;
+the display is not live feedback from DAS.
 
 [entry-timeout-installation.json](entry-timeout-installation.json) records the
-profile/page identities, backup location, and last verification. During that
-verification, Stream Deck unloaded Advanced Toggles with “missing ownership
-verification,” so both new and existing plugin controls rendered as question
-marks. Activation must work before these controls are usable. This is a recorded
-installation limitation, not a newly checked status. No profile export, plugin
+profile/page identities, backup location, and last verification. On 2026-10-30,
+both saved profiles passed in-memory checks using the installed plugin's reset
+and cycle functions: offset isolation, both timeout displays resetting to 10s,
+deferred resets for inactive controls, independent cycling and no selector
+hotkeys during resets. The physical profile visibly rendered LONG and SHORT at
+10s after the repair. LOAD CFG itself was not executed against DAS during this
+verification.
+
+Advanced Toggles initially unloaded with “missing ownership verification” on
+relaunch, then loaded successfully after a local plugin installation appeared in
+the app log. The final visual check showed working labels. Plugin availability
+is still required for all toggle/reset actions. No profile export, plugin
 license, or broker/DAS configuration is supplied here.

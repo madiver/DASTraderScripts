@@ -1,9 +1,9 @@
 {
-  "backup": "C:\\Users\\mark\\AppData\\Roaming\\Elgato\\StreamDeck\\RouteBackups\\entry-timeouts-20261028-090812",
+  "backup": "C:\\Users\\mark\\AppData\\Roaming\\Elgato\\StreamDeck\\RouteBackups\\entry-timeout-reset-groups-20261030-114826",
   "page": 5,
   "positions": {
-    "long": "6,0",
-    "short": "7,0"
+    "long": "6,2",
+    "short": "7,2"
   },
   "choices": [
     "10s",
@@ -22,8 +22,28 @@
     }
   ],
   "verification": {
-    "configuration": "Both profiles contain the four-state buttons; unrelated actions preserved.",
-    "rendering": "Blocked: Stream Deck unloads installed Advanced Toggles with missing ownership verification after restart, including existing toggle controls. Normal app relaunch did not resolve it.",
-    "das_installation": "Source only; no hotkey compilation, installation or trading application changes."
+    "configuration": "Both page-5 profiles use reset-only group 5 for LONG/SHORT; LOAD CFG appends one display-only group-5 reset to state 0 (10s). Original actions, offsets, selector hotkeys and independent cycling settings preserved.",
+    "rendering": "2026-10-30: physical DAS Trader profile page 5 visibly renders LONG 10s and SHORT 10s. Advanced Toggles initially unloaded for missing ownership verification, then connected after a local plugin installation appeared in the app log; final rendering succeeded. Virtual profile configuration verified on disk.",
+    "das_installation": "No DAS hotkey compilation, installation or trading application changes. LOAD CFG was not executed against DAS during verification.",
+    "behavior": "PASS for both profiles using the installed plugin resetToggleGroup, applyPendingGroupReset and advanceState functions in memory: offset resets leave timeouts alone; group 5 resets both to 10s without touching offsets or firing hotkeys; inactive controls apply deferred resets; LONG/SHORT cycle independently."
+  },
+  "original_installation_backup": "C:\\Users\\mark\\AppData\\Roaming\\Elgato\\StreamDeck\\RouteBackups\\entry-timeouts-20261028-090812",
+  "updated_at": "2026-10-30T11:48:26.929143-04:00",
+  "reset": {
+    "sync_group": "5",
+    "reset_state": 0,
+    "display": "10s",
+    "send_target_hotkeys": false,
+    "sync_across_keys": false,
+    "offset_groups_preserved": {
+      "bid": {
+        "sync_group": "3",
+        "reset_state": 3
+      },
+      "ask": {
+        "sync_group": "4",
+        "reset_state": 2
+      }
+    }
   }
 }

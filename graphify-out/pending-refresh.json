@@ -59,12 +59,12 @@
   ],
   "details": {
     "assets/streamdeck/entry-timeout-installation.json": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "48df98005a232c9980f9cc95f0ae8743bef80b44f09fb9adcad04e8fdbe62346"
+      "reason": "2026-10-30 Stream Deck timeout reset-group repair and current local installation verification; semantic extraction/merge remains pending.",
+      "sha256": "eb3a8ad416dcaef617a34fdb330ed057d8c3508fb0ce905a6402593f53fefc54"
     },
     "CHANGELOG.md": {
-      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
-      "sha256": "55eb6b08734d1f77f25be6eece4711fc8fbf2c8b08b647a34ef158443242c51b"
+      "reason": "2026-10-30 Stream Deck timeout reset-group repair and current local installation verification; semantic extraction/merge remains pending.",
+      "sha256": "76374be433cc9dbc7d68da291a40a970df01ad7ddb1575bd48aa7c1a1d10169a"
     },
     "hotkeys/buy_25_ask_plus_sl.das": {
       "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
@@ -251,24 +251,24 @@
       "sha256": "25185828a5b739eacd0c1d985118352497670c83404e87392ed8c84f45048071"
     },
     "README.md": {
-      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
-      "sha256": "174701760ea1048c84a6ba117046e9b82d2d5011fa229caca288e7728b73c91d"
+      "reason": "2026-10-30 Stream Deck timeout reset-group repair and current local installation verification; semantic extraction/merge remains pending.",
+      "sha256": "5b20011b7afb95008a965fb98f18ad826c121ec85a14a9478c19bd1499dcbfbf"
     },
     "tools/tests/trade-isolation.test.cjs": {
       "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
       "sha256": "2a76efd7dc391ba4a4471b35619fe21d83972fb68537e12daaff70328e4f0a96"
     },
     "USERGUIDE.md": {
-      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
-      "sha256": "de4f9c9bdf0d7af70ae5aa56bd30607a9763181ed91c3c527aa53423fe856a70"
+      "reason": "2026-10-30 Stream Deck timeout reset-group repair and current local installation verification; semantic extraction/merge remains pending.",
+      "sha256": "a0f26d498fcd38369bdea5aecd60d1e81027457b6d6295e31d1bd601a95b07d8"
     },
     "TODO.md": {
       "reason": "2026-10-29 documentation review against current scripts, bindings, defaults and installation evidence; semantic extraction/merge not yet refreshed.",
       "sha256": "3726008719f2135c39d2f53183c087171e8bc763efda63b3799ebb2f0e531ee5"
     },
     "assets/streamdeck/README.md": {
-      "reason": "2026-10-29 documentation review against current scripts, bindings, defaults and installation evidence; semantic extraction/merge not yet refreshed.",
-      "sha256": "35acf8401264124ecab04bfebbbe3c57b4a68fa2d98267811987c02b30478e48"
+      "reason": "2026-10-30 Stream Deck timeout reset-group repair and current local installation verification; semantic extraction/merge remains pending.",
+      "sha256": "8a6fa9531badd61d37d46e42b41f6d46c42b663d254fba37fb3ea6b2614ef0b5"
     },
     "hotkeys/clear_trade_state.das": {
       "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
@@ -283,7 +283,7 @@
   "completed_at": "2026-10-28T02:31:12.127379+00:00",
   "source_head": "aa948053bd61825371385db245babac9809eaf5e",
   "source_hashes_verified": 117,
-  "remaining_scope": "Retained graph/report/HTML predate timeout implementation, documentation review and rejected-short reconciliation. All pending files require DAS-aware extraction, fresh test extraction and semantic merge; no freshness claim.",
-  "recorded_at": "2026-10-30T14:57:53.348040+00:00",
-  "reviewed_source_head": "23349e53497c79a0ae6b76c43e302f9aa2fbff21"
+  "remaining_scope": "Retained graph/report/HTML predate timeout implementation, documentation review, rejected-short reconciliation and timeout reset-group repair. All pending files require DAS-aware extraction, fresh test extraction and semantic merge; no freshness claim.",
+  "recorded_at": "2026-10-30T15:51:03.965622+00:00",
+  "reviewed_source_head": "021d10ed5784e34cea61251f7d43a5a174e79d5d"
 }

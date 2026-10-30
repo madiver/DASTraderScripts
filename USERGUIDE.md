@@ -911,8 +911,21 @@ Short no-fill deadlines work even with automatic stop and TP features off.
 
 Buttons in the physical and Virtual profiles retain their own display state.
 They send explicit preset hotkeys, so each press sets the displayed value in DAS.
-After LOAD CFG/restarting DAS, cycle both controls back to the desired values;
-DAS resets its defaults to 10s but cannot report those values to Stream Deck.
+LOAD CFG resets both DAS defaults and both timeout displays to 10s. Both timeout
+buttons use Toggle Group 5 solely for resets, with sync across keys off and sizing
+mode control off. They still cycle independently. LOAD CFG resets group 5 to
+state 0 (the first choice, 10s) without sending the selectors' hotkeys; its
+configuration hotkey already sets both defaults. Inactive profile controls apply
+the recorded reset when they next appear.
+
+The BID/ASK offset controls retain groups 3/4 and their existing +1/-1-cent reset
+values. Group resets apply even when sync across keys is off, so assigning a
+timeout button to an offset group would make offset resets change its display.
+Restarting DAS or running Set Global Variables directly resets the DAS defaults
+but does not update Stream Deck. Use LOAD CFG or select explicit timeout presets
+to align the displays with DAS. The displays are not live feedback from DAS;
+switching profiles after an individual selector change can still show an older
+value until a preset is selected or LOAD CFG is used.
 Compile/install the complete updated keymap before using the new buttons.
 
 ## ORDER DISPLAY / RESERVE SIZE

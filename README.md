@@ -171,9 +171,13 @@ The timer must remain installed and running in both entry modes.
 
 Compile and install the updated canonical keymap before using these buttons.
 Long presets use Ctrl+Alt+Shift+F9–F12; shorts use Ctrl+Alt+F9–F12,
-in the displayed choice order. Button state is maintained by Stream Deck, not
-read back from DAS: after restarting DAS or LOAD CFG, cycle each selector back
-to the desired value to synchronize its display and DAS. Both defaults reset to 10s in DAS.
+in the displayed choice order. LOAD CFG resets both DAS defaults and both timeout
+displays to 10s. The buttons share reset-only Toggle Group 5, with sync across
+keys off so LONG and SHORT still cycle independently. Offset controls retain
+their separate groups 3 and 4 and existing reset values.
+Button state is maintained by Stream Deck, not read back from DAS. Restarting
+DAS or running Set Global Variables directly does not reset the displays; use
+LOAD CFG or select explicit timeout presets to align them with DAS.
 
 ## Documentation and deployment status
 
