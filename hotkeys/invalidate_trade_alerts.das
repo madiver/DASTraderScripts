@@ -7,6 +7,8 @@ $trade.shortWatch = 0;
 $trade.shortEntryPending = 0;
 $trade.shortEntryOrder = 0;
 $trade.shortEntryTicks = 0;
+$trade.Set("shortEntryProbeRef", 0);
+$trade.Set("shortEntryProbeEmpty", 0);
 $trade.shortCoverPending = 0;
 $trade.shortStopQty = 0;
 $trade.shortStopAvg = 0;

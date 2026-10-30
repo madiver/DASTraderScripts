@@ -154,6 +154,8 @@ $order.Price   = $px;
 $order.Share   = $qty;
 $trade.shortEntryTimeoutSeconds = $shortEntryTimeoutSeconds;
 $trade.shortEntryStarted = GetSecond();
+$trade.Set("shortEntryProbeRef", 0);
+$trade.Set("shortEntryProbeEmpty", 0);
 $order.Send();
 if ($tradeContextValid == 1) {
     $trade.active = 1;

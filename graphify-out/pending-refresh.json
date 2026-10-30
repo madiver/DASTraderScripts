@@ -23,6 +23,8 @@
     "hotkeys/buy_mib_ask_sl.das",
     "hotkeys/buy_mib_bid_plus_sl.das",
     "hotkeys/buy_mib_bid_sl.das",
+    "hotkeys/clear_trade_state.das",
+    "hotkeys/invalidate_trade_alerts.das",
     "hotkeys/load_trade_context.das",
     "hotkeys/set_global_variables.das",
     "hotkeys/set_long_entry_timeout_10.das",
@@ -61,8 +63,8 @@
       "sha256": "48df98005a232c9980f9cc95f0ae8743bef80b44f09fb9adcad04e8fdbe62346"
     },
     "CHANGELOG.md": {
-      "reason": "2026-10-29 documentation review against current scripts, bindings, defaults and installation evidence; semantic extraction/merge not yet refreshed.",
-      "sha256": "cdf817e31826564eb887d037a1685567983bd843b70b66b8fb62ff0ec4381329"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "55eb6b08734d1f77f25be6eece4711fc8fbf2c8b08b647a34ef158443242c51b"
     },
     "hotkeys/buy_25_ask_plus_sl.das": {
       "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
@@ -169,68 +171,68 @@
       "sha256": "1775b00895d95fb5d8eb69f67b6d56ce0b1237838429a4a508faea6c4e38502e"
     },
     "hotkeys/short_tier1_ask.das": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "c256dede496cba6d457b7a1db5e1bc68dd924510eb9b301848e25412d262b749"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "bed1cc6256f8a630cf72a7dd540369dc4852ec5bd394cc30cc32aff6b4923b04"
     },
     "hotkeys/short_tier1_ask_minus.das": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "ca6c325ae15643f70e3bb2515c98877c82e613d636b9fbd5d5cb7917b6ed7eeb"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "f73ba8d19794150209644658c8dd4cb4c5e8b8dc135b9f749f328619b9d6b79d"
     },
     "hotkeys/short_tier1_bid.das": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "50ede1201a3cfe0b5fad520b4d5f1f015bb372fe51304c74f873866fc04ed601"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "6b2fef4a25349be8daf9fcbc1da31b42a3ca0ac418258f9d4229cb645444468e"
     },
     "hotkeys/short_tier1_bid_minus.das": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "40dbd7569f87ce4087e5f1aac3420939c6b52ea270bb5a9575c45500b2ad3aa0"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "a32612929e6f270695bc8a815881bcb450fd990a49a4375ce21c0dcc6895378c"
     },
     "hotkeys/short_tier2_ask.das": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "894550385a5f5f1c719469885abc119af891204d60d2ee2868d1519f151de47b"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "d6d65e7075a8f68274a24f8ce2df348dcc18e11500af342c993593a9db9757ba"
     },
     "hotkeys/short_tier2_ask_minus.das": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "94dbd4daee9f770a1d96021a7933fdf3ff042c5d6539d214c448105385088664"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "64f05c75aaef966c58d904b8fddca5459096f318f16a1033c477edd7fbe42a8e"
     },
     "hotkeys/short_tier2_bid.das": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "b4feefe86136911736758aa94ac5b36ba8d9ed74a1a638a29b101f3efcf26816"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "086dab17947f75ed36d9c0edf8ef79a5d95583f421de39fa594eddbb79d7c0e5"
     },
     "hotkeys/short_tier2_bid_minus.das": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "479fd66c9052ae8310e564eb7b934c07b3a3b58ea98313a99e2852f7e0564a3f"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "62cb13f9ba54c9736e910b19a1da8a64f2825b034cf73c581bb25d182ddd7876"
     },
     "hotkeys/short_tier3_ask.das": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "52db8981e71c7da7a8aed1932199a5023fcfa3f966ac77b08d722233df90c157"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "fdbbe607d346b017d6f0f57f924baee71cf75d1f6a8022a6cc489d9a10e3d476"
     },
     "hotkeys/short_tier3_ask_minus.das": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "0aef0be8c519494a8c7c68f2dac0639489e38bbfec5604864bb3d6c0c5c05351"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "3ca365ebd59c1bbf1cbbd8e0366b446414a5d3b651d73b9b84a1021c5ac284f3"
     },
     "hotkeys/short_tier3_bid.das": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "7110a1ef833028797ecb7fa2dd974c68a2e04cab8f04329d8a6955f2250f4765"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "8596188f2f171ed06e0b181ba2c899a556dc395312a27b7cb10261ed72bb8f49"
     },
     "hotkeys/short_tier3_bid_minus.das": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "d672109983aacb1a4bdf8a27cfd8cd6fb28a4ef6308137b73891324733510a78"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "be404850ebab0bf05ce7be5cefab173a6f3ca93394e954a5d8de4e16ae4c96fd"
     },
     "hotkeys/short_tier4_ask.das": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "d452a58be25dbb13e429000b04945192aa56a1316076fb24ea69c8024321da63"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "fd938d93532d9ac770e85c19b14746692725499f8052ce76fb7bf88eca31b5d5"
     },
     "hotkeys/short_tier4_ask_minus.das": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "e5d385f5780b7514cbed10381dffbc9c7dd8ba09bb0f3f3ec871d4ae67e6a0d5"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "b235497949786d9132cbf3608321f69f17b14b30337c6e332295ba580a1b8540"
     },
     "hotkeys/short_tier4_bid.das": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "4844c650a64110b8375e59205859664234f5abc4d52c49e949a3d891cc8cebd1"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "cbe3d85178116945554bbdb78486441001be0b12f0acc20fcf82bd7c7dc858af"
     },
     "hotkeys/short_tier4_bid_minus.das": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "23a42939af431e691342e68c738e27ae5a00e6cff0cd8f92f05904bf586c5331"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "6f1a39ecd04ad323415106532480ac37fb82309796568a8db4796e542121c577"
     },
     "hotkeys/show_config.das": {
       "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
@@ -241,24 +243,24 @@
       "sha256": "6152a7fed3f8c2581b77529aa4944559a000075390121dbb21bf0a468a41b127"
     },
     "hotkeys/timer_short_stop_handler.das": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "87988fab429adbf34da8699af739436a176eacd30acd13fd0964dd62c5d33fdb"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "5f0b6e1e4c6a0baa9807d04328c61ed28d2bbfa325c058d047460e48910159d0"
     },
     "keymap.yaml": {
       "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
       "sha256": "25185828a5b739eacd0c1d985118352497670c83404e87392ed8c84f45048071"
     },
     "README.md": {
-      "reason": "2026-10-29 documentation review against current scripts, bindings, defaults and installation evidence; semantic extraction/merge not yet refreshed.",
-      "sha256": "a0c6b594777a442581c12259b141c45b9668bb04d0bffb0961bd73d473e793a1"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "174701760ea1048c84a6ba117046e9b82d2d5011fa229caca288e7728b73c91d"
     },
     "tools/tests/trade-isolation.test.cjs": {
-      "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
-      "sha256": "8e199ad931350259db7c0b392d6e3bed4b31be198cf4914204798f35e17f00bd"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "2a76efd7dc391ba4a4471b35619fe21d83972fb68537e12daaff70328e4f0a96"
     },
     "USERGUIDE.md": {
-      "reason": "2026-10-29 documentation review against current scripts, bindings, defaults and installation evidence; semantic extraction/merge not yet refreshed.",
-      "sha256": "7fdace06d0e29d8dea22649cfb0115f169192771260cef6b359a9b975ff4556d"
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "de4f9c9bdf0d7af70ae5aa56bd30607a9763181ed91c3c527aa53423fe856a70"
     },
     "TODO.md": {
       "reason": "2026-10-29 documentation review against current scripts, bindings, defaults and installation evidence; semantic extraction/merge not yet refreshed.",
@@ -267,13 +269,21 @@
     "assets/streamdeck/README.md": {
       "reason": "2026-10-29 documentation review against current scripts, bindings, defaults and installation evidence; semantic extraction/merge not yet refreshed.",
       "sha256": "35acf8401264124ecab04bfebbbe3c57b4a68fa2d98267811987c02b30478e48"
+    },
+    "hotkeys/clear_trade_state.das": {
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "351143cf7d30b9d0415354bd17ff11fbc2f1758f0d4bae350149cc80629212b8"
+    },
+    "hotkeys/invalidate_trade_alerts.das": {
+      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
+      "sha256": "af8bc223cd2da7225777b9b13a3ebca30e93237e9f17fa6e2242d5ed967973e2"
     }
   },
   "last_refresh": "windows-refresh-receipt.json",
   "completed_at": "2026-10-28T02:31:12.127379+00:00",
   "source_head": "aa948053bd61825371385db245babac9809eaf5e",
   "source_hashes_verified": 117,
-  "remaining_scope": "Existing timeout source/tests and the full documentation review listed in files require fresh DAS-aware extraction plus semantic/test-code merge. Retained graph/report/HTML describe the earlier snapshot; no extraction freshness is claimed.",
-  "recorded_at": "2026-10-29T11:48:26.567287+00:00",
-  "reviewed_source_head": "f4b801872f78d3bb84b3fef8ff94334217d9a3ee"
+  "remaining_scope": "Retained graph/report/HTML predate timeout implementation, documentation review and rejected-short reconciliation. All pending files require DAS-aware extraction, fresh test extraction and semantic merge; no freshness claim.",
+  "recorded_at": "2026-10-30T14:57:53.348040+00:00",
+  "reviewed_source_head": "23349e53497c79a0ae6b76c43e302f9aa2fbff21"
 }

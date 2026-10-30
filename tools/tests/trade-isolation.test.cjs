@@ -109,10 +109,10 @@ function runtime() {
   vm.runInContext(`for (const field of ['kind','priority','direction','fraction','exitPending','active','entryPending','closeManaged','closePriority']) {
     Object.defineProperty(Number.prototype, field, {get(){throw new Error('Missing Object: '+field);}});
   }`,ctx);
-  r.runFile=f=>vm.runInContext('(function(){\n'+translate(fs.readFileSync(path.join(root,f),'utf8'))+'\n})()',ctx,{filename:f,timeout:1000});
+  r.runFile=f=>vm.runInContext('(function(){\n'+translate(fs.readFileSync(path.join(root,f),'utf8'))+'\n})()',ctx,{filename:f,timeout:5000});
   ctx.ExecHotkey=ctx.ExecHotKey=label=>{assert(scripts.has(label),'Unknown hotkey: '+label);r.runFile(scripts.get(label));};
   r.run=ctx.ExecHotkey;
-  r.execute=s=>vm.runInContext(translate(s),ctx,{timeout:1000});
+  r.execute=s=>vm.runInContext(translate(s),ctx,{timeout:5000});
   r.tick=()=>{r.seconds+=1;r.runFile('other scripts/timer.das');};
   r.run('Set Global Variables');r.quote('AAA');r.position('LIVE','AAA',0);
   return r;
@@ -1115,6 +1115,71 @@ test('short protection scans long order history over multiple ticks without exce
 test('a rejected short entry never creates protection or automatic route fallback',()=>{
   const r=runtime();r.sendHook=o=>{o.Open=0;o.Status='Rejected';};r.run('Short T1 Bid');
   for(let i=0;i<12;i++)r.tick();assert.equal(r.orders.length,1);assert.equal(r.orders[0].Type,'L');
+});
+
+for(const label of [...scripts.keys()].filter(s=>/^Short T/.test(s))) {
+  test(label+' releases rejected submission state even when the template stays open',()=>{
+    const r=runtime();r.ctx.$shortEntryTimeoutSeconds=0;let cancelRequests=0;
+    r.sendHook=o=>{r.orders.pop();o.Status='N/A';
+      o.GetInfo=()=>{}; // A rejected template can stay open even after refresh.
+      o.Cancel=()=>{cancelRequests++;};};
+    r.run(label);const t=r.state('LIVE','AAA');assert.equal(t.shortEntryPending,1);
+    r.sendHook=null;r.tick();assert.equal(t.shortEntryPending,1);
+    r.tick();assert.equal(t.shortEntryPending,1);r.tick();
+    assert(cancelRequests>0);assert.equal(t.shortEntryPending,0);assert.equal(t.shortCoverPending,0);
+    assert.equal(t.active,0);assert.equal(r.orders.length,0);
+    r.run('Buy MIB Bid SL');assert.equal(r.orders.length,1);assert.equal(r.orders[0].Side,'B');
+  });
+}
+test('short timer reads a closed live record instead of its stale submission template',()=>{
+  const r=runtime();r.run('Short T1 Bid');const template=r.orders[0];
+  r.orders[0]=object({Account:'LIVE',Symbol:'AAA',Side:'SS',RefNum:template.RefNum,Open:0});
+  template.GetInfo=()=>{throw new Error('Read stale template');};
+  r.tick();assert.equal(r.state('LIVE','AAA').shortEntryPending,0);
+  assert.equal(r.state('LIVE','AAA').active,0);
+});
+test('short timer preserves an accepted working order with an unresolved submission reference',()=>{
+  const r=runtime();r.ctx.$shortEntryTimeoutSeconds=0;r.run('Short T1 Bid');const live=r.orders[0];
+  r.state('LIVE','AAA').shortEntryOrder=object({RefNum:0,Open:100,Cancel(){}});
+  for(let i=0;i<8;i++)r.tick();assert.equal(r.state('LIVE','AAA').shortEntryPending,1);
+  assert.equal(live.canceled,undefined);r.run('Buy MIB Bid SL');assert.equal(r.orders.length,1);
+});
+test('short rejection reconciliation waits for publication and a fresh empty scan',()=>{
+  const r=runtime();r.ctx.$shortEntryTimeoutSeconds=0;r.run('Short T1 Bid');const live=r.orders.pop();
+  const t=r.state('LIVE','AAA');t.shortEntryOrder=object({RefNum:live.RefNum,Open:100,Cancel(){}});
+  r.tick();assert.equal(t.shortEntryPending,1);r.orders.push(live);
+  r.tick();assert.equal(t.shortEntryPending,1);assert.equal(live.canceled,undefined);
+});
+test('short rejection reconciliation remains scoped and cannot release unknown position data',()=>{
+  const r=runtime();r.sendHook=o=>{r.orders.pop();o.Cancel=()=>{};};r.run('Short T1 Bid');r.sendHook=null;
+  const t=r.state('LIVE','AAA');r.select('TRSIM','OTHER');r.quote('OTHER');r.position('TRSIM','OTHER',-20);
+  r.positions.delete('LIVE|AAA');for(let i=0;i<5;i++)r.tick();assert.equal(t.shortEntryPending,1);
+  r.position('LIVE','AAA',0);for(let i=0;i<3;i++)r.tick();assert.equal(t.shortEntryPending,0);
+  assert.equal(r.account,'TRSIM');assert.equal(r.symbol,'OTHER');assert.equal(r.orders.length,0);
+});
+test('a working short arriving after the first empty scan prevents pending-state release',()=>{
+  const r=runtime();r.ctx.$shortEntryTimeoutSeconds=0;r.run('Short T1 Bid');const live=r.orders.pop();
+  const t=r.state('LIVE','AAA');t.shortEntryOrder=object({RefNum:0,Open:100,Cancel(){}});
+  r.tick();r.tick();r.orders.push(live);r.tick();assert.equal(t.shortEntryPending,1);
+  assert.equal(live.canceled,undefined);r.run('Buy MIB Bid SL');assert.equal(r.orders.length,1);
+});
+test('rejected-short cleanup scans histories larger than 200 orders before releasing the guard',()=>{
+  const r=runtime();r.ctx.$shortEntryTimeoutSeconds=0;r.run('Short T1 Bid');const live=r.orders.pop();
+  const t=r.state('LIVE','AAA');t.shortEntryOrder=object({RefNum:0,Open:100,Cancel(){}});
+  for(let i=0;i<205;i++)r.orders.push(object({Account:'LIVE',Symbol:'AAA',Side:'B',Open:0,RefNum:i+1}));
+  live.RefNum=206;r.orders.push(live);r.tick();r.tick();assert.equal(t.shortEntryPending,1);
+  r.tick();assert.equal(t.shortEntryPending,1);assert.equal(live.canceled,undefined);
+  live.Open=0;for(let i=0;i<5;i++)r.tick();assert.equal(t.shortEntryPending,0);
+});
+test('short rejection cleanup handles midnight and protects a fill racing the final position read',()=>{
+  const r=runtime();r.seconds=86398;r.sendHook=o=>{r.orders.pop();o.Cancel=()=>{};};
+  r.run('Short T1 Bid');r.sendHook=null;r.tick();r.tick();
+  const originalGetAccount=r.ctx.GetAccountObj;let reads=0;
+  r.ctx.GetAccountObj=a=>{const account=originalGetAccount(a),getPosition=account.GetPosition;
+    account.GetPosition=s=>{if(++reads===2)r.position('LIVE','AAA',-25,10);return getPosition(s);};return account;};
+  r.tick();const t=r.state('LIVE','AAA');assert.equal(t.shortEntryPending,0);
+  assert.equal(t.shortWatch,1);assert.equal(r.orders.length,1);assert.equal(r.orders[0].Type,'SLP');
+  assert.equal(r.orders[0].Side,'B');assert.equal(r.orders[0].Share,25);
 });
 
 for(const [shares,op,target] of [[100,'>',10.5],[-100,'<',9.5]]) {

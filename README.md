@@ -202,3 +202,11 @@ against current source; they are not current operational documentation.
 Order-object scripts do not explicitly request a display quantity. Full display,
 hidden orders, and reserve-order support have not been established for the
 current `NewOrderObj()` path and exact broker routes. See [order display details](USERGUIDE.md#order-display--reserve-size).
+
+### Rejected short submissions
+
+The short timer resolves the recorded order separately from its submission
+object so a rejected short whose template remains open does not permanently
+block subsequent longs. Unrecorded submissions use delayed, scoped cancellation
+and repeated order-history/position checks before releasing pending state.
+The timer must be running. See [rejection recovery and verification limits](USERGUIDE.md#rejected-short-entry--stuck-pending-guard).

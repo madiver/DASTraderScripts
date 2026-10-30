@@ -927,3 +927,37 @@ our order-object submissions. Reserve support on the exact broker route,
 including short sales and extended hours, also needs confirmation. Do not add
 an assumed `$order.Display` / `$order.SShare` property or treat a successful
 in-memory test as proof that DAS accepts it. See the [review/setup status](README.md#documentation-and-deployment-status).
+
+## REJECTED SHORT ENTRY / STUCK PENDING GUARD
+
+A flat position does not prove an entry was canceled: an unfilled short order
+could still execute. Long entry therefore remains blocked while short-entry or
+short-cover cleanup is pending for the same account/symbol.
+
+A rejected short can leave the `NewOrderObj()` submission object reporting a
+nonzero `Open` value. The short timer now queries the recorded order with
+`GetOrderObj` using account, symbol and exact RefNum instead of relying on that
+submission object's `Open`/`GetInfo`. A recorded order with zero open shares
+releases its entry-pending flag; actual signed position changes determine fills.
+
+When no matching recorded order exists, the timer allows two elapsed seconds
+for publication, requests cancellation of the original submission, and scans
+that account/symbol's history for working SELL/short orders. It requires two
+complete empty scans on distinct seconds and a fresh valid position read before
+clearing the unresolved entry state. Histories beyond 200 records resume on
+later ticks; a non-advancing lookup or missing position data does not release
+the guard. A working SELL keeps it blocked. A racing short fill continues into
+normal protection staging. These checks also run with the fill timeout set to
+INDEF; INDEF does not preserve an unrecorded failed submission indefinitely.
+
+This is reconciliation against the order/position data available in DAS, not
+proof of broker acknowledgment or protection against arbitrarily delayed order
+publication. Verify the fix in SIM, including rejected, accepted, and delayed
+submissions, before using it live. Install the complete updated hotkey map;
+the Timer Event Script itself is unchanged for this fix and must remain enabled.
+
+An existing unresolved context is reconsidered on later timer ticks after the
+updated handler is installed. For manual recovery, first verify both position
+and working orders for the selected account/symbol, then use the existing
+Cancel All workflow. LOAD CFG preserves trade objects and is not a pending-state
+reset. Do not bypass the guard by zeroing flags while an order may still execute.
