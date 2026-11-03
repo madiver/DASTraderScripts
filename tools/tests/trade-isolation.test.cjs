@@ -106,10 +106,10 @@ function runtime() {
     Object.defineProperty(ctx,native,{get:()=>primary[prop],configurable:true});
   }
   vm.createContext(ctx);r.ctx=ctx;
-  vm.runInContext(`for (const field of ['kind','priority','direction','fraction','exitPending','active','entryPending','closeManaged','closePriority']) {
+  vm.runInContext(`for (const field of ['kind','priority','direction','fraction','exitPending','active','entryPending','closeManaged','closePriority','RefNum','Open','Side']) {
     Object.defineProperty(Number.prototype, field, {get(){throw new Error('Missing Object: '+field);}});
   }`,ctx);
-  r.runFile=f=>vm.runInContext('(function(){\n'+translate(fs.readFileSync(path.join(root,f),'utf8'))+'\n})()',ctx,{filename:f,timeout:5000});
+  r.runFile=f=>vm.runInContext('(function(){\n'+translate(fs.readFileSync(path.join(root,f),'utf8').replace(/\bbreak\s*;/g, token=>r.ignoreBreak ? ';' : token))+'\n})()',ctx,{filename:f,timeout:5000});
   ctx.ExecHotkey=ctx.ExecHotKey=label=>{assert(scripts.has(label),'Unknown hotkey: '+label);r.runFile(scripts.get(label));};
   r.run=ctx.ExecHotkey;
   r.execute=s=>vm.runInContext(translate(s),ctx,{timeout:5000});
@@ -1131,6 +1131,22 @@ for(const label of [...scripts.keys()].filter(s=>/^Short T/.test(s))) {
     r.run('Buy MIB Bid SL');assert.equal(r.orders.length,1);assert.equal(r.orders[0].Side,'B');
   });
 }
+// Fault injection: the missing-order path must remain safe even if break is
+// ignored by an interpreter. This does not claim to emulate DAS internals.
+test('short reconciliation safely completes empty scans without break semantics',()=>{
+  for(const history of [0,2,200,205]) {
+    const r=runtime();r.ignoreBreak=true;r.ctx.$shortEntryTimeoutSeconds=0;
+    r.sendHook=o=>{r.orders.pop();o.Cancel=()=>{};};r.run('Short T1 Bid');r.sendHook=null;
+    const t=r.state('LIVE','AAA');t.shortEntryOrder.RefNum=0;
+    for(let i=0;i<history;i++)r.orders.push(object({Account:'LIVE',Symbol:'AAA',Side:'B',Open:0,RefNum:i+1}));
+    r.tick();assert.equal(t.shortEntryPending,1);
+    r.tick();assert.equal(t.shortEntryPending,1);
+    for(let i=0;i<6;i++)r.tick();
+    assert.equal(t.shortEntryPending,0);assert.equal(t.active,0);
+    assert.equal(r.orders.length,history);
+  }
+});
+
 test('short timer reads a closed live record instead of its stale submission template',()=>{
   const r=runtime();r.run('Short T1 Bid');const template=r.orders[0];
   r.orders[0]=object({Account:'LIVE',Symbol:'AAA',Side:'SS',RefNum:template.RefNum,Open:0});

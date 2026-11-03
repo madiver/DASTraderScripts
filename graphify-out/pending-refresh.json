@@ -243,8 +243,8 @@
       "sha256": "6152a7fed3f8c2581b77529aa4944559a000075390121dbb21bf0a468a41b127"
     },
     "hotkeys/timer_short_stop_handler.das": {
-      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
-      "sha256": "5f0b6e1e4c6a0baa9807d04328c61ed28d2bbfa325c058d047460e48910159d0"
+      "reason": "Missing-order guard repair: explicit object branch and scan completion flag remove reliance on break; regression fault injection added. Fresh DAS/test extraction and merge pending.",
+      "sha256": "18b56bfb642962b64b8ced24ec01937b3003586f8c5097427f0ae97fb68547ca"
     },
     "keymap.yaml": {
       "reason": "Independent long/short no-fill entry timeout implementation; retained graph has not been re-extracted/merged for this change.",
@@ -255,8 +255,8 @@
       "sha256": "5b20011b7afb95008a965fb98f18ad826c121ec85a14a9478c19bd1499dcbfbf"
     },
     "tools/tests/trade-isolation.test.cjs": {
-      "reason": "Rejected-short pending-state reconciliation fix and regression/documentation update; requires fresh DAS/test extraction and semantic merge.",
-      "sha256": "2a76efd7dc391ba4a4471b35619fe21d83972fb68537e12daaff70328e4f0a96"
+      "reason": "Missing-order guard repair: explicit object branch and scan completion flag remove reliance on break; regression fault injection added. Fresh DAS/test extraction and merge pending.",
+      "sha256": "de1c839edded3ff06fb43bbcc618fca6eec9a01fcc9fde9731d5dc55223443eb"
     },
     "USERGUIDE.md": {
       "reason": "2026-10-30 Stream Deck timeout reset-group repair and current local installation verification; semantic extraction/merge remains pending.",

@@ -25,22 +25,28 @@ if ($trade.shortEntryPending == 1 && !IsObj($tsEntryOrder) && $posNow >= $trade.
     if (IsObj($tsEntryTemplate)) { $tsEntryTemplate.Cancel(); }
     $tsProbeRef = $trade.Get("shortEntryProbeRef");
     $tsProbeCount = 0;
-    while ($tsProbeCount < 200) {
+    $tsProbeDone = 0;
+    while ($tsProbeCount < 200 && $tsProbeDone == 0) {
         $tsProbeNext = $tsProbeRef + 1;
         $tsProbeOrder = GetOrderObj("Acc=" + $trade.account + ",Symb=" + $trade.symbol + ",RefNum>=" + $tsProbeNext);
-        if (!IsObj($tsProbeOrder)) { break; }
-        if ($tsProbeOrder.RefNum <= $tsProbeRef) {
-            $trade.Set("shortEntryProbeRef", 0);
-            $trade.Set("shortEntryProbeEmpty", 0);
-            return;
+        // Keep property reads inside the object branch. Do not rely on break
+        // to skip them when GetOrderObj has reached the end of history.
+        if (IsObj($tsProbeOrder)) {
+            if ($tsProbeOrder.RefNum <= $tsProbeRef) {
+                $trade.Set("shortEntryProbeRef", 0);
+                $trade.Set("shortEntryProbeEmpty", 0);
+                return;
+            }
+            if ($tsProbeOrder.Open > 0 && $tsProbeOrder.Side != "B") {
+                $trade.Set("shortEntryProbeRef", 0);
+                $trade.Set("shortEntryProbeEmpty", 0);
+                return;
+            }
+            $tsProbeRef = $tsProbeOrder.RefNum;
+            $tsProbeCount = $tsProbeCount + 1;
+        } else {
+            $tsProbeDone = 1;
         }
-        if ($tsProbeOrder.Open > 0 && $tsProbeOrder.Side != "B") {
-            $trade.Set("shortEntryProbeRef", 0);
-            $trade.Set("shortEntryProbeEmpty", 0);
-            return;
-        }
-        $tsProbeRef = $tsProbeOrder.RefNum;
-        $tsProbeCount = $tsProbeCount + 1;
     }
     if ($tsProbeCount >= 200) {
         $trade.Set("shortEntryProbeRef", $tsProbeRef);
