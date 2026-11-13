@@ -24,6 +24,20 @@ if ($trade.exitPending == 1 && $stopTimer != 1) {
     ExecHotkey("End Trade Action");
     return;
 }
+// Invalid prices wait for changed settings/position; transient failures still retry.
+$protectionKey = "scale|" + $trade.generation + "|" + $posNow + "|" + $avgNow + "|" + $stopLossTrigger + "|" + $exitOffset + "|" + $tradeBid;
+if ($stopTimer == 1 && $trade.Get("invalidStopKey") == $protectionKey) {
+    ExecHotkey("End Trade Action");
+    return;
+}
+if ($stopLossTrigger <= 0) {
+    if ($trade.Get("invalidStopKey") != $protectionKey) {
+        MsgLog("Protection not armed for " + $trade.key + ": stop distance must be positive. Take profit waits for stop submission when automatic stops are enabled.");
+    }
+    $trade.Set("invalidStopKey", $protectionKey);
+    ExecHotkey("End Trade Action");
+    return;
+}
 // Validate price inputs before removing existing protection.
 if ($avgNow <= 0) {
     ExecHotkey("End Trade Action");
@@ -64,7 +78,11 @@ if ($tradeBid < $stop) {
 $stop = Round($stop, 102, $inc);
 $px = Round($px, 102, $inc);
 if ($stopType == "SLP" && $px >= $stop) { $px = Round($stop - $inc, 102, $inc); }
-if ($stop <= 0 || $px <= 0) {
+if ($stopLossTrigger <= 0 || $stop <= 0 || $px <= 0) {
+    if ($trade.Get("invalidStopKey") != $protectionKey) {
+        MsgLog("Protection not armed for " + $trade.key + ": invalid stop trigger=" + $stop + ", limit=" + $px + ", distance=" + $stopLossTrigger + ". Take profit waits for stop submission when automatic stops are enabled.");
+    }
+    $trade.Set("invalidStopKey", $protectionKey);
     ExecHotkey("End Trade Action");
     return;
 }
@@ -86,6 +104,7 @@ $s.Send();
 $trade.active = 1;
 $trade.lastStop = $stop;
 $trade.stopArmed = 1;
+$trade.Set("invalidStopKey", "");
 $stopSubmitted = 1;
 
 ExecHotkey("End Trade Action");

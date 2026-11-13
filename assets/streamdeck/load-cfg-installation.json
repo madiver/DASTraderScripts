@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-13",
+  "backup": "C:\\Users\\mark\\AppData\\Roaming\\Elgato\\StreamDeck\\RouteBackups\\load-cfg-defaults-20261113-060939",
+  "before_page_5_multiplier_removal": "C:\\Users\\mark\\AppData\\Roaming\\Elgato\\StreamDeck\\RouteBackups\\remove-page5-qty-mult-1794568939777",
+  "profiles": [
+    { "device": "Physical", "profile_id": "745FB1B7-C443-4B86-A3A6-2D00992981F7" },
+    { "device": "Virtual", "profile_id": "D2CB2156-42FE-43EC-89B4-A1F690A13A46" }
+  ],
+  "reset_steps": [
+    { "group": "3", "state": 3, "display": "BID +$0.01" },
+    { "group": "4", "state": 2, "display": "ASK -$0.01" },
+    { "group": "5", "state": 0, "display": "AUTOL, 1x, both 10s timeouts, six feature defaults" },
+    { "group": "2", "state": 3, "display": "$0.50 STOP" }
+  ],
+  "send_target_hotkeys": false,
+  "quantity_mode_group": "2",
+  "offset_timeout_labels": {
+    "headings": ["BID", "ASK", "LONG", "SHORT"],
+    "layout": "Two centered lines at size 12, value on the second line, original artwork preserved",
+    "backup": "C:\\Users\\mark\\AppData\\Roaming\\Elgato\\StreamDeck\\RouteBackups\\two-line-offset-timeout-20261113-062957"
+  },
+  "verification": {
+    "profiles": "Compared all five saved pages in both profiles. The LIVE/SIM actions matched their originals. Every trading page has the stop and multiplier selectors and all eight entry actions in the expected groups.",
+    "rendering": "Both profiles rendered the converted settings switches in the Stream Deck editor before the page 5 multiplier was removed.",
+    "behavior": "Eight in-memory scenarios used the installed Advanced Toggles functions with the page 5 multiplier removed. Reset from either deck updated the multiplier and entry labels on visible and later-opened trading pages, with no selector hotkeys. A new multiplier selection survived navigation on both decks. Entry shortcuts are identical across multiplier states.",
+    "das": "No hotkeys compiled or installed. LOAD CFG and order actions were not executed against DAS."
+  }
+}

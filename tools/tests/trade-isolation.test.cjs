@@ -119,6 +119,70 @@ function runtime() {
 }
 let count=0;
 function test(name,f) {try{f();count++;}catch(e){console.error('FAIL:',name);throw e;}}
+for(const label of [...scripts.keys()].filter(s=>s.startsWith('Buy '))) {
+  test(label+' rejects invalid projected trigger or limit without changing stop distance',()=>{
+    for(const price of [0.4,0.55]) {
+      const r=runtime();r.quote('AAA',price,price+0.001,price);
+      r.ctx.$useSpreadCheck=0;r.ctx.$usePerTradeRiskCap=0;r.ctx.$rehab=0;
+      const distance=r.ctx.$stopLossTrigger;
+      r.run(label);assert.equal(r.orders.length,0,label);
+      assert(r.logs.some(s=>s.includes('Protection not armed')),label);
+      assert.equal(r.ctx.$stopLossTrigger,distance);assert.equal(r.ctx.$tradeActionDepth,0);
+    }
+  });
+}
+
+test('invalid actual fill protection logs once, resumes on settings change, and arms TP',()=>{
+  const r=runtime();r.run('Buy MIB Bid SL');r.orders[0].Open=0;
+  r.position('LIVE','AAA',100,0.55);r.tick();r.tick();
+  const t=r.state('LIVE','AAA');assert.equal(t.entryStage,2);
+  assert.equal(r.orders.length,1);assert.equal(r.alerts.size,0);
+  assert(t.Get('invalidStopKey'));const round=r.ctx.Round;let rounds=0;
+  r.ctx.Round=(...args)=>{rounds++;return round(...args);};
+  for(let i=0;i<5;i++)r.tick();assert.equal(rounds,0);
+  assert.equal(r.logs.filter(s=>s.includes('Protection not armed')).length,1);
+  assert(r.logs.some(s=>s.includes('Take profit waits')));
+  r.ctx.$exitOffset=0.01;r.tick();
+  assert.equal(r.orders.length,2);assert.equal(r.orders[1].Type,'SLP');
+  assert.equal(r.orders[1].StopPrice,0.05);assert.equal(r.orders[1].Price,0.04);
+  assert.equal(r.ctx.$stopLossTrigger,0.5);assert.equal(r.alerts.size,1);
+  assert.equal(t.entryPending,0);assert.equal(t.Get('invalidStopKey'),0);
+});
+
+test('invalid protection resumes after average changes and still cleans up a flat trade',()=>{
+  const r=runtime();r.run('Buy MIB Bid SL');r.orders[0].Open=0;
+  r.position('LIVE','AAA',100,0.4);r.tick();r.tick();
+  const t=r.state('LIVE','AAA');assert.equal(r.orders.length,1);
+  r.position('LIVE','AAA',100,10);r.tick();assert.equal(r.orders.length,2);
+  assert.equal(r.alerts.size,1);
+  const q=runtime();q.run('Buy MIB Bid SL');q.orders[0].Open=0;
+  q.position('LIVE','AAA',100,0.4);q.tick();q.tick();q.position('LIVE','AAA',0);q.tick();
+  assert.equal(q.state('LIVE','AAA').active,0);
+  assert.equal(q.state('LIVE','AAA').Get('invalidStopKey'),0);
+});
+
+test('unarmed protection leaves other trade timers running and missing averages retry',()=>{
+  const r=runtime();r.run('Buy MIB Bid SL');r.orders[0].Open=0;
+  r.position('LIVE','AAA',100,0.4);
+  r.select('TRSIM','BBB');r.quote('BBB');r.position('TRSIM','BBB',0);
+  r.run('Buy MIB Bid SL');r.orders[1].Open=0;r.position('TRSIM','BBB',100,0);
+  r.tick();r.tick();assert.equal(r.orders.length,2);
+  r.position('TRSIM','BBB',100,10);r.tick();
+  assert.equal(r.orders.length,3);assert.equal(r.orders[2].Account,'TRSIM');
+  assert.equal(r.orders[2].Symbol,'BBB');assert.equal(r.alerts.size,1);
+  assert.equal(r.state('LIVE','AAA').entryStage,2);
+  assert.equal(r.ctx.$tradeActionDepth,0);
+});
+
+test('invalid rounded TP logs once and retries when its factor changes',()=>{
+  const r=runtime();r.ctx.$useAutoStop='No';r.ctx.$takeProfitFactor=0.000001;
+  r.run('Buy MIB Bid SL');r.orders[0].Open=0;r.position('LIVE','AAA',100,10);
+  r.tick();r.tick();for(let i=0;i<4;i++)r.tick();
+  assert.equal(r.alerts.size,0);
+  assert.equal(r.logs.filter(s=>s.includes('rounded target=')).length,1);
+  r.ctx.$takeProfitFactor=2;r.tick();assert.equal(r.alerts.size,1);
+});
+
 test('keymap shortcuts are unique and offset shorts avoid Windows-key combinations',()=>{
   const bindings=[...fs.readFileSync(path.join(root,'keymap.yaml'),'utf8')
     .matchAll(/- id: (.+)\r?\n\s+key:[ \t]*([^\r\n]*)\r?\n/g)];

@@ -31,12 +31,18 @@ if ($trade.exitPending == 1 && $tpTimer != 1) {
     ExecHotkey("End Trade Action");
     return;
 }
+$tpInvalidKey = "tp|" + $trade.generation + "|" + $posNow + "|" + $avgNow + "|" + $stopLossTrigger + "|" + $takeProfitFactor;
+if ($tpTimer == 1 && $trade.Get("invalidTpKey") == $tpInvalidKey) {
+    ExecHotkey("End Trade Action");
+    return;
+}
 $tpPx = $avgNow + ($stopLossTrigger * $takeProfitFactor * $tpDirection);
 if ($stopLossTrigger <= 0 || $takeProfitFactor <= 0 || $tpPx <= 0) {
-    if ($tpTimer != 1 || $trade.shortTpInvalidLogged != 1) {
+    if ($trade.Get("invalidTpKey") != $tpInvalidKey) {
         MsgLog("Take profit not created for " + $trade.key + ": target/risk must be positive. Review the stop distance and TP factor.");
     }
     $trade.shortTpInvalidLogged = 1;
+    $trade.Set("invalidTpKey", $tpInvalidKey);
     ExecHotkey("End Trade Action");
     return;
 }
@@ -45,6 +51,8 @@ if ($tpPx < 1 || $avgNow < 1) { $inc = 0.001; }
 if ($tpPx < 0.25 || $avgNow < 0.25) { $inc = 0.0005; }
 $tpPx = Round($tpPx, 102, $inc);
 if ($tpPx <= 0 || ($tpPx - $avgNow) * $tpDirection <= 0) {
+    MsgLog("Take profit not created for " + $trade.key + ": rounded target=" + $tpPx + " is invalid for average=" + $avgNow + ".");
+    $trade.Set("invalidTpKey", $tpInvalidKey);
     ExecHotkey("End Trade Action");
     return;
 }
@@ -84,6 +92,7 @@ if ($tpDirection == -1) {
     $trade.shortTpAvg = $avgNow;
     $trade.shortTpDone = 0;
 }
+$trade.Set("invalidTpKey", "");
 $tpCreated = 1;
 
 ExecHotkey("End Trade Action");

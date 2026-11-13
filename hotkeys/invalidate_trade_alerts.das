@@ -37,3 +37,6 @@ $trade.entryStage = 0;
 $trade.entryTicks = 0;
 $trade.entryWatch = 0;
 $trade.stopArmed = 0;
+
+$trade.Set("invalidStopKey", "");
+$trade.Set("invalidTpKey", "");

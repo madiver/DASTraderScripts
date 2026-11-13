@@ -15,6 +15,11 @@ Color references were sampled from the existing DAS Trader profile: buy backgrou
 the plugin draws the offset value and label separately. The same icon is used for
 all five states on each side.
 
+On page 5 of both DAS Trader profiles, the offset and timeout buttons use two
+centered lines at size 12. The top line is **BID**, **ASK**, **LONG**, or **SHORT**;
+the bottom line shows the signed dollar offset or the timeout (`10s`, `15s`,
+`30s`, or `INDEF`). The red and green borders use the same artwork as before.
+
 Created with the built-in image generation/editing tool from the existing blue
 microchip background, then downscaled to 156 x 160 pixels for Stream Deck.
 
@@ -42,15 +47,10 @@ mode actions or synchronize across keys/profiles. Every press sends an explicit
 preset for future entries; it does not change a pending entry's captured deadline.
 Long and short defaults in DAS are independent and both start at 10s.
 
-Both timeout buttons use Toggle Group 5 as a reset-only group, with
-`syncAcrossKeys: false` and `controlsModeActions: false`. LOAD CFG runs the
-existing configuration hotkey, then its existing offset resets, then a group-5
-Reset Group action with `resetState: 0` and `sendTargetHotkeys: false`. This sets
-both timeout displays to 10s; the configuration hotkey sets both DAS defaults.
-Inactive profile buttons apply the recorded reset when they next appear.
-Individual LONG/SHORT presses remain independent and do not synchronize between
-profiles. The BID/ASK controls keep groups 3/4 and their original reset states
-3/2 (+1/-1 cent); all original LOAD CFG steps are preserved.
+Both timeout buttons use Toggle Group 5 with `syncAcrossKeys: false` and
+`controlsModeActions: false`, so they cycle independently. LOAD CFG sets their
+DAS defaults to 10s and resets their displays to the same value. Inactive
+profile buttons apply the recorded reset when they next appear.
 
 Reset Group applies to every member of its group even when sync across keys is
 off. The timeouts previously inherited offset groups 3/4, causing LOAD CFG's
@@ -76,3 +76,30 @@ relaunch, then loaded successfully after a local plugin installation appeared in
 the app log. The final visual check showed working labels. Plugin availability
 is still required for all toggle/reset actions. No profile export, plugin
 license, or broker/DAS configuration is supplied here.
+
+## LOAD CFG defaults
+
+Both DAS Trader profiles bring DAS forward, send `Ctrl+,` once to run Set
+Global Variables, then reset these Advanced Toggles groups without sending
+the selectors' hotkeys:
+
+| Group | State (zero based) | Defaults |
+| --- | --- | --- |
+| 3 | 3 | BID OFFSET +$0.01 |
+| 4 | 2 | ASK OFFSET -$0.01 |
+| 5 | 0 | AUTOL, quantity 1×, both timeouts 10s, Stops/TP/Spread Check on, Rehab/SIM Guards/Multi-Position off |
+| 2 | 3 | $0.50 stop distance on pages 1–4 |
+
+There is no multiplier button on page 5. LOAD CFG saves the group 5 reset even
+if no multiplier selector is visible. The first trading page opened after the
+reset reads the shared 1× selection and updates its Buy/Short share labels.
+Only multiplier selectors synchronize across group 5 during normal cycling;
+the route, timeout, and feature selectors remain independent. A later multiplier
+selection carries across both decks and pages. Entry buttons and multiplier
+selectors use Mode Group 2, separate from the other local profiles' Mode Group 1.
+Stop distance has its own reset group and applies the recorded reset when its
+page opens.
+
+LIVE and SIM account actions are untouched. The labels reflect the reset and
+preset selections; they do not read DAS state. The
+[installation record](load-cfg-installation.json) lists the backup and checks.

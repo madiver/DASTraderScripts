@@ -47,3 +47,6 @@ $trade.stopArmed = 0;
 $trade.tpName = "";
 
 $trade.deferredTp = 0;
+
+$trade.Set("invalidStopKey", "");
+$trade.Set("invalidTpKey", "");

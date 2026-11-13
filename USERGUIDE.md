@@ -911,12 +911,15 @@ Short no-fill deadlines work even with automatic stop and TP features off.
 
 Buttons in the physical and Virtual profiles retain their own display state.
 They send explicit preset hotkeys, so each press sets the displayed value in DAS.
-LOAD CFG resets both DAS defaults and both timeout displays to 10s. Both timeout
-buttons use Toggle Group 5 solely for resets, with sync across keys off and sizing
-mode control off. They still cycle independently. LOAD CFG resets group 5 to
-state 0 (the first choice, 10s) without sending the selectors' hotkeys; its
-configuration hotkey already sets both defaults. Inactive profile controls apply
-the recorded reset when they next appear.
+LOAD CFG resets both DAS defaults and both timeout displays to 10s. It also
+resets the route to AUTOL, multiplier and entry share labels on pages 1–4 to 1×,
+stop distance to $0.50, Stops/TP/Spread Check to on, and Rehab/SIM Guards/Multi-Position
+to off. The multiplier selector on the first trading page you open picks up
+the saved reset and updates the entry share labels. LOAD CFG sends `Ctrl+,` to
+set the DAS defaults and resets the displays without sending selector hotkeys
+or switching accounts. The timeout buttons still cycle independently. Inactive
+controls apply the recorded reset when they next appear. See the
+[Stream Deck reset mapping](assets/streamdeck/README.md#load-cfg-defaults).
 
 The BID/ASK offset controls retain groups 3/4 and their existing +1/-1-cent reset
 values. Group resets apply even when sync across keys is off, so assigning a
@@ -974,3 +977,19 @@ updated handler is installed. For manual recovery, first verify both position
 and working orders for the selected account/symbol, then use the existing
 Cancel All workflow. LOAD CFG preserves trade objects and is not a pending-state
 reset. Do not bypass the guard by zeroing flags while an order may still execute.
+
+### Invalid automatic protection prices
+
+Long entry hotkeys validate the projected rounded stop trigger and limit before
+submitting when automatic stops are enabled, including the scale-in breakeven
+prices. This check does not change the configured stop distance. Actual fills
+can differ from the projection, so protection also validates actual position
+prices after a fill.
+
+Invalid prices report **Protection not armed** with the reason. The long-entry
+timer leaves take-profit staging waiting for stop submission. Invalid stop/TP
+settings are reported once per input snapshot; automatic attempts resume when
+the relevant settings, position, or average changes. Rounded TP targets that
+collapse to the average are also reported. Temporary missing position/average
+data still retries, and other trades and flat-position cleanup continue.
+A submitted stop is not proof of broker acceptance or execution.

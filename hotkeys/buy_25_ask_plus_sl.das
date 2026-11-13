@@ -180,6 +180,29 @@ if ($posBefore > 0) {
     }
 }
 
+// Validate projected rounded protection before placing the entry.
+if ($useAutoStop == "Yes") {
+    $checkAvg = $pxEntry;
+    if ($posBefore > 0) { $checkAvg = ($avgBefore * $posBefore + $pxEntry * $addShares) / ($posBefore + $addShares); }
+    $checkInc = 0.01;
+    if ($checkAvg < 1) { $checkInc = 0.001; }
+    if ($checkAvg < 0.25) { $checkInc = 0.0005; }
+    $checkAvg = Round($checkAvg, 102, $checkInc);
+    $checkStop = Round($checkAvg - $stopLossTrigger, 102, $checkInc);
+    $checkLimit = Round($checkAvg - $stopLossTrigger - $exitOffset, 102, $checkInc);
+    if ($posBefore > 0) {
+        $checkStop = Round($checkAvg + 0.03, 102, $checkInc);
+        $checkLimit = $checkAvg;
+        if ($bid < $checkStop) { $checkStop = $checkAvg; $checkLimit = $checkStop - $checkInc; }
+    }
+    if ($checkLimit >= $checkStop) { $checkLimit = Round($checkStop - $checkInc, 102, $checkInc); }
+    if ($stopLossTrigger <= 0 || $checkStop <= 0 || $checkLimit <= 0) {
+        MsgBox("Protection not armed: entry aborted for " + $trade.symbol + ", projected trigger=" + $checkStop + ", limit=" + $checkLimit + ". Review protection settings.");
+        ExecHotkey("End Trade Action");
+        return;
+    }
+}
+
 ExecHotkey("Read Trade Position");
 if ($tradePositionValid != 1 || $posNow < 0 || $posNow != $posBefore) {
     MsgLog("Entry aborted: position changed during preparation.");
